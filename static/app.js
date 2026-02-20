@@ -90,6 +90,10 @@
       "label.box_shadow": "Box shadows",
       "label.card_bg": "Card background",
       "label.page_bg": "Page background",
+      "label.filename_cv": "CV filename",
+      "label.filename_cover": "Cover letter filename",
+      "placeholder.filename_cv": "Leave empty for auto (CV_Name_Company.pdf)",
+      "placeholder.filename_cover": "Leave empty for auto",
       "style.rounded": "Rounded corners",
       "style.square": "Square corners",
       "style.no_borders": "No borders",
@@ -133,6 +137,12 @@
       "tag.arbeitszeugnis": "Arbeitszeugnis",
       "tag.certificate": "Certificate",
       "tag.other": "Other",
+      "label.font_family": "Font family",
+      "font.inter": "Inter",
+      "font.roboto": "Roboto",
+      "font.lato": "Lato",
+      "font.georgia": "Georgia",
+      "font.source_sans": "Source Sans 3",
       "template.simple": "Simple",
       "template.sophisticated": "Sophisticated",
       "template.friendly": "Friendly",
@@ -167,7 +177,7 @@
       "fmt.company": "Company: full legal name (e.g. \"Soprema AG\", not \"Soprema\")",
       "fmt.achievements": "Achievements: one per line, STAR format. Start with action verb. Include metrics.",
       "fmt.achievements_ex": "Example:\nLed national B2C campaign (CHF 500k budget), online/offline mix\nImproved SEO ranking from position 8 to 2 within 6 months\nBuilt CI/CD pipeline, reduced deployment time by 70%",
-      "fmt.skills": "Skills: comma separated, specific (e.g. \"Python, SQL, Tableau, Jira\" not \"programming, data\")",
+      "fmt.skills": "Skills: comma separated, specific (e.g. \"Python, SQL, Tableau, Jira\" not \"programming, data\"). Include level in parentheses: Python (Expert), SQL (Advanced), Excel (Basic)",
       "fmt.education": "Education: degree + school + period (e.g. \"MSc Applied Information & Data Science, HSLU, 09/2023\u2013present\")",
       "fmt.tip": "Tip: more specific input = better output. Vague descriptions cost extra regenerations.",
       "fmt.close": "Got it",
@@ -301,6 +311,10 @@
       "label.box_shadow": "Schatten",
       "label.card_bg": "Karten-Hintergrund",
       "label.page_bg": "Seiten-Hintergrund",
+      "label.filename_cv": "CV Dateiname",
+      "label.filename_cover": "Anschreiben Dateiname",
+      "placeholder.filename_cv": "Leer lassen für automatisch (CV_Name_Firma.pdf)",
+      "placeholder.filename_cover": "Leer lassen für automatisch",
       "style.rounded": "Abgerundete Ecken",
       "style.square": "Eckige Ecken",
       "style.no_borders": "Keine Rahmen",
@@ -344,6 +358,12 @@
       "tag.arbeitszeugnis": "Arbeitszeugnis",
       "tag.certificate": "Zertifikat",
       "tag.other": "Sonstiges",
+      "label.font_family": "Schriftart",
+      "font.inter": "Inter",
+      "font.roboto": "Roboto",
+      "font.lato": "Lato",
+      "font.georgia": "Georgia",
+      "font.source_sans": "Source Sans 3",
       "template.simple": "Einfach",
       "template.sophisticated": "Souverän",
       "template.friendly": "Freundlich",
@@ -378,7 +398,7 @@
       "fmt.company": "Firma: vollständiger Name (z.B. \"Soprema AG\", nicht \"Soprema\")",
       "fmt.achievements": "Leistungen: eine pro Zeile, STAR-Format. Mit Aktionsverb beginnen. Kennzahlen nennen.",
       "fmt.achievements_ex": "Beispiel:\nNationale B2C-Kampagne geleitet (CHF 500k Budget), Online-/Offline-Mix\nSEO-Ranking von Position 8 auf 2 verbessert innerhalb 6 Monaten\nCI/CD-Pipeline aufgebaut, Deployment-Zeit um 70% reduziert",
-      "fmt.skills": "Skills: kommagetrennt, spezifisch (z.B. \"Python, SQL, Tableau, Jira\" nicht \"Programmierung, Daten\")",
+      "fmt.skills": "Skills: kommagetrennt, spezifisch (z.B. \"Python, SQL, Tableau, Jira\" nicht \"Programmierung, Daten\"). Level in Klammern angeben: Python (Experte), SQL (Fortgeschritten), Excel (Grundkenntnisse)",
       "fmt.education": "Ausbildung: Abschluss + Schule + Zeitraum (z.B. \"MSc Applied Information & Data Science, HSLU, 09/2023\u2013heute\")",
       "fmt.tip": "Tipp: spezifischere Eingaben = besseres Ergebnis. Vage Beschreibungen kosten zusätzliche Generierungen.",
       "fmt.close": "Verstanden",
@@ -479,10 +499,13 @@
   const accentInput = document.getElementById("review-accent");
   const borderStyleSelect = document.getElementById("review-border-style");
   const boxShadowCheck = document.getElementById("review-box-shadow");
+  const fontSelect = document.getElementById("review-font");
   const cardBgInput = document.getElementById("review-card-bg");
   const pageBgInput = document.getElementById("review-page-bg");
   const langBtnEn = document.getElementById("lang-btn-en");
   const langBtnDe = document.getElementById("lang-btn-de");
+  const filenameCvInput = document.getElementById("review-filename-cv");
+  const filenameCoverInput = document.getElementById("review-filename-cover");
 
   const pasteText = document.getElementById("paste-text");
   const pasteTag = document.getElementById("paste-tag");
@@ -807,9 +830,12 @@
       primary: primaryInput?.value || defaultPrimary,
       accent: accentInput?.value || defaultAccent,
       borderStyle: borderStyleSelect?.value || "rounded",
+      fontFamily: fontSelect?.value || "inter",
       boxShadow: boxShadowCheck?.checked || false,
       cardBg: cardBgInput?.value || "#ffffff",
       pageBg: pageBgInput?.value || "#ffffff",
+      filenameCv: filenameCvInput?.value || "",
+      filenameCover: filenameCoverInput?.value || "",
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   }
@@ -832,10 +858,13 @@
       if (templateSelect) templateSelect.value = payload.templateId || "simple";
       if (primaryInput) primaryInput.value = payload.primary || defaultPrimary;
       if (accentInput) accentInput.value = payload.accent || defaultAccent;
+      if (fontSelect) fontSelect.value = payload.fontFamily || "inter";
       if (borderStyleSelect) borderStyleSelect.value = payload.borderStyle || "rounded";
       if (boxShadowCheck) boxShadowCheck.checked = Boolean(payload.boxShadow);
       if (cardBgInput) cardBgInput.value = payload.cardBg || "#ffffff";
       if (pageBgInput) pageBgInput.value = payload.pageBg || "#ffffff";
+      if (filenameCvInput) filenameCvInput.value = payload.filenameCv || "";
+      if (filenameCoverInput) filenameCoverInput.value = payload.filenameCover || "";
     } catch (_) {}
   }
 
@@ -1080,10 +1109,13 @@
       template_id: templateSelect?.value || "simple",
       primary_color: primaryInput?.value || defaultPrimary,
       accent_color: accentInput?.value || defaultAccent,
+      font_family: fontSelect?.value || "inter",
       border_style: borderStyleSelect?.value || "rounded",
       box_shadow: boxShadowCheck?.checked || false,
       card_bg: cardBgInput?.value || "#ffffff",
       page_bg: pageBgInput?.value || "#ffffff",
+      filename_cv: filenameCvInput?.value || "",
+      filename_cover: filenameCoverInput?.value || "",
     };
     const response = await fetch(endpoint(`/api/session/${state.sessionId}/generate`), {
       method: "POST",
@@ -1618,6 +1650,7 @@
     if (templateSelect && state.server.template_id) templateSelect.value = state.server.template_id;
     if (primaryInput && state.server.theme?.primary_hex) primaryInput.value = state.server.theme.primary_hex;
     if (accentInput && state.server.theme?.accent_hex) accentInput.value = state.server.theme.accent_hex;
+    if (fontSelect && state.server.theme?.font_family) fontSelect.value = state.server.theme.font_family;
     if (borderStyleSelect && state.server.theme?.border_style) borderStyleSelect.value = state.server.theme.border_style;
     if (boxShadowCheck && state.server.theme?.box_shadow !== undefined) boxShadowCheck.checked = state.server.theme.box_shadow;
     if (cardBgInput && state.server.theme?.card_bg) cardBgInput.value = state.server.theme.card_bg;
@@ -1715,7 +1748,7 @@
       photoFileTrigger.addEventListener("click", () => photoFile.click());
     }
 
-    [inputCompany, inputPosition, inputConsent, inputJobAd, templateSelect, primaryInput, accentInput, borderStyleSelect, boxShadowCheck, cardBgInput, pageBgInput]
+    [inputCompany, inputPosition, inputConsent, inputJobAd, templateSelect, primaryInput, accentInput, fontSelect, borderStyleSelect, boxShadowCheck, cardBgInput, pageBgInput, filenameCvInput, filenameCoverInput]
       .filter(Boolean)
       .forEach((element) => {
         element.addEventListener("input", () => {

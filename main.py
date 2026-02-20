@@ -705,6 +705,7 @@ async def api_session_generate(
     state = record.state
     state.template_id = _template_alias(payload.template_id or state.template_id)
     border_style = payload.border_style if payload.border_style in ("rounded", "square", "none") else "rounded"
+    font_family = payload.font_family if payload.font_family in ("inter", "roboto", "lato", "georgia", "source_sans") else "inter"
     state.theme = ThemeConfig(
         primary_hex=parse_hex_color(payload.primary_color, "#1F5AA8"),
         accent_hex=parse_hex_color(payload.accent_color, "#173A73"),
@@ -712,6 +713,7 @@ async def api_session_generate(
         box_shadow=payload.box_shadow,
         card_bg=parse_hex_color(payload.card_bg, "#ffffff"),
         page_bg=parse_hex_color(payload.page_bg, "#ffffff"),
+        font_family=font_family,
     )
 
     record = await _enrich_profile_with_openai(record)
@@ -766,11 +768,23 @@ async def api_session_generate(
         raise HTTPException(status_code=500, detail=f"PDF generation failed: {exc}") from exc
     comparison_sections = _build_comparison_sections(profile, generated)
     filenames = build_filenames(basic_profile.full_name or "Candidate", state.company_name or "Company")
+    if payload.filename_cv.strip():
+        artifact_filename_cv = payload.filename_cv.strip()
+        if not artifact_filename_cv.endswith(".pdf"):
+            artifact_filename_cv += ".pdf"
+    else:
+        artifact_filename_cv = filenames["cv"]
+    if payload.filename_cover.strip():
+        artifact_filename_cover = payload.filename_cover.strip()
+        if not artifact_filename_cover.endswith(".pdf"):
+            artifact_filename_cover += ".pdf"
+    else:
+        artifact_filename_cover = filenames["cover"]
     token = artifact_cache.create_token()
     artifact = ArtifactRecord(
         token=token,
-        filename_cv=filenames["cv"],
-        filename_cover=filenames["cover"],
+        filename_cv=artifact_filename_cv,
+        filename_cover=artifact_filename_cover,
         cv_pdf_bytes=cv_pdf,
         cover_pdf_bytes=cover_pdf,
         cv_html=cv_html,

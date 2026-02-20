@@ -4,7 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CV - {{ profile.full_name }}</title>
+  {% set font_css_map = {"inter": '"Inter", "Segoe UI", Arial, sans-serif', "roboto": '"Roboto", "Segoe UI", Arial, sans-serif', "lato": '"Lato", "Segoe UI", Arial, sans-serif', "georgia": 'Georgia, "Times New Roman", serif', "source_sans": '"Source Sans 3", "Segoe UI", Arial, sans-serif'} %}
+  {% set font_import_map = {"inter": "https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap", "roboto": "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap", "lato": "https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap", "source_sans": "https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap"} %}
+  {% set chosen_font = font_css_map.get(theme.font_family, font_css_map["inter"]) %}
+  {% set chosen_import = font_import_map.get(theme.font_family, "") %}
   <style>
+    {% if chosen_import %}@import url('{{ chosen_import }}');{% endif %}
     @page { size: A4; margin: 14mm 13mm; }
     :root {
       --primary: {{ theme.primary_hex }};
@@ -17,7 +22,7 @@
       --shadow: {% if theme.box_shadow %}0 2px 8px rgba(0,0,0,0.10){% else %}none{% endif %};
       --page-bg: {{ theme.page_bg }};
     }
-    body { margin: 0; color: var(--ink); font-family: "Inter", "Segoe UI", Arial, sans-serif; font-size: 11.4px; line-height: 1.35; background: var(--page-bg); }
+    body { margin: 0; color: var(--ink); font-family: {{ chosen_font }}; font-size: 11.4px; line-height: 1.35; background: var(--page-bg); }
     h1, h2, h3, p { margin: 0; }
     .header { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--primary); }
     .name { font-size: 30px; line-height: 1.02; color: var(--primary); font-weight: 700; }
@@ -28,7 +33,8 @@
     .section { margin-top: 10px; }
     .section h2 { color: var(--primary); font-size: 12.5px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.6px; }
     .summary { color: var(--ink); }
-    .chips span { display: inline-block; margin: 2px 6px 2px 0; border: {% if theme.border_style != 'none' %}1px solid var(--rule){% else %}none{% endif %}; border-left: 2.5px solid var(--primary); border-radius: var(--radius); padding: 2px 6px; background: var(--panel); font-size: 10.3px; box-shadow: var(--shadow); }
+    .chips .skill-chip { display: inline-block; margin: 2px 6px 2px 0; border: {% if theme.border_style != 'none' %}1px solid var(--rule){% else %}none{% endif %}; border-left: 2.5px solid var(--primary); border-radius: var(--radius); padding: 2px 6px; background: var(--panel); font-size: 10.3px; box-shadow: var(--shadow); }
+    .skill-level { font-size: 8px; color: var(--muted); display: block; margin-top: 1px; }
     .entry { margin: 0 0 7px; break-inside: avoid; }
     .entry h3 { font-size: 11.2px; }
     .meta { color: var(--muted); font-size: 10px; margin-top: 2px; }
@@ -63,7 +69,12 @@
     <h2>{{ "Kernkompetenzen" if language == "de" else "Core skills" }}</h2>
     <div class="chips">
       {% for skill in content.skills %}
-        <span>{{ skill }}</span>
+        {% set parts = skill.split(' (') %}
+        {% if parts|length > 1 %}
+          <span class="skill-chip">{{ parts[0] }}<small class="skill-level">{{ parts[1].rstrip(')') }}</small></span>
+        {% else %}
+          <span class="skill-chip">{{ skill }}</span>
+        {% endif %}
       {% endfor %}
     </div>
   </section>

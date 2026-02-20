@@ -11,6 +11,25 @@ ParseMethod = Literal["pdf_text", "pdf_text_ocr", "docx_text", "ocr_image", "pla
 PhaseName = Literal["start", "upload", "questions", "review"]
 
 
+FontFamily = Literal["inter", "roboto", "lato", "georgia", "source_sans"]
+
+FONT_FAMILY_CSS = {
+    "inter": '"Inter", "Segoe UI", Arial, sans-serif',
+    "roboto": '"Roboto", "Segoe UI", Arial, sans-serif',
+    "lato": '"Lato", "Segoe UI", Arial, sans-serif',
+    "georgia": 'Georgia, "Times New Roman", serif',
+    "source_sans": '"Source Sans 3", "Segoe UI", Arial, sans-serif',
+}
+
+FONT_IMPORT_URL = {
+    "inter": "https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap",
+    "roboto": "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap",
+    "lato": "https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap",
+    "georgia": "",
+    "source_sans": "https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap",
+}
+
+
 class ThemeConfig(BaseModel):
     primary_hex: str = "#1F5AA8"
     accent_hex: str = "#173A73"
@@ -18,6 +37,15 @@ class ThemeConfig(BaseModel):
     box_shadow: bool = False
     card_bg: str = "#ffffff"
     page_bg: str = "#ffffff"
+    font_family: FontFamily = "inter"
+
+    @property
+    def font_family_css(self) -> str:
+        return FONT_FAMILY_CSS.get(self.font_family, FONT_FAMILY_CSS["inter"])
+
+    @property
+    def font_import_url(self) -> str:
+        return FONT_IMPORT_URL.get(self.font_family, "")
 
 
 class SourceAttribution(BaseModel):
@@ -136,6 +164,9 @@ class GenerateRequest(BaseModel):
     box_shadow: bool = False
     card_bg: str = "#ffffff"
     page_bg: str = "#ffffff"
+    font_family: str = "inter"
+    filename_cv: str = ""
+    filename_cover: str = ""
 
 
 class GeneratedContent(BaseModel):
