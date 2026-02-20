@@ -191,6 +191,8 @@ def _refresh_state(record: SessionRecord) -> SessionRecord:
 
     if record.llm_profile:
         merged = merge_profiles(merged, record.llm_profile)
+    if record.preseed_profile:
+        merged = merge_profiles(merged, record.preseed_profile)
     if record.photo_data_url:
         merged.photo_data_url = record.photo_data_url
 
@@ -651,9 +653,10 @@ async def api_session_clear(session_id: str) -> Dict[str, str]:
 async def api_preseed(session_id: str, req: PreSeedRequest) -> Dict:
     record = _require_session(session_id)
     if req.profile:
-        existing = record.state.extracted_profile.model_dump()
+        existing = (record.preseed_profile or ExtractedProfile()).model_dump()
         existing.update({k: v for k, v in req.profile.items() if v})
-        record.state.extracted_profile = ExtractedProfile(**existing)
+        record.preseed_profile = ExtractedProfile(**existing)
+        record.state.extracted_profile = record.preseed_profile.model_copy(deep=True)
     if req.telos:
         record.state.telos_context.update(req.telos)
     session_cache.set(record)

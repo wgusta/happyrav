@@ -20,6 +20,7 @@ class SessionRecord:
     llm_warning: str = ""
     llm_debug: Dict[str, Any] = field(default_factory=dict)
     chat_history: List[Dict[str, str]] = field(default_factory=list)
+    preseed_profile: Optional[ExtractedProfile] = None
 
 
 class ArtifactCache:
