@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="{{ 'de-CH' if language == 'de' else 'en' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CV - {{ profile.full_name }}</title>
+  <style>
+    :root {
+      --primary: {{ theme.primary_hex }};
+      --accent: {{ theme.accent_hex }};
+      --ink: #111111;
+      --muted: #444444;
+      --rule: #d9d9d9;
+    }
+    body {
+      margin: 0;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      color: var(--ink);
+      line-height: 1.45;
+      font-size: 12.5px;
+      background: #ffffff;
+    }
+    .page {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 20px 26px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      color: var(--primary);
+      letter-spacing: 0.2px;
+    }
+    .headline {
+      margin: 6px 0 0 0;
+      font-size: 14px;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .contact {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 11.5px;
+    }
+    .section {
+      margin-top: 18px;
+      border-top: 1px solid var(--rule);
+      padding-top: 12px;
+    }
+    h2 {
+      margin: 0 0 7px 0;
+      color: var(--primary);
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    p {
+      margin: 5px 0 7px 0;
+    }
+    ul {
+      margin: 6px 0 4px 18px;
+      padding: 0;
+    }
+    li { margin-bottom: 4px; }
+    .meta {
+      color: var(--muted);
+      font-size: 11px;
+      margin: 2px 0 6px 0;
+    }
+    .pill-list span {
+      display: inline-block;
+      border: 1px solid var(--rule);
+      border-left: 3px solid var(--primary);
+      padding: 3px 7px;
+      margin: 3px 6px 3px 0;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+    .score {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <h1>{{ profile.full_name }}</h1>
+      <p class="headline">{{ profile.headline }}</p>
+      <div class="contact">
+        {% if profile.location %}<span>{{ profile.location }}</span>{% endif %}
+        {% if profile.email %}<span> | {{ profile.email }}</span>{% endif %}
+        {% if profile.phone %}<span> | {{ profile.phone }}</span>{% endif %}
+        {% if profile.linkedin %}<span> | {{ profile.linkedin }}</span>{% endif %}
+        {% if profile.portfolio %}<span> | {{ profile.portfolio }}</span>{% endif %}
+      </div>
+      <div class="score">
+        ATS Match Score: {{ "%.1f"|format(match.overall_score) }}/100
+      </div>
+    </header>
+
+    <section class="section">
+      <h2>{{ "Profil" if language == "de" else "Profile" }}</h2>
+      <p>{{ content.summary }}</p>
+    </section>
+
+    <section class="section">
+      <h2>{{ "Skills" if language == "de" else "Skills" }}</h2>
+      <div class="pill-list">
+        {% for skill in content.skills %}
+          <span>{{ skill }}</span>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>{{ "Berufserfahrung" if language == "de" else "Experience" }}</h2>
+      {% for item in content.experience %}
+        <article>
+          <strong>{{ item.role }}{% if item.company %} | {{ item.company }}{% endif %}</strong>
+          {% if item.period %}<div class="meta">{{ item.period }}</div>{% endif %}
+          {% if item.achievements %}
+            <ul>
+              {% for achievement in item.achievements %}
+                <li>{{ achievement }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </article>
+      {% endfor %}
+    </section>
+
+    <section class="section">
+      <h2>{{ "Ausbildung" if language == "de" else "Education" }}</h2>
+      {% for item in content.education %}
+        <article>
+          <strong>{{ item.degree }}</strong>
+          <div class="meta">
+            {% if item.school %}{{ item.school }}{% endif %}
+            {% if item.period %} | {{ item.period }}{% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </section>
+  </main>
+</body>
+</html>
+

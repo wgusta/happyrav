@@ -1,0 +1,7 @@
+<section class="block tone-white">
+  {% include "_result.html" %}
+  <div class="row-actions result-nav">
+    <a class="btn-secondary btn-link" href="{{ request.url_for('page_review') }}" data-i18n="action.back_review">Back to Review</a>
+    <a class="btn-primary btn-link" href="{{ request.url_for('page_start') }}" data-i18n="action.new_session">Start New Session</a>
+  </div>
+</section>

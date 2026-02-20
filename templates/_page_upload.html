@@ -1,0 +1,48 @@
+<section class="block tone-light">
+  <h2 data-i18n="upload.page_title">Upload your documents</h2>
+  <p class="block-sub" data-i18n="upload.supported">Supported: PDF, DOCX, PNG, JPG, JPEG, WEBP. Max 20 files/session, 12MB/file, 25MB/session.</p>
+
+  <label><span data-i18n="upload.photo">Profile photo (optional)</span>
+    <div class="file-picker">
+      <button id="photo-file-trigger" type="button" class="btn-secondary" data-i18n="action.choose_files">Choose files</button>
+      <span id="photo-file-name" class="file-picker-name" data-i18n="text.no_photo_selected">No photo selected</span>
+    </div>
+    <input id="photo-file" class="visually-hidden" type="file" accept=".png,.jpg,.jpeg,.webp">
+  </label>
+  <div class="row-actions">
+    <button id="upload-photo-btn" type="button" class="btn-secondary" disabled data-i18n="action.upload_photo">Upload photo</button>
+  </div>
+
+  <div class="grid two">
+    <label><span data-i18n="upload.documents">Documents</span>
+      <div class="file-picker">
+        <button id="upload-files-trigger" type="button" class="btn-secondary" data-i18n="action.choose_files">Choose files</button>
+        <span id="upload-files-name" class="file-picker-name">No files selected</span>
+      </div>
+      <input id="upload-files" class="visually-hidden" type="file" accept=".pdf,.docx,.png,.jpg,.jpeg,.webp" multiple>
+    </label>
+    <label><span data-i18n="upload.quick_tag">Quick tag default</span>
+      <select id="upload-tag-default">
+        <option value="" data-i18n="tag.auto">Auto-classify</option>
+        <option value="cv" data-i18n="tag.cv">CV</option>
+        <option value="cover_letter" data-i18n="tag.cover_letter">Cover letter</option>
+        <option value="arbeitszeugnis" data-i18n="tag.arbeitszeugnis">Arbeitszeugnis</option>
+        <option value="certificate" data-i18n="tag.certificate">Certificate</option>
+        <option value="other" data-i18n="tag.other">Other</option>
+      </select>
+    </label>
+  </div>
+  <div id="pending-upload-tags" class="list-rows"></div>
+  <div class="row-actions">
+    <button id="upload-btn" type="button" class="btn-primary" disabled data-i18n="action.upload">Upload documents</button>
+    <button id="extract-btn" type="button" class="btn-secondary" disabled data-i18n="action.extract_refresh">Re-extract + refresh questions</button>
+  </div>
+  <div id="documents-list" class="list-rows"></div>
+</section>
+
+<section class="block tone-white">
+  <div class="row-actions row-actions-between">
+    <a class="btn-secondary btn-link" href="{{ request.url_for('page_start') }}" data-i18n="action.back_start">Back to Start</a>
+    <button id="upload-continue-btn" type="button" class="btn-primary" disabled data-i18n="action.continue_questions">Continue to Questions</button>
+  </div>
+</section>

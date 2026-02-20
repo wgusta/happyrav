@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CV - Yenüg Atsu - Senior Digital Transformation Lead & AI Strategist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ===== Minimalistic, high-end theme ===== */
+  :root{
+    --bg:#F8F9FA;
+    --card:#FFFFFF;
+    --ink:#212529;
+    --muted:#6C757D;
+    --rule:#E9ECEF;
+    --heading-red:#9A2A2A;
+    --shadow: 0 8px 25px rgba(0,0,0,0.1);
+  }
+
+  /* ===== Base ===== */
+  *{ box-sizing: border-box; }
+  html, body { height: 100%; }
+  body{
+    margin:0;
+    background: rgb(10, 15, 41);
+    color: var(--ink);
+    font-family: Inter, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    word-break: break-word;
+  }
+  h1,h2{ margin:0 0 .45rem 0; line-height:1.1; font-family: Manrope, Inter, system-ui, sans-serif; color: var(--heading-red); }
+  h1{ font-size: 56px; font-weight: 800; letter-spacing:.2px; margin: 0 0 0.75rem 0; }
+  h2{ font-size: 22px; font-weight: 800; margin-top: 3rem; margin-bottom: 0.75rem; }
+  h3{ margin:0 0 .45rem 0; line-height:1.1; font-family: Manrope, Inter, system-ui, sans-serif; color: var(--ink); font-size: 18px; font-weight: 700; }
+  p{ margin:.25rem 0 .85rem; color: var(--muted); }
+  ul{ margin:.25rem 0 .6rem 1.2rem; padding:0; }
+  li{ margin:.5rem 0; color: var(--muted); line-height: 1.4; }
+  li strong { display: block; color: var(--ink); margin-bottom: 2px; }
+  strong { color: var(--ink); font-weight: 600; }
+  a{ color: var(--ink); text-decoration: underline; text-underline-offset:3px; text-decoration-thickness:1px; text-decoration-color: var(--rule); }
+  a:hover{ text-decoration-color: var(--heading-red); }
+  .label{ font-size:12px; text-transform:uppercase; letter-spacing:.3px; color: var(--muted); font-weight:600; }
+  .card > h2:first-of-type {
+      margin-top: 0;
+  }
+  h1 + .label { font-size: 16px; }
+  .job-title {
+    font-size: 18px;
+    font-family: Manrope, Inter, system-ui, sans-serif;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    margin-bottom: .5rem;
+  }
+
+  /* ===== Layout ===== */
+  .page{
+    max-width: 1180px;
+    margin: 36px auto;
+    padding: 0 16px 36px;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 16px;
+  }
+  .card{
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    min-width: 0;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .hero{
+    grid-column: span 12;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 24px;
+    align-items: center;
+    border: 1px solid var(--rule);
+    background: var(--card);
+  }
+
+  .photo-wrap{
+    width: 200px; height: 267px;
+    border-radius: 24px;
+    overflow: hidden;
+    border: 2px solid var(--rule);
+    background: var(--bg);
+  }
+  .photo{ width: 100%; height: 100%; object-fit: cover; object-position: 50% 10%; display:block; }
+
+  .kpis{ display:flex; gap:12px; flex-wrap:wrap; margin-top:6px; }
+  .kpi{ background: rgba(154, 42, 42, 0.08); border: 1px solid rgba(154, 42, 42, 0.2); border-radius: 14px; padding: 10px 12px; }
+  .kpi .big{ font-family: Manrope, Inter, sans-serif; font-weight: 800; font-size: 22px; color: var(--heading-red); }
+  .kpi small{ color: var(--muted); font-weight: 700; }
+
+  /* --- NEW: Single Column Layout --- */
+  .contact, .summary, .skills, .experience, .education, .languages, .projects { 
+    grid-column: span 12; 
+  }
+
+  .languages {
+      /* Styles for the new languages card can be added here if needed */
+  }
+
+  .contact-grid {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+  .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .contact-item svg {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    color: var(--muted);
+  }
+
+  .experience article + article {
+    margin-top: 28px;
+  }
+  .experience article {
+    margin-bottom: -1rem;
+  }
+  .experience article p.label + p {
+    display: none;
+  }
+  .experience .compact-station { margin-top: 1rem; margin-bottom: 0; }
+
+
+  .skills-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two columns for skills */
+    gap: 1.5rem;
+    margin-top: 1rem;
+  }
+  .skill-category h3 {
+    font-size: 15px;
+    margin-bottom: 0.5rem;
+    color: var(--heading-red);
+  }
+  .skill-category ul {
+    margin: 0;
+    padding-left: 1rem;
+  }
+  .skill-category li {
+    margin: 0.3rem 0;
+    font-size: 14px;
+  }
+
+  .projects ul {
+      margin-top: 1rem;
+  }
+
+  .prominent-link {
+    display: inline-block;
+    background: rgba(154, 42, 42, 0.08);
+    border: 1px solid rgba(154, 42, 42, 0.2);
+    border-radius: 12px;
+    padding: 6px 12px;
+    color: var(--heading-red);
+    font-weight: 600;
+    text-decoration: none;
+    transition: none;
+    margin-bottom: 4px;
+    margin-top: 8px;
+  }
+  .prominent-link:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .extras blockquote {
+    margin: 0 0 .5rem 0;
+    padding-left: 0;
+    border-left: none;
+    font-style: italic;
+    text-align: left;
+  }
+
+  .extras small {
+      display: block;
+      text-align: left;
+      font-style: normal;
+      font-size: 14px;
+      line-height: 1.4;
+      margin-top: 0.5rem;
+  }
+
+  .extras .ref-contact {
+    margin-bottom: 1.25rem;
+  }
+
+  .divider{ height:1px; background: var(--rule); margin: 12px 0; }
+  .experience .divider {
+    margin: 28px 0;
+  }
+
+  /* ===== Print ===== */
+  @page { size: A4; margin: 7mm; }
+  @media print{
+    body{ background:#fff !important; color:#111 !important; font-size: 10pt; }
+    h1,h2,h3 { color: #111 !important; }
+    a{ color:#111 !important; text-decoration: none; }
+    .page{ grid-template-columns: 1fr !important; gap: 10px !important; max-width:none; margin:0; padding:0; }
+    .card{ background:#fff !important; color:#111 !important; border:1px solid #ddd !important; box-shadow:none !important; padding: 12px; }
+    .hero { grid-template-columns: auto 1fr !important; }
+    .photo-wrap { width: 120px !important; height: 120px !important; }
+    h1 { font-size: 28pt !important; }
+    h2 { font-size: 14pt !important; margin-top: 1rem !important; margin-bottom: 0.5rem !important; }
+  }
+
+  @media (max-width: 980px){
+    .contact, .summary, .skills, .experience, .right-column, .education, .extras{ grid-column: span 12; }
+    .skills-grid { grid-template-columns: 1fr; }
+  }
+
+  .filename-display {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    font-size: 12px;
+    color: #ccc;
+    opacity: 0.5;
+    z-index: 9999;
+  }
+</style>
+</head>
+<body>
+<main class="page">
+
+  <section class="card hero">
+    <div class="photo-wrap" aria-label="Foto von Yenüg Atsu">
+      <img class="photo" alt="Porträt von optimalem Kandidat für diese Stelle" src="cvpicture.jpg">
+    </div>
+    <div>
+      <div class="job-title">Senior Digital Transformation Lead & AI Strategist</div>
+      <h1>Yenüg Atsu</h1>
+      <div class="divider" aria-hidden="true"></div>
+      <div class="kpis">
+        <div class="kpi"><div class="big">12+ Jahre</div><small>Berufserfahrung</small></div>
+        <div class="kpi"><div class="big">35</div><small>Lebensjahre</small></div>
+        <div class="kpi"><div class="big">40+</div><small>Digitalprojekte</small></div>
+        <div class="kpi"><div class="big">CHF 15 Mio+</div><small>Budget verantwortet</small></div>
+        <div class="kpi"><div class="big">4</div><small>Sprachen</small></div>
+      </div>
+    </div>
+  </section>
+
+  <aside class="card contact" aria-label="Kontaktinformationen">
+    <div class="label">Kontakt</div>
+    <h2>Erreichbarkeit</h2>
+    <p style="margin-bottom: 1rem;">
+      Bahnhofstrasse 1<br>
+      8001 Zürich, Schweiz
+    </p>
+    <div class="contact-grid">
+      <div class="contact-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+        <a href="mailto:yenug.atsu@email.ch">yenug.atsu@email.ch</a>
+      </div>
+      <div class="contact-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+        <a href="tel:+41791234567">+41 79 123 45 67</a>
+      </div>
+      <div class="contact-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+        <a href="https://linkedin.com/in/yenugatsu" target="_blank" rel="noopener">linkedin.com/in/yenugatsu</a>
+      </div>
+      <div class="contact-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+        <a href="https://portfolio-yenug.ch" target="_blank" rel="noopener">portfolio-yenug.ch</a>
+      </div>
+       <div class="contact-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+        <a href="https://github.com/yenugatsu" target="_blank" rel="noopener">github.com/yenugatsu</a>
+      </div>
+    </div>
+  </aside>
+
+  <aside class="card languages" aria-label="Sprachen">
+    <div class="label">Sprachen</div>
+    <h2>Sprachkenntnisse</h2>
+    <p>Deutsch (Muttersprache)<br>Englisch (C2, verhandlungssicher)<br>Französisch (C1, fliessend)<br>Italienisch (B2)</p>
+  </aside>
+
+  <section class="card summary" aria-label="Zusammenfassung">
+    <div class="label">Profil</div>
+    <h2>Ich gestalte die digitale Zukunft führender Schweizer Unternehmen durch den strategischen Einsatz von Daten und künstlicher Intelligenz.</h2>
+    <p>
+      Mit über 12 Jahren Erfahrung in der Leitung komplexer Transformationsprojekte verbinde ich technologische Innovation mit betriebswirtschaftlicher Exzellenz. Meine Leidenschaft ist es, datengestützte Ökosysteme zu schaffen, die nachhaltigen Mehrwert generieren – von der Konzeption prädiktiver Analysemodelle bis zur Implementierung von KI-gesteuerten Kundenplattformen im Einklang mit Schweizer Datenschutzstandards (DSG).
+    </p>
+  </section>
+
+  <section class="card skills" aria-label="Fähigkeiten und Kenntnisse">
+    <div class="label">Kompetenzen</div>
+    <h2>Kernkompetenzen für die digitale Transformation</h2>
+    <div class="skills-grid">
+      <div class="skill-category">
+        <h3>Strategie & Management</h3>
+        <ul>
+          <li>AI & Machine Learning Strategie – Experte</li>
+          <li>Data Strategy & Governance (DSG/GDPR) – Experte</li>
+          <li>Digital Transformation & Change Management – Experte</li>
+          <li>C-Level Communication & Stakeholder-Alignment – Experte</li>
+        </ul>
+      </div>
+      <div class="skill-category">
+        <h3>Technologie & Implementierung</h3>
+        <ul>
+          <li>Cloud Architecture (AWS, Azure, GCP) – Sehr gut</li>
+          <li>Enterprise System Integration (SAP, Salesforce) – Sehr gut</li>
+          <li>Cybersecurity & Risk Management – Fortgeschritten</li>
+          <li>Agile & DevOps Leadership (Scrum, CI/CD) – Sehr gut</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="card experience" aria-label="Berufserfahrung">
+    <div class="label">Berufserfahrung</div>
+    <h2>Beruflicher Werdegang</h2>
+
+    <article>
+      <h3>Principal AI Strategist · Swiss Financial Group</h3>
+      <p class="label">Zürich · Januar 2022 bis Heute</p>
+      <ul>
+        <li>Entwicklung und Leitung der unternehmensweiten KI-Strategie zur Effizienzsteigerung und Erschliessung neuer Geschäftsfelder im Einklang mit FINMA-Regularien.</li>
+        <li>Implementierung eines KI-basierten Fraud-Detection-Systems, das die Falsch-Positiv-Rate um 40% senkte und die Erkennungsgenauigkeit um 25% verbesserte.</li>
+        <li>Aufbau eines "AI Center of Excellence" zur Förderung von KI-Kompetenzen und zur Standardisierung von MLOps-Prozessen im gesamten Unternehmen.</li>
+      </ul>
+    </article>
+
+    <article>
+      <h3>Head of Digital Innovation · Helvetia Retail AG</h3>
+      <p class="label">Bern · August 2018 bis Dezember 2021</p>
+      <ul>
+        <li>Führung eines Teams von 15+ Experten zur Entwicklung und Skalierung digitaler Kundenlösungen, inkl. E-Commerce-Plattform und Loyalty-Programm.</li>
+        <li>Lancierung einer personalisierten Mobile-App, die eine Steigerung der Kundenbindung um 30% und einen Uplift im Customer Lifetime Value von 15% erzielte.</li>
+      </ul>
+    </article>
+
+    <article>
+      <h3>Senior Consultant Digital Transformation · Zürich Consulting Partners</h3>
+      <p class="label">Genf · April 2015 bis Juli 2018</p>
+      <ul>
+        <li>Beratung von führenden Schweizer Industrie- und Dienstleistungsunternehmen bei der Konzeption und Umsetzung digitaler Transformationsstrategien.</li>
+        <li>Leitung eines Projekts zur Einführung eines IoT-basierten Predictive-Maintenance-Systems für einen grossen Maschinenbauer, was zu einer Reduktion der Ausfallzeiten um 20% führte.</li>
+      </ul>
+    </article>
+
+    <article>
+      <h3>Data Scientist · Swiss MedTech Innovations</h3>
+      <p class="label">Basel · Juni 2012 bis März 2015</p>
+      <ul>
+        <li>Analyse klinischer Studiendaten und Entwicklung von Vorhersagemodellen zur Optimierung von Forschungs- und Entwicklungsprozessen.</li>
+      </ul>
+    </article>
+
+    <div class="divider" aria-hidden="true"></div>
+
+    <article>
+      <h3>Software Engineer · Tech Innovations SA</h3>
+      <p class="label">Lausanne · 2010 - 2012</p>
+      <ul>
+        <li>Entwicklung und Wartung von Backend-Services in einem agilen Scrum-Team.</li>
+        <li>Mitarbeit am Design und an der Implementierung skalierbarer Systemarchitekturen für Web-Applikationen.</li>
+      </ul>
+    </article>
+
+    <article>
+      <h3>Junior Software Developer · Digital Solutions GmbH</h3>
+      <p class="label">Fribourg · 2008 - 2010</p>
+      <ul>
+        <li>Sammeln erster praktischer Erfahrungen in der Softwareentwicklung und im Testing.</li>
+      </ul>
+    </article>
+  </section>
+
+  <section class="card education" aria-label="Ausbildung">
+      <div class="label">Ausbildung</div>
+      <h2>Akademischer Werdegang</h2>
+      <p>
+        <strong>MSc in Computer Science, Major in Artificial Intelligence</strong><br>
+        ETH Zürich
+      </p>
+      <p>
+        <strong>BSc in Business Informatics</strong><br>
+        Universität St. Gallen (HSG)
+      </p>
+      <p>
+        <strong>CAS in Digital Leadership</strong><br>
+        IMD Lausanne
+      </p>
+      <div class="divider" aria-hidden="true"></div>
+      <div class="label">Zertifikate</div>
+      <p>
+        <strong>AWS Certified Solutions Architect</strong><br>
+        <strong>CISSP</strong> (Certified Information Systems Security Professional)
+      </p>
+      <div class="divider"></div>
+      <div class="label">Engagement</div>
+      <p>
+        <strong>Mentorin für Tech-Startups</strong><br>
+        Kickstart Innovation, Zürich<br>
+        <strong>Vorstandsmitglied</strong><br>
+        Digital Switzerland Initiative
+      </p>
+    </section>
+
+    <section class="card projects" aria-label="Referenzen">
+      <div class="label">Referenzen</div>
+      <h2>Stimmen</h2>
+
+      <div class="ref-contact">
+        <blockquote>
+          «Yenüg verbindet strategische Weitsicht mit einer beeindruckenden technischen Tiefe. Eine Schlüsselfigur für jede digitale Transformation.»<br>
+        </blockquote>
+        <small>Dr. Anna Meier<br>Verwaltungsrätin, Swiss Industrial Holding</small>
+      </div>
+
+      <div class="ref-contact">
+        <blockquote>
+          «Ihre Fähigkeit, komplexe datengetriebene Projekte zu leiten und Stakeholder auf allen Ebenen zu überzeugen, ist aussergewöhnlich.»<br>
+        </blockquote>
+        <small>Jean-Pierre Dubois<br>ehem. CEO, Helvetia Retail AG</small>
+      </div>
+    </section>
+
+</main>
+<div class="filename-display">cv-template-1kolummne.html</div>
+</body>
+</html>

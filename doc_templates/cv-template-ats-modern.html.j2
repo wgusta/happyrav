@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="{{ 'de-CH' if language == 'de' else 'en' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CV - {{ profile.full_name }}</title>
+  <style>
+    :root {
+      --primary: {{ theme.primary_hex }};
+      --accent: {{ theme.accent_hex }};
+      --ink: #1b1b1b;
+      --muted: #555555;
+      --rule: #e5e5e5;
+      --panel: #f8f8f8;
+    }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      line-height: 1.45;
+      font-size: 12px;
+      background: #ffffff;
+    }
+    .page {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 10px;
+    }
+    h1 {
+      margin: 0;
+      color: var(--primary);
+      font-size: 30px;
+      letter-spacing: 0.3px;
+    }
+    .headline {
+      margin: 6px 0;
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 14px;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+    }
+    .contact {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 11px;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+    }
+    .grid {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .card {
+      border: 1px solid var(--rule);
+      background: var(--panel);
+      padding: 10px;
+    }
+    .full {
+      grid-column: 1 / span 2;
+    }
+    h2 {
+      margin: 0 0 7px 0;
+      color: var(--primary);
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+    }
+    p { margin: 5px 0 7px 0; }
+    .meta {
+      color: var(--muted);
+      font-size: 10.5px;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+    }
+    ul {
+      margin: 6px 0 4px 16px;
+      padding: 0;
+    }
+    li { margin-bottom: 3px; }
+    .tags span {
+      display: inline-block;
+      margin: 2px 5px 2px 0;
+      padding: 2px 6px;
+      border: 1px solid var(--rule);
+      border-bottom: 2px solid var(--primary);
+      font-size: 10.5px;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      background: #ffffff;
+    }
+    .score {
+      margin-top: 7px;
+      font-size: 10.5px;
+      color: var(--muted);
+      font-family: "Helvetica Neue", Arial, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="header">
+      <h1>{{ profile.full_name }}</h1>
+      <div class="headline">{{ profile.headline }}</div>
+      <div class="contact">
+        {% if profile.location %}<span>{{ profile.location }}</span>{% endif %}
+        {% if profile.email %}<span> | {{ profile.email }}</span>{% endif %}
+        {% if profile.phone %}<span> | {{ profile.phone }}</span>{% endif %}
+        {% if profile.linkedin %}<span> | {{ profile.linkedin }}</span>{% endif %}
+        {% if profile.portfolio %}<span> | {{ profile.portfolio }}</span>{% endif %}
+      </div>
+      <div class="score">ATS Match Score: {{ "%.1f"|format(match.overall_score) }}/100</div>
+    </header>
+
+    <section class="grid">
+      <article class="card full">
+        <h2>{{ "Profil" if language == "de" else "Profile" }}</h2>
+        <p>{{ content.summary }}</p>
+      </article>
+
+      <article class="card">
+        <h2>{{ "Skills" if language == "de" else "Skills" }}</h2>
+        <div class="tags">
+          {% for skill in content.skills %}
+            <span>{{ skill }}</span>
+          {% endfor %}
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>{{ "Ausbildung" if language == "de" else "Education" }}</h2>
+        {% for item in content.education %}
+          <div>
+            <strong>{{ item.degree }}</strong>
+            <div class="meta">
+              {% if item.school %}{{ item.school }}{% endif %}
+              {% if item.period %} | {{ item.period }}{% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </article>
+
+      <article class="card full">
+        <h2>{{ "Berufserfahrung" if language == "de" else "Experience" }}</h2>
+        {% for item in content.experience %}
+          <div>
+            <strong>{{ item.role }}{% if item.company %} | {{ item.company }}{% endif %}</strong>
+            {% if item.period %}<div class="meta">{{ item.period }}</div>{% endif %}
+            {% if item.achievements %}
+              <ul>
+                {% for achievement in item.achievements %}
+                  <li>{{ achievement }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </article>
+    </section>
+  </main>
+</body>
+</html>
+

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="{{ 'de-CH' if language == 'de' else 'en' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cover Letter - {{ profile.full_name }}</title>
+  <style>
+    @page { size: A4; margin: 16mm 16mm; }
+    :root { --primary: {{ theme.primary_hex }}; --accent: {{ theme.accent_hex }}; --ink: #18202a; --muted: #586375; --rule: #dbe3ef; --panel: #f4f8ff; }
+    body { margin: 0; font-family: "Nunito Sans", "Segoe UI", Arial, sans-serif; color: var(--ink); line-height: 1.56; font-size: 12px; }
+    .sheet { border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; }
+    .top { background: var(--panel); padding: 12px; border-bottom: 1px solid var(--rule); }
+    .top strong { color: var(--primary); font-size: 13px; display: block; }
+    .top p { margin: 4px 0 0; color: var(--muted); font-size: 11px; }
+    .body { padding: 12px; }
+    .recipient { white-space: pre-line; }
+    .meta { margin-top: 8px; text-align: right; color: var(--muted); font-size: 11px; }
+    .subject { margin-top: 11px; color: var(--primary); font-size: 17px; font-weight: 700; }
+    p { margin: 9px 0; }
+    .signature { margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <main class="sheet">
+    <header class="top">
+      <strong>{{ profile.full_name }}</strong>
+      <p>
+        {% if profile.location %}{{ profile.location }}{% endif %}
+        {% if profile.email %} · {{ profile.email }}{% endif %}
+        {% if profile.phone %} · {{ profile.phone }}{% endif %}
+      </p>
+    </header>
+    <section class="body">
+      <div class="recipient">{{ company_name }}</div>
+      <div class="meta">{{ today }}</div>
+      <h1 class="subject">{{ "Bewerbung als" if language == "de" else "Application for" }} {{ position_title }}</h1>
+      <p>{{ content.cover_greeting }}</p>
+      <p>{{ content.cover_opening }}</p>
+      {% for paragraph in content.cover_body %}
+        <p>{{ paragraph }}</p>
+      {% endfor %}
+      <p>{{ content.cover_closing }}</p>
+      <div class="signature">
+        <p>{{ "Freundliche Grüsse" if language == "de" else "Kind regards" }},</p>
+        <p><strong>{{ profile.full_name }}</strong></p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

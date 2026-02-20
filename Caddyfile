@@ -1,0 +1,8 @@
+:80 {
+  handle_path /happyrav/* {
+    reverse_proxy happyrav:8000
+  }
+
+  respond /healthz 200
+}
+

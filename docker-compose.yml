@@ -1,0 +1,38 @@
+services:
+  happyrav:
+    build:
+      context: ..
+      dockerfile: happyrav/Dockerfile
+    environment:
+      HAPPYRAV_PREFIX: /happyrav
+      HAPPYRAV_CACHE_TTL: 600
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
+      OPENAI_USE_CODEX_OAUTH: ${OPENAI_USE_CODEX_OAUTH:-false}
+      CODEX_AUTH_JSON: ${CODEX_AUTH_JSON:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      SMTP_STARTTLS: ${SMTP_STARTTLS:-true}
+    expose:
+      - "8000"
+    networks:
+      - happyrav-net
+
+  caddy:
+    image: caddy:2-alpine
+    depends_on:
+      - happyrav
+    ports:
+      - "8080:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    networks:
+      - happyrav-net
+
+networks:
+  happyrav-net:
+    driver: bridge

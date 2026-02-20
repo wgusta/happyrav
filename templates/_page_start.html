@@ -1,0 +1,42 @@
+<section class="block tone-white">
+  <h2 data-i18n="start.title">Start your application</h2>
+  <p class="block-sub" data-i18n="start.sub">Enter the job ad and basic info. happyRAV will guide you through the rest.</p>
+
+  <details class="more-options">
+    <summary data-i18n="start.what_you_need">What you'll need</summary>
+    <ul class="list-clean">
+      <li data-i18n="start.need_job_ad">Job ad text</li>
+      <li data-i18n="start.need_contact">Contact details</li>
+      <li data-i18n="start.need_cv">Existing CV / cover letter</li>
+      <li data-i18n="start.need_docs">Arbeitszeugnisse/certificates (recommended)</li>
+    </ul>
+  </details>
+
+  <label><span data-i18n="label.job_ad_required">Job ad text (required)</span>
+    <textarea id="input-job-ad" rows="8" placeholder="Paste full job ad text" data-i18n-placeholder="placeholder.job_ad"></textarea>
+  </label>
+
+  <div class="grid two">
+    <label><span data-i18n="label.company_optional">Company (optional)</span>
+      <input id="input-company" type="text" placeholder="Company name" data-i18n-placeholder="placeholder.company">
+    </label>
+    <label><span data-i18n="label.position_optional">Position (optional)</span>
+      <input id="input-position" type="text" placeholder="Position title" data-i18n-placeholder="placeholder.position">
+    </label>
+  </div>
+
+  <label class="check"><span data-i18n="label.consent_required">Consent (required)</span>
+    <span class="check-inline">
+      <input id="input-consent" type="checkbox">
+      <span data-i18n="consent.text">I confirm provided facts can be processed for generation.</span>
+    </span>
+  </label>
+
+  <p class="meta" data-i18n="start.auto_start">Session starts automatically when you enter input.</p>
+
+  <div class="row-actions">
+    <button id="start-continue-btn" type="button" class="btn-primary" disabled data-i18n="action.continue_upload">Continue to Upload</button>
+  </div>
+
+  <p id="session-meta" class="meta"></p>
+</section>

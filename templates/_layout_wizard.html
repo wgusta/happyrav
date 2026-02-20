@@ -1,0 +1,35 @@
+<main class="site-wrap">
+  <header class="hero tone-red">
+    <div class="lang-toggle" role="group" aria-label="Language toggle" data-i18n-aria="aria.language_toggle">
+      <button id="lang-btn-en" type="button" class="lang-btn" data-i18n-aria="aria.switch_en">EN</button>
+      <button id="lang-btn-de" type="button" class="lang-btn" data-i18n-aria="aria.switch_de">DE</button>
+    </div>
+    <p class="meta">gusty.ch/happyrav</p>
+    <h1>happyRAV</h1>
+    <p data-i18n="hero.description">Document-first ATS flow. Upload CV, cover letters, Arbeitszeugnisse, certificates, and supporting docs.</p>
+    <p class="hero-sub" data-i18n="hero.sub">At every phase you can upload more files or answer AI clarification questions.</p>
+  </header>
+
+  <section class="wizard-shell">
+    <div class="progress-wrap">
+      <div class="progress-head">
+        <strong id="progress-step-label">Step {{ progress_step_index }} of {{ progress_total_steps }}</strong>
+        <span id="progress-percent">{{ progress_percent }}%</span>
+      </div>
+      <div class="progress-track" aria-label="Progress">
+        <span id="progress-fill" style="width: {{ progress_percent }}%;"></span>
+      </div>
+      <ol class="step-chips" id="step-chips">
+        <li class="step-chip" data-step="start" data-url="{{ request.url_for('page_start') }}" data-i18n="progress.start">Start</li>
+        <li class="step-chip" data-step="upload" data-url="{{ request.url_for('page_upload') }}" data-i18n="progress.upload">Upload</li>
+        <li class="step-chip" data-step="questions" data-url="{{ request.url_for('page_questions') }}" data-i18n="progress.questions">Questions</li>
+        <li class="step-chip" data-step="review" data-url="{{ request.url_for('page_review') }}" data-i18n="progress.review">Review</li>
+        <li class="step-chip" data-step="result" data-i18n="progress.result">Result</li>
+      </ol>
+    </div>
+
+    <div id="global-status"></div>
+
+    {% include content_template %}
+  </section>
+</main>

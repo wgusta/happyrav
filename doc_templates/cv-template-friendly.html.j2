@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="{{ 'de-CH' if language == 'de' else 'en' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CV - {{ profile.full_name }}</title>
+  <style>
+    @page { size: A4; margin: 12mm 12mm; }
+    :root {
+      --primary: {{ theme.primary_hex }};
+      --accent: {{ theme.accent_hex }};
+      --ink: #1a2029;
+      --muted: #586374;
+      --rule: #d7dfed;
+      --panel: #f4f8ff;
+    }
+    body { margin: 0; font-family: "Nunito Sans", "Segoe UI", Arial, sans-serif; color: var(--ink); font-size: 10.8px; line-height: 1.34; }
+    h1,h2,h3,p { margin: 0; }
+    .frame { border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+    .header { background: var(--panel); padding: 11px; border-bottom: 1px solid var(--rule); display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+    .header h1 { font-size: 26px; color: var(--primary); line-height: 1.04; }
+    .headline { margin-top: 4px; font-size: 11.5px; color: var(--accent); font-weight: 700; }
+    .contact { margin-top: 6px; color: var(--muted); font-size: 9.8px; }
+    .photo { width: 96px; height: 96px; border-radius: 16px; overflow: hidden; border: 1px solid var(--rule); background: #fff; }
+    .photo img { width: 100%; height: 100%; object-fit: cover; }
+    .content { padding: 10px; display: grid; gap: 8px; }
+    .section { border: 1px solid var(--rule); border-radius: 10px; background: #fff; padding: 8px; break-inside: avoid; }
+    .section h2 { color: var(--primary); font-size: 11.2px; margin-bottom: 4px; }
+    .chips span { display: inline-block; margin: 2px 5px 2px 0; padding: 2px 6px; border-radius: 999px; border: 1px solid var(--rule); background: var(--panel); font-size: 9.4px; }
+    .entry { margin-bottom: 7px; }
+    .entry h3 { font-size: 10.7px; }
+    .meta { color: var(--muted); font-size: 9.2px; margin-top: 2px; }
+    ul { margin: 3px 0 0 13px; padding: 0; }
+    li { margin: 1px 0; }
+  </style>
+</head>
+<body>
+  <article class="frame">
+    <header class="header">
+      <div>
+        <h1>{{ profile.full_name }}</h1>
+        <p class="headline">{{ profile.headline }}</p>
+        <p class="contact">
+          {% if profile.location %}{{ profile.location }}{% endif %}
+          {% if profile.email %} · {{ profile.email }}{% endif %}
+          {% if profile.phone %} · {{ profile.phone }}{% endif %}
+          {% if profile.linkedin %} · {{ profile.linkedin }}{% endif %}
+          {% if profile.portfolio %} · {{ profile.portfolio }}{% endif %}
+        </p>
+      </div>
+      {% if profile.photo_data_url %}
+        <div class="photo"><img src="{{ profile.photo_data_url }}" alt=""></div>
+      {% endif %}
+    </header>
+
+    <main class="content">
+      <section class="section">
+        <h2>{{ "Kurzprofil" if language == "de" else "Profile" }}</h2>
+        <p>{{ content.summary }}</p>
+      </section>
+
+      <section class="section">
+        <h2>{{ "Skills" if language == "de" else "Skills" }}</h2>
+        <div class="chips">
+          {% for skill in content.skills %}
+            <span>{{ skill }}</span>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>{{ "Berufserfahrung" if language == "de" else "Experience" }}</h2>
+        {% for item in content.experience %}
+          <article class="entry">
+            <h3>{{ item.role }}{% if item.company %} · {{ item.company }}{% endif %}</h3>
+            {% if item.period %}<p class="meta">{{ item.period }}</p>{% endif %}
+            {% if item.achievements %}
+              <ul>
+                {% for achievement in item.achievements %}
+                  <li>{{ achievement }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </article>
+        {% endfor %}
+      </section>
+
+      <section class="section">
+        <h2>{{ "Ausbildung" if language == "de" else "Education" }}</h2>
+        {% for item in content.education %}
+          <article class="entry">
+            <h3>{{ item.degree }}</h3>
+            <p class="meta">{% if item.school %}{{ item.school }}{% endif %}{% if item.period %} · {{ item.period }}{% endif %}</p>
+          </article>
+        {% endfor %}
+      </section>
+    </main>
+  </article>
+</body>
+</html>

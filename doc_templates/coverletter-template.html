@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bewerbung - [Ihr Name] - [Jobbezeichnung]</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #F8F9FA;
+    --card: #FFFFFF;
+    --ink: #212529;
+    --muted: #6C757D;
+    --rule: #E9ECEF;
+    --heading-red: #9A2A2A;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  body {
+    margin: 0;
+    background: rgb(10, 15, 41);
+    color: var(--ink);
+    font-family: Inter, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, system-ui, sans-serif;
+    font-size: 11pt;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .letter-page {
+    background: var(--card);
+    margin: 36px auto;
+    padding: 2.5cm;
+    max-width: 21cm;
+    min-height: 29.7cm;
+    box-shadow: var(--shadow);
+    border-radius: 12px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sender-info-header {
+    font-size: 9pt;
+    color: var(--muted);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 8px;
+    margin-bottom: 2cm;
+  }
+
+  .sender-name {
+    font-family: Manrope, Inter, system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 13pt;
+    color: var(--ink);
+  }
+
+  .recipient-info {
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+
+  .meta-info {
+    font-size: 11pt;
+    text-align: right;
+    margin-bottom: 1cm;
+    color: var(--muted);
+  }
+
+  .subject {
+    font-family: Manrope, Inter, system-ui, sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--heading-red);
+    margin-top: 1.5cm;
+    margin-bottom: 1cm;
+    line-height: 1.3;
+  }
+
+  .subject .subtitle {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  p {
+    margin: 0 0 1rem 0;
+    text-align: justify;
+  }
+
+  .salutation {
+    margin-bottom: 1.5rem;
+  }
+
+  .signature-block {
+    margin-top: 1.5rem;
+  }
+
+  .signature-block .signature-svg {
+    height: 45px;
+    margin-left: -5px;
+    margin-bottom: 5px;
+    stroke: #1a202c;
+    fill: none;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  a {
+      color: var(--muted);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+  }
+  a:hover {
+      color: var(--heading-red);
+  }
+
+  .filename-display {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    font-size: 12px;
+    color: #ccc;
+    opacity: 0.5;
+    z-index: 9999;
+  }
+
+  @page {
+    size: A4;
+    margin: 20mm;
+  }
+
+  @media print {
+    body {
+      background: #ffffff !important;
+      box-shadow: none !important;
+    }
+    .letter-page {
+      margin: 0;
+      padding: 0;
+      box-shadow: none;
+      border-radius: 0;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="letter-page">
+    <div class="sender-info-header">
+      <!-- [ABSENDERINFO - aus CV übernehmen] -->
+      <span class="sender-name">[Ihr Name]</span> | [Ihre Strasse, Nr.], [Ihre PLZ, Ort] | [Ihre E-Mail] | [Ihre Telefonnummer]
+    </div>
+
+    <div class="recipient-info">
+        <!-- 
+          [EMPFÄNGERADRESSE]
+          Firma
+          Ansprechperson (falls bekannt)
+          Strasse, Nr.
+          PLZ, Ort
+        -->
+        [Firma]<br>
+        [Ansprechperson]<br>
+        [Strasse, Nr.]<br>
+        [PLZ, Ort]
+    </div>
+
+    <div class="meta-info">
+        [Ihr Ort], <span id="current-date"></span>
+    </div>
+
+    <h2 class="subject">
+        Bewerbung als [JOBBEZEICHNUNG AUS STELLENANZEIGE]
+        <span class="subtitle">Ihre Referenz: [Referenznummer, falls vorhanden]</span>
+    </h2>
+
+    <p class="salutation"><strong>Sehr geehrte/r [Ansprechperson],</strong></p>
+    <!-- Falls keine Ansprechperson bekannt: "Sehr geehrte Damen und Herren," -->
+
+    <!-- 
+      [EINLEITUNG]
+      - Bezug auf die Stellenausschreibung (wo gesehen?).
+      - Starker erster Satz, der die Kernmotivation für die Stelle auf den Punkt bringt.
+      - These: Warum sind Sie die ideale Besetzung?
+    -->
+    <p>
+        [Einleitungsabsatz hier einfügen...]
+    </p>
+
+    <!--
+      [HAUPTTEIL - 1-2 Absätze]
+      - 1-2 konkrete Beispiele aus dem CV, die die wichtigsten Anforderungen der Stelle belegen.
+      - Nutzen Sie die CAR-Methode (Context, Action, Result).
+      - Zeigen Sie auf, wie Ihre Erfahrung dem Unternehmen einen direkten Mehrwert bringt.
+      - Stellen Sie eine Verbindung zur Firma her (Produkte, Werte, Mission).
+    -->
+    <p>
+        [Hauptteil hier einfügen...]
+    </p>
+    <p>
+        [Zweiter Absatz des Hauptteils hier einfügen...]
+    </p>
+
+    <!--
+      [SCHLUSS]
+      - Bezug auf die Zukunft und den Wunsch nach einem Gespräch.
+      - Proaktive und selbstbewusste Haltung.
+    -->
+    <p>
+        [Schlussabsatz hier einfügen...]
+    </p>
+
+    <div class="signature-block">
+        <p>Freundliche Grüsse</p>
+        <img src="signature.jpg" alt="Ihre digitale Unterschrift" style="height: 45px; margin-bottom: 5px; display: block;">
+        <p>[Ihr Name]</p>
+        <p style="font-size: 9pt; color: var(--muted); margin-top: 1rem;">
+            Anhang: Lebenslauf
+        </p>
+    </div>
+</div>
+
+<script>
+  // Setzt das aktuelle Datum im Format "TT. Monat JJJJ"
+  const options = { day: 'numeric', month: 'long', year: 'numeric' };
+  document.getElementById('current-date').textContent = new Date().toLocaleDateString('de-CH', options);
+</script>
+
+<div class="filename-display">coverletter-template-empty.html</div>
+</body>
+</html>

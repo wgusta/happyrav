@@ -1,0 +1,52 @@
+{% set is_de = record.meta.get("language") == "de" %}
+<div class="card result">
+  <h2>{{ "happyRAV Generierung abgeschlossen" if is_de else "happyRAV generation complete" }}</h2>
+
+  {% if record.warning %}
+    <div class="alert warn">{{ record.warning }}</div>
+  {% endif %}
+
+  <div class="score-grid">
+    <div class="score-main">
+      <span>{{ "%.1f"|format(record.match.overall_score) }}</span>
+      <small>{{ "gesamt / 100" if is_de else "overall / 100" }}</small>
+    </div>
+    <div>
+      <p><strong>Skills:</strong> {{ "%.1f"|format(record.match.category_scores.get('skills_match', 0)) }}</p>
+      <p><strong>{{ "Erfahrung" if is_de else "Experience" }}:</strong> {{ "%.1f"|format(record.match.category_scores.get('experience_match', 0)) }}</p>
+      <p><strong>{{ "Ausbildung" if is_de else "Education" }}:</strong> {{ "%.1f"|format(record.match.category_scores.get('education_match', 0)) }}</p>
+      <p><strong>{{ "Keyword-Dichte" if is_de else "Keyword density" }}:</strong> {{ "%.1f"|format(record.match.category_scores.get('keyword_density', 0)) }}</p>
+      <p><strong>{{ "ATS-Kompatibilität" if is_de else "ATS compatibility" }}:</strong> {{ "%.1f"|format(record.match.category_scores.get('ats_compatibility', 0)) }}</p>
+    </div>
+  </div>
+
+  {% if record.match.missing_keywords %}
+    <h3>{{ "Fehlende Keywords" if is_de else "Missing keywords" }}</h3>
+    <p>{{ ", ".join(record.match.missing_keywords[:20]) }}</p>
+  {% endif %}
+
+  {% if record.match.ats_issues %}
+    <h3>{{ "ATS-Probleme" if is_de else "ATS issues" }}</h3>
+    <ul>
+      {% for issue in record.match.ats_issues %}
+        <li>{{ issue }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <div class="actions">
+    <a class="btn" href="{{ request.url_for('download_file', token=record.token, file_id='cv') }}">{{ "CV PDF herunterladen" if is_de else "Download CV PDF" }}</a>
+    <a class="btn" href="{{ request.url_for('download_file', token=record.token, file_id='cover') }}">{{ "Anschreiben PDF herunterladen" if is_de else "Download Cover Letter PDF" }}</a>
+  </div>
+
+  <h3>{{ "Per E-Mail senden (optional)" if is_de else "Send by email (optional)" }}</h3>
+  <form class="inline-form email-form" action="{{ request.url_for('send_email') }}" method="post">
+    <input type="hidden" name="token" value="{{ record.token }}">
+    <label class="email-field">
+      <span>{{ "Empfänger E-Mail" if is_de else "Recipient email" }}</span>
+      <input type="email" name="recipient_email" required placeholder="you@example.com" autocomplete="email">
+    </label>
+    <button type="submit" class="btn-primary">{{ "Dateien senden" if is_de else "Send files" }}</button>
+  </form>
+  <div id="email-status"></div>
+</div>

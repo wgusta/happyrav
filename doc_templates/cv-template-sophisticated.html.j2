@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="{{ 'de-CH' if language == 'de' else 'en' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CV - {{ profile.full_name }}</title>
+  <style>
+    @page { size: A4; margin: 10mm 10mm; }
+    :root {
+      --primary: {{ theme.primary_hex }};
+      --accent: {{ theme.accent_hex }};
+      --ink: #181c22;
+      --muted: #4c5565;
+      --panel: #f7f9fd;
+      --rule: #d5dce9;
+    }
+    body { margin: 0; font-family: "Inter", "Segoe UI", Arial, sans-serif; color: var(--ink); font-size: 10.2px; line-height: 1.3; }
+    h1,h2,h3,p { margin: 0; }
+    .top { display: grid; grid-template-columns: 1.34fr 1fr; gap: 10px; margin-bottom: 9px; }
+    .hero, .panel { border: 1px solid var(--rule); border-radius: 10px; background: #fff; padding: 10px; }
+    .hero h1 { font-size: 25px; color: var(--primary); line-height: 1.02; }
+    .hero .headline { margin-top: 4px; font-size: 11px; color: var(--accent); font-weight: 700; }
+    .hero .contact { margin-top: 8px; color: var(--muted); font-size: 9.6px; display: grid; gap: 2px; }
+    .metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+    .metric { border-radius: 8px; background: var(--panel); border: 1px solid var(--rule); padding: 7px; text-align: center; }
+    .metric strong { font-size: 18px; color: var(--primary); display: block; line-height: 1.05; }
+    .layout { display: grid; grid-template-columns: 1.34fr 1fr; gap: 10px; }
+    .section { border: 1px solid var(--rule); border-radius: 10px; padding: 8px; background: #fff; margin-bottom: 8px; break-inside: avoid; }
+    .section h2 { color: var(--primary); text-transform: uppercase; letter-spacing: 0.6px; font-size: 10.6px; margin-bottom: 4px; }
+    .skill { display: inline-block; border: 1px solid var(--rule); border-left: 2px solid var(--primary); border-radius: 6px; padding: 2px 5px; margin: 2px 5px 2px 0; background: #fff; font-size: 9.2px; }
+    .job { margin-bottom: 7px; break-inside: avoid; }
+    .job h3 { font-size: 10.5px; line-height: 1.2; }
+    .meta { color: var(--muted); font-size: 9px; margin-top: 2px; }
+    ul { margin: 4px 0 0 13px; padding: 0; }
+    li { margin: 1px 0; }
+  </style>
+</head>
+<body>
+  <section class="top">
+    <article class="hero">
+      <h1>{{ profile.full_name }}</h1>
+      <p class="headline">{{ profile.headline }}</p>
+      <div class="contact">
+        {% if profile.location %}<span>{{ profile.location }}</span>{% endif %}
+        {% if profile.email %}<span>{{ profile.email }}</span>{% endif %}
+        {% if profile.phone %}<span>{{ profile.phone }}</span>{% endif %}
+        {% if profile.linkedin %}<span>{{ profile.linkedin }}</span>{% endif %}
+        {% if profile.portfolio %}<span>{{ profile.portfolio }}</span>{% endif %}
+      </div>
+    </article>
+    <article class="panel metrics">
+      <div class="metric"><strong>{{ content.experience|length }}</strong><span>{{ "Rollen" if language == "de" else "Roles" }}</span></div>
+      <div class="metric"><strong>{{ content.skills|length }}</strong><span>{{ "Skills" if language == "de" else "Skills" }}</span></div>
+      <div class="metric"><strong>{{ content.education|length }}</strong><span>{{ "Abschlüsse" if language == "de" else "Degrees" }}</span></div>
+      <div class="metric"><strong>{{ "%.0f"|format(match.overall_score) }}</strong><span>ATS</span></div>
+    </article>
+  </section>
+
+  <section class="layout">
+    <div>
+      <article class="section">
+        <h2>{{ "Profil" if language == "de" else "Profile" }}</h2>
+        <p>{{ content.summary }}</p>
+      </article>
+      <article class="section">
+        <h2>{{ "Berufserfahrung" if language == "de" else "Experience" }}</h2>
+        {% for item in content.experience %}
+          <div class="job">
+            <h3>{{ item.role }}{% if item.company %} · {{ item.company }}{% endif %}</h3>
+            {% if item.period %}<p class="meta">{{ item.period }}</p>{% endif %}
+            {% if item.achievements %}
+              <ul>
+                {% for achievement in item.achievements %}
+                  <li>{{ achievement }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </article>
+    </div>
+    <div>
+      <article class="section">
+        <h2>{{ "Kernkompetenzen" if language == "de" else "Core skills" }}</h2>
+        {% for skill in content.skills %}
+          <span class="skill">{{ skill }}</span>
+        {% endfor %}
+      </article>
+      <article class="section">
+        <h2>{{ "Ausbildung" if language == "de" else "Education" }}</h2>
+        {% for item in content.education %}
+          <div class="job">
+            <h3>{{ item.degree }}</h3>
+            <p class="meta">{% if item.school %}{{ item.school }}{% endif %}{% if item.period %} · {{ item.period }}{% endif %}</p>
+          </div>
+        {% endfor %}
+      </article>
+      {% if profile.photo_data_url %}
+        <article class="section">
+          <h2>{{ "Foto" if language == "de" else "Photo" }}</h2>
+          <img src="{{ profile.photo_data_url }}" alt="" style="width:100%; border-radius:8px; border:1px solid var(--rule);">
+        </article>
+      {% endif %}
+    </div>
+  </section>
+</body>
+</html>

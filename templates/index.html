@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ page_title }}</title>
+  <link rel="stylesheet" href="{{ request.url_for('static', path='style.css') }}?v={{ asset_version }}">
+</head>
+<body
+  data-page="{{ page_key }}"
+  data-progress-percent="{{ progress_percent }}"
+  data-progress-step-index="{{ progress_step_index }}"
+  data-progress-total-steps="{{ progress_total_steps }}"
+  data-root-path="{{ request.scope.root_path or '' }}"
+  data-default-primary="{{ default_primary }}"
+  data-default-accent="{{ default_accent }}"
+>
+  {% include "_layout_wizard.html" %}
+
+  <script src="{{ request.url_for('static', path='app.js') }}?v={{ asset_version }}"></script>
+</body>
+</html>

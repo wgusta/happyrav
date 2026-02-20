@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="{{ 'de-CH' if language == 'de' else 'en' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CV - {{ profile.full_name }}</title>
+  <style>
+    @page { size: A4; margin: 14mm 13mm; }
+    :root {
+      --primary: {{ theme.primary_hex }};
+      --accent: {{ theme.accent_hex }};
+      --ink: #121317;
+      --muted: #4f5664;
+      --rule: #d7dcea;
+      --panel: #f6f9ff;
+    }
+    body { margin: 0; color: var(--ink); font-family: "Inter", "Segoe UI", Arial, sans-serif; font-size: 11.4px; line-height: 1.35; }
+    h1, h2, h3, p { margin: 0; }
+    .header { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--primary); }
+    .name { font-size: 30px; line-height: 1.02; color: var(--primary); font-weight: 700; }
+    .headline { margin-top: 4px; color: var(--accent); font-size: 12.4px; font-weight: 600; }
+    .contact { margin-top: 6px; color: var(--muted); font-size: 10.8px; }
+    .photo { width: 120px; height: 120px; flex: 0 0 120px; border-radius: 16px; overflow: hidden; border: 1.4px solid var(--rule); background: var(--panel); }
+    .photo img { width: 100%; height: 100%; object-fit: cover; }
+    .section { margin-top: 10px; }
+    .section h2 { color: var(--primary); font-size: 12.5px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.6px; }
+    .summary { color: var(--ink); }
+    .chips span { display: inline-block; margin: 2px 6px 2px 0; border: 1px solid var(--rule); border-left: 2.5px solid var(--primary); border-radius: 6px; padding: 2px 6px; background: #fff; font-size: 10.3px; }
+    .entry { margin: 0 0 7px; break-inside: avoid; }
+    .entry h3 { font-size: 11.2px; }
+    .meta { color: var(--muted); font-size: 10px; margin-top: 2px; }
+    ul { margin: 4px 0 0 15px; padding: 0; }
+    li { margin: 1px 0; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div>
+      <h1 class="name">{{ profile.full_name }}</h1>
+      <p class="headline">{{ profile.headline }}</p>
+      <p class="contact">
+        {% if profile.location %}{{ profile.location }}{% endif %}
+        {% if profile.email %} · {{ profile.email }}{% endif %}
+        {% if profile.phone %} · {{ profile.phone }}{% endif %}
+        {% if profile.linkedin %} · {{ profile.linkedin }}{% endif %}
+        {% if profile.portfolio %} · {{ profile.portfolio }}{% endif %}
+      </p>
+    </div>
+    {% if profile.photo_data_url %}
+      <div class="photo"><img src="{{ profile.photo_data_url }}" alt=""></div>
+    {% endif %}
+  </header>
+
+  <section class="section">
+    <h2>{{ "Profil" if language == "de" else "Profile" }}</h2>
+    <p class="summary">{{ content.summary }}</p>
+  </section>
+
+  <section class="section">
+    <h2>{{ "Kernkompetenzen" if language == "de" else "Core skills" }}</h2>
+    <div class="chips">
+      {% for skill in content.skills %}
+        <span>{{ skill }}</span>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>{{ "Berufserfahrung" if language == "de" else "Experience" }}</h2>
+    {% for item in content.experience %}
+      <article class="entry">
+        <h3>{{ item.role }}{% if item.company %} · {{ item.company }}{% endif %}</h3>
+        {% if item.period %}<p class="meta">{{ item.period }}</p>{% endif %}
+        {% if item.achievements %}
+          <ul>
+            {% for achievement in item.achievements %}
+              <li>{{ achievement }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </section>
+
+  <section class="section">
+    <h2>{{ "Ausbildung" if language == "de" else "Education" }}</h2>
+    {% for item in content.education %}
+      <article class="entry">
+        <h3>{{ item.degree }}</h3>
+        <p class="meta">{% if item.school %}{{ item.school }}{% endif %}{% if item.period %} · {{ item.period }}{% endif %}</p>
+      </article>
+    {% endfor %}
+  </section>
+</body>
+</html>
