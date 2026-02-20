@@ -5,6 +5,9 @@
   const defaultPrimary = body.dataset.defaultPrimary || "#F04A3A";
   const defaultAccent = body.dataset.defaultAccent || "#0F9D9A";
   const STORAGE_KEY = "happyrav_v4_state";
+  const STORAGE_PROFILE_KEY = "happyrav_v4_adv_profile";
+  const STORAGE_TELOS_KEY = "happyrav_v4_telos";
+  const TELOS_IDS = ["career_goal", "work_environment", "values", "strengths", "motivators", "success_vision", "work_style", "impact"];
 
   const STEP_ORDER = ["start", "upload", "questions", "review", "result"];
   const STEP_PROGRESS = {
@@ -134,10 +137,84 @@
       "error.select_files_first": "Select files first.",
       "error.required_unresolved": "Required questions unresolved",
       "error.email_failed": "Email failed.",
+      "warn.no_api_key": "AI features unavailable: API key not configured on server.",
+
+      "comparison.show": "Show match analysis",
+      "comparison.hide": "Hide match analysis",
+      "comparison.original": "Original",
+      "comparison.optimized": "Optimized for job ad",
+      "comparison.loading": "Loading...",
+      "comparison.error": "Could not load comparison.",
+
+      "fmt.title": "Optimal input format",
+      "fmt.intro": "Use this structure for best results and fewer regenerations:",
+      "fmt.date": "Dates: MM/YYYY (e.g. 03/2021). Use ranges: 03/2021\u201306/2024. \"present\" for current.",
+      "fmt.role": "Role: exact job title, no abbreviations (e.g. \"Digital Business Manager\", not \"DBM\")",
+      "fmt.company": "Company: full legal name (e.g. \"Soprema AG\", not \"Soprema\")",
+      "fmt.achievements": "Achievements: one per line, STAR format. Start with action verb. Include metrics.",
+      "fmt.achievements_ex": "Example:\nLed national B2C campaign (CHF 500k budget), online/offline mix\nImproved SEO ranking from position 8 to 2 within 6 months\nBuilt CI/CD pipeline, reduced deployment time by 70%",
+      "fmt.skills": "Skills: comma separated, specific (e.g. \"Python, SQL, Tableau, Jira\" not \"programming, data\")",
+      "fmt.education": "Education: degree + school + period (e.g. \"MSc Applied Information & Data Science, HSLU, 09/2023\u2013present\")",
+      "fmt.tip": "Tip: more specific input = better output. Vague descriptions cost extra regenerations.",
+      "fmt.close": "Got it",
 
       "aria.language_toggle": "Language toggle",
       "aria.switch_en": "Switch to English",
       "aria.switch_de": "Auf Deutsch wechseln",
+
+      "adv.profile_title": "Advanced: Build Profile Manually",
+      "adv.telos_title": "Advanced: Career Goals & Values",
+      "adv.contact": "Contact",
+      "adv.experience": "Experience",
+      "adv.education": "Education",
+      "adv.references": "References (optional)",
+      "adv.name": "Full name",
+      "adv.email": "Email",
+      "adv.phone": "Phone",
+      "adv.location": "Location",
+      "adv.linkedin": "LinkedIn",
+      "adv.portfolio": "Portfolio",
+      "adv.add_experience": "+ Add Experience",
+      "adv.add_education": "+ Add Education",
+      "adv.remove": "Remove",
+      "adv.role": "Role / Title",
+      "adv.company": "Company",
+      "adv.period": "Period",
+      "adv.achievements": "Achievements (STAR method)",
+      "adv.degree": "Degree",
+      "adv.school": "School / University",
+      "adv.export": "Export .txt",
+      "adv.import": "Import .txt",
+      "adv.ph_name": "Jane Doe",
+      "adv.ph_email": "jane@example.com",
+      "adv.ph_phone": "+41 79 123 45 67",
+      "adv.ph_location": "Zurich, Switzerland",
+      "adv.ph_linkedin": "linkedin.com/in/janedoe",
+      "adv.ph_portfolio": "janedoe.dev",
+      "adv.ph_references": "Dr. Jane Smith | Professor | ETH Zurich | jane@ethz.ch",
+      "adv.ph_role": "Senior Engineer",
+      "adv.ph_company": "Acme Corp",
+      "adv.ph_period": "2020–2024",
+      "adv.ph_achievements": "Situation: Team missed deadlines. Task: Stabilize release. Action: Introduced CI/CD. Result: 0 missed deadlines over 18 months.",
+      "adv.ph_degree": "MSc Computer Science",
+      "adv.ph_school": "ETH Zurich",
+
+      "telos.career_goal": "What are you looking for in your next role?",
+      "telos.work_environment": "Describe your ideal work environment",
+      "telos.values": "What are your core professional values?",
+      "telos.strengths": "What are your 3 main strengths with examples?",
+      "telos.motivators": "What motivates you most at work?",
+      "telos.success_vision": "What does success look like in this role?",
+      "telos.work_style": "How do you prefer to work (autonomous/team)?",
+      "telos.impact": "What impact do you want to have?",
+      "telos.ph_career_goal": "Lead product engineering in a scale-up with real impact...",
+      "telos.ph_work_environment": "Async-first, collaborative, data-driven team...",
+      "telos.ph_values": "Ownership, continuous learning, shipping with quality...",
+      "telos.ph_strengths": "System design, clear communication, debugging under pressure...",
+      "telos.ph_motivators": "Autonomy, mastery, shipping products people use...",
+      "telos.ph_success_vision": "Own a feature end-to-end and see user adoption grow...",
+      "telos.ph_work_style": "Deep work mornings, collaborative afternoons...",
+      "telos.ph_impact": "Help the product reach and serve 100k users...",
     },
     de: {
       "page.title": "happyRAV · Bewerbungs-Wizard",
@@ -257,17 +334,91 @@
       "error.select_files_first": "Bitte zuerst Dateien auswählen.",
       "error.required_unresolved": "Pflichtfragen noch offen",
       "error.email_failed": "E-Mail-Versand fehlgeschlagen.",
+      "warn.no_api_key": "KI-Funktionen nicht verfügbar: API-Schlüssel auf dem Server nicht konfiguriert.",
+
+      "comparison.show": "Match-Analyse anzeigen",
+      "comparison.hide": "Match-Analyse ausblenden",
+      "comparison.original": "Ursprünglich",
+      "comparison.optimized": "Optimiert für Stelleninserat",
+      "comparison.loading": "Laden...",
+      "comparison.error": "Vergleich konnte nicht geladen werden.",
+
+      "fmt.title": "Optimales Eingabeformat",
+      "fmt.intro": "Verwende diese Struktur für beste Ergebnisse und weniger Neugenerierungen:",
+      "fmt.date": "Datum: MM/JJJJ (z.B. 03/2021). Zeiträume: 03/2021\u201306/2024. \"heute\" für aktuelle Stelle.",
+      "fmt.role": "Rolle: exakter Jobtitel, keine Abkürzungen (z.B. \"Digital Business Manager\", nicht \"DBM\")",
+      "fmt.company": "Firma: vollständiger Name (z.B. \"Soprema AG\", nicht \"Soprema\")",
+      "fmt.achievements": "Leistungen: eine pro Zeile, STAR-Format. Mit Aktionsverb beginnen. Kennzahlen nennen.",
+      "fmt.achievements_ex": "Beispiel:\nNationale B2C-Kampagne geleitet (CHF 500k Budget), Online-/Offline-Mix\nSEO-Ranking von Position 8 auf 2 verbessert innerhalb 6 Monaten\nCI/CD-Pipeline aufgebaut, Deployment-Zeit um 70% reduziert",
+      "fmt.skills": "Skills: kommagetrennt, spezifisch (z.B. \"Python, SQL, Tableau, Jira\" nicht \"Programmierung, Daten\")",
+      "fmt.education": "Ausbildung: Abschluss + Schule + Zeitraum (z.B. \"MSc Applied Information & Data Science, HSLU, 09/2023\u2013heute\")",
+      "fmt.tip": "Tipp: spezifischere Eingaben = besseres Ergebnis. Vage Beschreibungen kosten zusätzliche Generierungen.",
+      "fmt.close": "Verstanden",
 
       "aria.language_toggle": "Sprachauswahl",
       "aria.switch_en": "Switch to English",
       "aria.switch_de": "Auf Deutsch wechseln",
+
+      "adv.profile_title": "Erweitert: Profil manuell aufbauen",
+      "adv.telos_title": "Erweitert: Karriereziele & Werte",
+      "adv.contact": "Kontakt",
+      "adv.experience": "Berufserfahrung",
+      "adv.education": "Ausbildung",
+      "adv.references": "Referenzen (optional)",
+      "adv.name": "Vollständiger Name",
+      "adv.email": "E-Mail",
+      "adv.phone": "Telefon",
+      "adv.location": "Ort",
+      "adv.linkedin": "LinkedIn",
+      "adv.portfolio": "Portfolio",
+      "adv.add_experience": "+ Erfahrung hinzufügen",
+      "adv.add_education": "+ Ausbildung hinzufügen",
+      "adv.remove": "Entfernen",
+      "adv.role": "Rolle / Titel",
+      "adv.company": "Firma",
+      "adv.period": "Zeitraum",
+      "adv.achievements": "Leistungen (STAR-Methode)",
+      "adv.degree": "Abschluss",
+      "adv.school": "Schule / Universität",
+      "adv.export": "Exportieren .txt",
+      "adv.import": "Importieren .txt",
+      "adv.ph_name": "Jana Müller",
+      "adv.ph_email": "jana@beispiel.ch",
+      "adv.ph_phone": "+41 79 123 45 67",
+      "adv.ph_location": "Zürich, Schweiz",
+      "adv.ph_linkedin": "linkedin.com/in/janamueller",
+      "adv.ph_portfolio": "janamueller.ch",
+      "adv.ph_references": "Dr. Jana Müller | Professorin | ETH Zürich | jana@ethz.ch",
+      "adv.ph_role": "Senior Ingenieurin",
+      "adv.ph_company": "Musterfirma AG",
+      "adv.ph_period": "2020–2024",
+      "adv.ph_achievements": "Situation: Team verpasste Fristen. Task: Release stabilisieren. Action: CI/CD eingeführt. Result: 0 verpasste Fristen in 18 Monaten.",
+      "adv.ph_degree": "MSc Informatik",
+      "adv.ph_school": "ETH Zürich",
+
+      "telos.career_goal": "Was suchen Sie in Ihrer nächsten Stelle?",
+      "telos.work_environment": "Beschreiben Sie Ihr ideales Arbeitsumfeld",
+      "telos.values": "Was sind Ihre wichtigsten beruflichen Werte?",
+      "telos.strengths": "Was sind Ihre 3 Hauptstärken mit Beispielen?",
+      "telos.motivators": "Was motiviert Sie am meisten bei der Arbeit?",
+      "telos.success_vision": "Was bedeutet Erfolg für Sie in dieser Stelle?",
+      "telos.work_style": "Wie arbeiten Sie am liebsten (autonom/Team)?",
+      "telos.impact": "Welchen Einfluss möchten Sie hinterlassen?",
+      "telos.ph_career_goal": "Produktentwicklung in einem Scale-up mit echtem Impact leiten...",
+      "telos.ph_work_environment": "Async-first, kollaboratives, datengetriebenes Team...",
+      "telos.ph_values": "Eigenverantwortung, kontinuierliches Lernen, Qualität beim Ausliefern...",
+      "telos.ph_strengths": "Systemdesign, klare Kommunikation, Debugging unter Druck...",
+      "telos.ph_motivators": "Autonomie, Meisterschaft, Produkte ausliefern, die Menschen nutzen...",
+      "telos.ph_success_vision": "Ein Feature von Anfang bis Ende besitzen und Nutzerakzeptanz wachsen sehen...",
+      "telos.ph_work_style": "Tiefe Arbeitseinheiten morgens, kollaborative Nachmittage...",
+      "telos.ph_impact": "Das Produkt dabei helfen, 100.000 Nutzer zu erreichen...",
     },
   };
 
   const state = {
     sessionId: "",
     server: null,
-    uiLanguage: "en",
+    uiLanguage: "de",
   };
 
   const statusBox = document.getElementById("global-status");
@@ -857,6 +1008,7 @@
 
   async function generate() {
     if (!state.sessionId) throw new Error(t("error.start_session_first"));
+    trackGenerate();
     const payload = {
       template_id: templateSelect?.value || "simple",
       primary_color: primaryInput?.value || defaultPrimary,
@@ -896,6 +1048,413 @@
     notify("success", t("notify.session_cleared"));
   }
 
+  // ============================================================
+  // FORMAT GUIDE POPUP
+  // ============================================================
+
+  const generateTimestamps = [];
+
+  function showFormatGuide() {
+    if (document.getElementById("fmt-modal")) return;
+    const overlay = document.createElement("div");
+    overlay.id = "fmt-modal";
+    overlay.className = "fmt-overlay";
+    const exLines = t("fmt.achievements_ex").split("\n").map((l) => escHtml(l)).join("<br>");
+    overlay.innerHTML = `
+      <div class="fmt-dialog">
+        <h3>${t("fmt.title")}</h3>
+        <p>${t("fmt.intro")}</p>
+        <ul>
+          <li>${t("fmt.date")}</li>
+          <li>${t("fmt.role")}</li>
+          <li>${t("fmt.company")}</li>
+          <li>${t("fmt.achievements")}</li>
+        </ul>
+        <pre class="fmt-example">${exLines}</pre>
+        <ul>
+          <li>${t("fmt.skills")}</li>
+          <li>${t("fmt.education")}</li>
+        </ul>
+        <p><strong>${t("fmt.tip")}</strong></p>
+        <button class="btn-primary fmt-close">${t("fmt.close")}</button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.querySelector(".fmt-close").addEventListener("click", () => overlay.remove());
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
+  }
+
+  function trackGenerate() {
+    const now = Date.now();
+    generateTimestamps.push(now);
+    const cutoff = now - 5 * 60 * 1000;
+    while (generateTimestamps.length && generateTimestamps[0] < cutoff) generateTimestamps.shift();
+    if (generateTimestamps.length >= 3) showFormatGuide();
+  }
+
+  // ============================================================
+  // ADVANCED MODE
+  // ============================================================
+
+  let advProfileDebounce = null;
+  let advTelosDebounce = null;
+
+  function escHtml(str) {
+    return String(str || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function addExperienceRow(data) {
+    const list = document.getElementById("adv-experience-list");
+    if (!list) return;
+    const row = document.createElement("div");
+    row.className = "exp-row";
+    row.innerHTML = `
+      <button type="button" class="row-remove">${t("adv.remove")}</button>
+      <div class="grid two">
+        <label><span>${t("adv.role")}</span>
+          <input type="text" name="role" value="${escHtml(data?.role || "")}" placeholder="${escHtml(t("adv.ph_role"))}">
+        </label>
+        <label><span>${t("adv.company")}</span>
+          <input type="text" name="company" value="${escHtml(data?.company || "")}" placeholder="${escHtml(t("adv.ph_company"))}">
+        </label>
+        <label><span>${t("adv.period")}</span>
+          <input type="text" name="period" value="${escHtml(data?.period || "")}" placeholder="${escHtml(t("adv.ph_period"))}">
+        </label>
+      </div>
+      <label><span>${t("adv.achievements")}</span>
+        <textarea name="achievements" rows="3" placeholder="${escHtml(t("adv.ph_achievements"))}">${escHtml((data?.achievements || []).join("\n"))}</textarea>
+      </label>
+    `;
+    row.querySelectorAll("input, textarea").forEach((el) => el.addEventListener("input", scheduleAdvProfileSave));
+    list.appendChild(row);
+  }
+
+  function addEducationRow(data) {
+    const list = document.getElementById("adv-education-list");
+    if (!list) return;
+    const row = document.createElement("div");
+    row.className = "edu-row";
+    row.innerHTML = `
+      <button type="button" class="row-remove">${t("adv.remove")}</button>
+      <div class="grid two">
+        <label><span>${t("adv.degree")}</span>
+          <input type="text" name="degree" value="${escHtml(data?.degree || "")}" placeholder="${escHtml(t("adv.ph_degree"))}">
+        </label>
+        <label><span>${t("adv.school")}</span>
+          <input type="text" name="school" value="${escHtml(data?.school || "")}" placeholder="${escHtml(t("adv.ph_school"))}">
+        </label>
+        <label><span>${t("adv.period")}</span>
+          <input type="text" name="period" value="${escHtml(data?.period || "")}" placeholder="${escHtml(t("adv.ph_period"))}">
+        </label>
+      </div>
+    `;
+    row.querySelectorAll("input").forEach((el) => el.addEventListener("input", scheduleAdvProfileSave));
+    list.appendChild(row);
+  }
+
+  function scheduleAdvProfileSave() {
+    if (advProfileDebounce) clearTimeout(advProfileDebounce);
+    advProfileDebounce = setTimeout(saveAdvancedProfile, 300);
+  }
+
+  function scheduleAdvTelosSave() {
+    if (advTelosDebounce) clearTimeout(advTelosDebounce);
+    advTelosDebounce = setTimeout(saveTelos, 300);
+  }
+
+  function collectAdvancedProfile() {
+    return {
+      contact: {
+        name: document.getElementById("adv-name")?.value || "",
+        email: document.getElementById("adv-email")?.value || "",
+        phone: document.getElementById("adv-phone")?.value || "",
+        location: document.getElementById("adv-location")?.value || "",
+        linkedin: document.getElementById("adv-linkedin")?.value || "",
+        portfolio: document.getElementById("adv-portfolio")?.value || "",
+      },
+      experience: Array.from(document.querySelectorAll(".exp-row")).map((row) => ({
+        role: row.querySelector("[name='role']")?.value || "",
+        company: row.querySelector("[name='company']")?.value || "",
+        period: row.querySelector("[name='period']")?.value || "",
+        achievements: (row.querySelector("[name='achievements']")?.value || "").split("\n").filter(Boolean),
+      })),
+      education: Array.from(document.querySelectorAll(".edu-row")).map((row) => ({
+        degree: row.querySelector("[name='degree']")?.value || "",
+        school: row.querySelector("[name='school']")?.value || "",
+        period: row.querySelector("[name='period']")?.value || "",
+      })),
+      references: document.getElementById("adv-references")?.value || "",
+    };
+  }
+
+  function saveAdvancedProfile() {
+    localStorage.setItem(STORAGE_PROFILE_KEY, JSON.stringify(collectAdvancedProfile()));
+  }
+
+  function restoreAdvancedProfile(data) {
+    if (!data) {
+      try { data = JSON.parse(localStorage.getItem(STORAGE_PROFILE_KEY) || "null"); } catch (_) {}
+    }
+    if (!data) return;
+    const c = data.contact || {};
+    ["name", "email", "phone", "location", "linkedin", "portfolio"].forEach((f) => {
+      const el = document.getElementById(`adv-${f}`);
+      if (el) el.value = c[f] || "";
+    });
+    const expList = document.getElementById("adv-experience-list");
+    if (expList) { expList.innerHTML = ""; (data.experience || []).forEach(addExperienceRow); }
+    const eduList = document.getElementById("adv-education-list");
+    if (eduList) { eduList.innerHTML = ""; (data.education || []).forEach(addEducationRow); }
+    const refs = document.getElementById("adv-references");
+    if (refs) refs.value = data.references || "";
+  }
+
+  function collectTelos() {
+    const result = {};
+    TELOS_IDS.forEach((id) => { result[id] = document.getElementById(`telos-${id}`)?.value || ""; });
+    return result;
+  }
+
+  function saveTelos() {
+    localStorage.setItem(STORAGE_TELOS_KEY, JSON.stringify(collectTelos()));
+  }
+
+  function restoreTelos(data) {
+    if (!data) {
+      try { data = JSON.parse(localStorage.getItem(STORAGE_TELOS_KEY) || "null"); } catch (_) {}
+    }
+    if (!data) return;
+    TELOS_IDS.forEach((id) => {
+      const el = document.getElementById(`telos-${id}`);
+      if (el) el.value = data[id] || "";
+    });
+  }
+
+  function hasAdvancedData(profile, telos) {
+    const c = profile.contact || {};
+    if (Object.values(c).some((v) => v.trim())) return true;
+    if ((profile.experience || []).some((e) => e.role)) return true;
+    if ((profile.education || []).some((e) => e.degree)) return true;
+    if ((profile.references || "").trim()) return true;
+    if (Object.values(telos || {}).some((v) => v.trim())) return true;
+    return false;
+  }
+
+  function parseSectionedTxt(text) {
+    const result = {};
+    let currentSection = null;
+    for (const rawLine of text.split("\n")) {
+      const line = rawLine.trim();
+      if (line.startsWith("#")) continue;
+      const sectionMatch = line.match(/^\[([A-Z_]+)\]$/);
+      if (sectionMatch) {
+        currentSection = sectionMatch[1];
+        result[currentSection] = result[currentSection] || [];
+        continue;
+      }
+      if (currentSection) result[currentSection].push(rawLine);
+    }
+    return result;
+  }
+
+  function parseProfileFromTxt(text) {
+    const sections = parseSectionedTxt(text);
+    const contact = {};
+    (sections.CONTACT || []).forEach((line) => {
+      const m = line.match(/^(\w+):\s*(.*)/);
+      if (m) contact[m[1]] = m[2].trim();
+    });
+    const experience = [];
+    let current = null;
+    let inAchievements = false;
+    (sections.EXPERIENCE || []).forEach((line) => {
+      if (line.trim() === "---") {
+        if (current) { experience.push(current); current = null; inAchievements = false; }
+        else { current = { role: "", company: "", period: "", achievements: [] }; inAchievements = false; }
+        return;
+      }
+      if (!current) return;
+      if (line.trim() === "achievements:") { inAchievements = true; return; }
+      if (inAchievements) {
+        const m = line.match(/^\s+-\s+(.*)/);
+        if (m) current.achievements.push(m[1]);
+        return;
+      }
+      const m = line.match(/^(\w+):\s*(.*)/);
+      if (m) current[m[1]] = m[2].trim();
+    });
+    const education = [];
+    let currEdu = null;
+    (sections.EDUCATION || []).forEach((line) => {
+      if (line.trim() === "---") {
+        if (currEdu) { education.push(currEdu); currEdu = null; }
+        else currEdu = { degree: "", school: "", period: "" };
+        return;
+      }
+      if (!currEdu) return;
+      const m = line.match(/^(\w+):\s*(.*)/);
+      if (m) currEdu[m[1]] = m[2].trim();
+    });
+    const references = (sections.REFERENCES || []).join("\n").trim();
+    return { contact, experience, education, references };
+  }
+
+  function parseTelosFromTxt(text) {
+    const sections = parseSectionedTxt(text);
+    const telos = {};
+    (sections.TELOS || []).forEach((line) => {
+      const m = line.match(/^(\w+):\s*(.*)/);
+      if (m && TELOS_IDS.includes(m[1])) telos[m[1]] = m[2].trim();
+    });
+    return telos;
+  }
+
+  function serializeProfileTxt(profile) {
+    const date = new Date().toISOString().slice(0, 10);
+    const lines = [`# happyRAV Profile | v1 | ${date}`, "[CONTACT]"];
+    const c = profile.contact || {};
+    ["name", "email", "phone", "location", "linkedin", "portfolio"].forEach((f) => lines.push(`${f}: ${c[f] || ""}`));
+    lines.push("", "[EXPERIENCE]");
+    (profile.experience || []).forEach((e) => {
+      lines.push("---");
+      lines.push(`role: ${e.role || ""}`);
+      lines.push(`company: ${e.company || ""}`);
+      lines.push(`period: ${e.period || ""}`);
+      lines.push("achievements:");
+      (e.achievements || []).forEach((a) => lines.push(`  - ${a}`));
+      lines.push("---");
+    });
+    lines.push("", "[EDUCATION]");
+    (profile.education || []).forEach((e) => {
+      lines.push("---");
+      lines.push(`degree: ${e.degree || ""}`);
+      lines.push(`school: ${e.school || ""}`);
+      lines.push(`period: ${e.period || ""}`);
+      lines.push("---");
+    });
+    lines.push("", "[REFERENCES]");
+    lines.push(profile.references || "");
+    return lines.join("\n");
+  }
+
+  function serializeTelosTxt(telos) {
+    const date = new Date().toISOString().slice(0, 10);
+    const lines = [`# happyRAV Telos | v1 | ${date}`, "[TELOS]"];
+    TELOS_IDS.forEach((id) => lines.push(`${id}: ${telos[id] || ""}`));
+    return lines.join("\n");
+  }
+
+  function downloadTxt(filename, content) {
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function exportProfileTxt() {
+    downloadTxt("happyrav_profile.txt", serializeProfileTxt(collectAdvancedProfile()));
+  }
+
+  function importProfileTxt(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        restoreAdvancedProfile(parseProfileFromTxt(e.target.result));
+        saveAdvancedProfile();
+        showFormatGuide();
+      } catch (_) {}
+    };
+    reader.readAsText(file);
+  }
+
+  function exportTelosTxt() {
+    downloadTxt("happyrav_telos.txt", serializeTelosTxt(collectTelos()));
+  }
+
+  function importTelosTxt(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        restoreTelos(parseTelosFromTxt(e.target.result));
+        saveTelos();
+        showFormatGuide();
+      } catch (_) {}
+    };
+    reader.readAsText(file);
+  }
+
+  async function preseedSession(sid) {
+    const profile = collectAdvancedProfile();
+    const telos = collectTelos();
+    const c = profile.contact || {};
+    const preseedProfile = {};
+    if (c.name) preseedProfile.full_name = c.name;
+    if (c.email) preseedProfile.email = c.email;
+    if (c.phone) preseedProfile.phone = c.phone;
+    if (c.location) preseedProfile.location = c.location;
+    if (c.linkedin) preseedProfile.linkedin = c.linkedin;
+    if (c.portfolio) preseedProfile.portfolio = c.portfolio;
+    if ((profile.experience || []).length) preseedProfile.experience = profile.experience;
+    if ((profile.education || []).length) preseedProfile.education = profile.education;
+    const response = await fetch(endpoint(`/api/session/${sid}/preseed`), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ profile: preseedProfile, telos }),
+    });
+    if (!response.ok) return;
+    const data = await response.json();
+    if (data.state) state.server = data.state;
+  }
+
+  function bindAdvancedEvents() {
+    document.getElementById("adv-add-exp")?.addEventListener("click", () => addExperienceRow());
+    document.getElementById("adv-add-edu")?.addEventListener("click", () => addEducationRow());
+
+    document.getElementById("adv-experience-list")?.addEventListener("click", (e) => {
+      const btn = e.target.closest(".row-remove");
+      if (btn) { btn.closest(".exp-row")?.remove(); scheduleAdvProfileSave(); }
+    });
+    document.getElementById("adv-education-list")?.addEventListener("click", (e) => {
+      const btn = e.target.closest(".row-remove");
+      if (btn) { btn.closest(".edu-row")?.remove(); scheduleAdvProfileSave(); }
+    });
+
+    document.getElementById("adv-export-profile")?.addEventListener("click", exportProfileTxt);
+    document.getElementById("adv-import-profile-btn")?.addEventListener("click", () => {
+      document.getElementById("adv-import-profile-file")?.click();
+    });
+    document.getElementById("adv-import-profile-file")?.addEventListener("change", function () {
+      if (this.files[0]) { importProfileTxt(this.files[0]); this.value = ""; }
+    });
+
+    document.getElementById("adv-export-telos")?.addEventListener("click", exportTelosTxt);
+    document.getElementById("adv-import-telos-btn")?.addEventListener("click", () => {
+      document.getElementById("adv-import-telos-file")?.click();
+    });
+    document.getElementById("adv-import-telos-file")?.addEventListener("change", function () {
+      if (this.files[0]) { importTelosTxt(this.files[0]); this.value = ""; }
+    });
+
+    ["adv-name", "adv-email", "adv-phone", "adv-location", "adv-linkedin", "adv-portfolio", "adv-references"].forEach((id) => {
+      document.getElementById(id)?.addEventListener("input", scheduleAdvProfileSave);
+    });
+
+    TELOS_IDS.forEach((id) => {
+      document.getElementById(`telos-${id}`)?.addEventListener("input", scheduleAdvTelosSave);
+    });
+  }
+
+  // ============================================================
+  // END ADVANCED MODE
+  // ============================================================
+
   function gotoUpload() {
     window.location.assign(routeForStep("upload"));
   }
@@ -906,6 +1465,52 @@
 
   function gotoReview() {
     window.location.assign(routeForStep("review"));
+  }
+
+  function bindComparisonToggle() {
+    const btn = document.getElementById("comparison-toggle");
+    const container = document.getElementById("comparison-container");
+    if (!btn || !container) return;
+
+    let loaded = false;
+    btn.addEventListener("click", async () => {
+      if (container.style.display !== "none") {
+        container.style.display = "none";
+        btn.textContent = t("comparison.show");
+        return;
+      }
+      if (!loaded) {
+        btn.disabled = true;
+        btn.textContent = t("comparison.loading");
+        try {
+          const token = btn.dataset.token;
+          const res = await fetch(endpoint(`/api/result/${token}/comparison`));
+          if (!res.ok) throw new Error();
+          const data = await res.json();
+          const sections = data.sections || [];
+          if (!sections.length) {
+            container.innerHTML = `<p>${t("comparison.error")}</p>`;
+          } else {
+            const isDe = state.uiLanguage === "de";
+            let html = `<table class="comparison-table"><thead><tr><th></th><th>${t("comparison.original")}</th><th>${t("comparison.optimized")}</th></tr></thead><tbody>`;
+            sections.forEach((s) => {
+              const label = isDe ? s.label_de : s.label_en;
+              const orig = escHtml(s.original).replace(/\n/g, "<br>");
+              const opt = escHtml(s.optimized).replace(/\n/g, "<br>");
+              html += `<tr><td><strong>${escHtml(label)}</strong></td><td>${orig}</td><td>${opt}</td></tr>`;
+            });
+            html += "</tbody></table>";
+            container.innerHTML = html;
+          }
+          loaded = true;
+        } catch (_) {
+          container.innerHTML = `<p class="alert warn">${t("comparison.error")}</p>`;
+        }
+        btn.disabled = false;
+      }
+      container.style.display = "block";
+      btn.textContent = t("comparison.hide");
+    });
   }
 
   function bindEmailSubmitListener() {
@@ -945,10 +1550,25 @@
     renderAll();
   }
 
+  function renderApiKeyWarning() {
+    const existing = document.getElementById("api-key-warning");
+    if (existing) existing.remove();
+    if (state.server && state.server.api_key_configured === false) {
+      const banner = document.createElement("div");
+      banner.id = "api-key-warning";
+      banner.className = "alert warn";
+      banner.style.margin = "0.5rem 1rem";
+      banner.textContent = t("warn.no_api_key");
+      const container = document.querySelector(".wizard-content") || document.body;
+      container.prepend(banner);
+    }
+  }
+
   function renderAll() {
     translateStaticUi();
     renderProgress();
     renderSessionMeta();
+    renderApiKeyWarning();
     renderDocuments();
     renderQuestions();
     renderReview();
@@ -1046,7 +1666,18 @@
   }
 
   function bindPageEvents() {
-    if (btnStartContinue) btnStartContinue.addEventListener("click", gotoUpload);
+    if (btnStartContinue) {
+      btnStartContinue.addEventListener("click", () =>
+        run(async () => {
+          if (state.sessionId) {
+            const profile = collectAdvancedProfile();
+            const telos = collectTelos();
+            if (hasAdvancedData(profile, telos)) await preseedSession(state.sessionId);
+          }
+          window.location.assign(routeForStep("upload"));
+        }),
+      );
+    }
     if (btnUploadContinue) btnUploadContinue.addEventListener("click", gotoQuestions);
     if (btnAnswers) btnAnswers.addEventListener("click", () => run(saveAnswers));
     if (btnGenerate) btnGenerate.addEventListener("click", () => run(generate));
@@ -1056,8 +1687,14 @@
   async function init() {
     restoreLocal();
     bindEmailSubmitListener();
+    bindComparisonToggle();
     bindCommonEvents();
     bindPageEvents();
+    if (pageKey === "start") {
+      bindAdvancedEvents();
+      restoreAdvancedProfile();
+      restoreTelos();
+    }
 
     if (pageKey === "start" && !state.sessionId && hasAutoStartSignal()) {
       scheduleIntakeSync();

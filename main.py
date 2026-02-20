@@ -18,9 +18,11 @@ from PIL import Image
 from happyrav.models import (
     ArtifactRecord,
     BasicProfile,
+    ComparisonSection,
     DocTag,
     ExtractedProfile,
     GenerateRequest,
+    PreSeedRequest,
     SessionAnswerRequest,
     SessionIntakeRequest,
     SessionStartRequest,
@@ -41,7 +43,7 @@ from happyrav.services.extract_documents import (
     is_supported_filename,
     merge_profiles,
 )
-from happyrav.services.llm_kimi import extract_profile_from_documents, generate_content
+from happyrav.services.llm_kimi import extract_profile_from_documents, generate_content, has_api_key
 from happyrav.services.parsing import parse_hex_color, parse_language
 from happyrav.services.pdf_render import render_pdf
 from happyrav.services.question_engine import (
@@ -202,6 +204,9 @@ def _review_match_payload(state: SessionState) -> Optional[Dict]:
     if not state.job_ad_text.strip():
         return None
     cv_text = _profile_text_for_score(state.extracted_profile)
+    if state.telos_context:
+        telos_lines = [f"{k}: {v}" for k, v in state.telos_context.items() if v]
+        cv_text += "\n\n# Career Goals & Values\n" + "\n".join(telos_lines)
     if not cv_text.strip():
         return None
     try:
@@ -271,6 +276,7 @@ def _state_payload(state: SessionState) -> Dict:
         "review_match": review_match,
         "expires_at": state.expires_at,
         "recommended_step": _recommended_step(state),
+        "api_key_configured": has_api_key(),
     }
 
 
@@ -581,12 +587,79 @@ async def api_session_clear(session_id: str) -> Dict[str, str]:
     return {"status": "cleared"}
 
 
+@app.post("/api/session/{session_id}/preseed")
+async def api_preseed(session_id: str, req: PreSeedRequest) -> Dict:
+    record = _require_session(session_id)
+    if req.profile:
+        existing = record.state.extracted_profile.model_dump()
+        existing.update({k: v for k, v in req.profile.items() if v})
+        record.state.extracted_profile = ExtractedProfile(**existing)
+    if req.telos:
+        record.state.telos_context.update(req.telos)
+    session_cache.set(record)
+    return {
+        "session_id": session_id,
+        "expires_at": record.state.expires_at,
+        "state": _state_payload(record.state),
+    }
+
+
+def _build_comparison_sections(
+    profile: ExtractedProfile,
+    generated,
+) -> List[ComparisonSection]:
+    sections: List[ComparisonSection] = []
+    if profile.summary or generated.summary:
+        sections.append(ComparisonSection(
+            label_en="Summary", label_de="Kurzprofil",
+            original=profile.summary or "",
+            optimized=generated.summary or "",
+        ))
+    if profile.skills or generated.skills:
+        sections.append(ComparisonSection(
+            label_en="Skills", label_de="Skills",
+            original=", ".join(profile.skills),
+            optimized=", ".join(generated.skills),
+        ))
+    orig_exp = profile.experience or []
+    gen_exp = generated.experience or []
+    for i in range(max(len(orig_exp), len(gen_exp))):
+        o = orig_exp[i] if i < len(orig_exp) else None
+        g = gen_exp[i] if i < len(gen_exp) else None
+        label_suffix = ""
+        if o:
+            label_suffix = f": {o.role}" if o.role else ""
+        elif g:
+            label_suffix = f": {g.role}" if g.role else ""
+        sections.append(ComparisonSection(
+            label_en=f"Experience{label_suffix}",
+            label_de=f"Erfahrung{label_suffix}",
+            original="\n".join(o.achievements) if o else "",
+            optimized="\n".join(g.achievements) if g else "",
+        ))
+    orig_edu = [f"{e.degree}, {e.school}" for e in (profile.education or [])]
+    gen_edu = [f"{e.degree}, {e.school}" for e in (generated.education or [])]
+    orig_edu_str = "\n".join(orig_edu)
+    gen_edu_str = "\n".join(gen_edu)
+    if orig_edu_str != gen_edu_str:
+        sections.append(ComparisonSection(
+            label_en="Education", label_de="Ausbildung",
+            original=orig_edu_str, optimized=gen_edu_str,
+        ))
+    return sections
+
+
 @app.post("/api/session/{session_id}/generate")
 async def api_session_generate(
     request: Request,
     session_id: str,
     payload: GenerateRequest,
 ) -> Dict:
+    if not has_api_key():
+        raise HTTPException(
+            status_code=503,
+            detail="OPENAI_API_KEY not configured. Cannot generate documents.",
+        )
     record = _require_session(session_id)
     state = record.state
     state.template_id = _template_alias(payload.template_id or state.template_id)
@@ -618,6 +691,9 @@ async def api_session_generate(
     )
 
     cv_text = build_cv_text(basic_profile, generated)
+    if state.telos_context:
+        telos_lines = [f"{k}: {v}" for k, v in state.telos_context.items() if v]
+        cv_text += "\n\n# Career Goals & Values\n" + "\n".join(telos_lines)
     match = compute_match(cv_text=cv_text, job_ad_text=state.job_ad_text, language=state.language)
     cv_html = render_cv_html(
         template_id=state.template_id,
@@ -642,6 +718,7 @@ async def api_session_generate(
         cover_pdf = render_pdf(cover_html)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"PDF generation failed: {exc}") from exc
+    comparison_sections = _build_comparison_sections(profile, generated)
     filenames = build_filenames(basic_profile.full_name or "Candidate", state.company_name or "Company")
     token = artifact_cache.create_token()
     artifact = ArtifactRecord(
@@ -655,6 +732,7 @@ async def api_session_generate(
         match=match,
         warning=warning,
         expires_at=time.time() + artifact_cache.ttl_seconds,
+        comparison_sections=comparison_sections,
         meta={
             "company_name": state.company_name,
             "position_title": state.position_title,
@@ -701,6 +779,14 @@ async def result_fragment(request: Request, token: str) -> HTMLResponse:
     if not record:
         raise HTTPException(status_code=404, detail="Result expired or not found.")
     return templates.TemplateResponse("_result.html", {"request": request, "record": record})
+
+
+@app.get("/api/result/{token}/comparison")
+async def api_result_comparison(token: str) -> Dict:
+    record = artifact_cache.get(token)
+    if not record:
+        raise HTTPException(status_code=404, detail="Result expired or not found.")
+    return {"sections": [s.model_dump() for s in record.comparison_sections]}
 
 
 @app.get("/download/{token}/{file_id}")

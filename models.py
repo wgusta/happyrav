@@ -100,6 +100,7 @@ class SessionState(BaseModel):
     theme: ThemeConfig = Field(default_factory=ThemeConfig)
     extraction_warning: str = ""
     extraction_debug: Dict[str, Any] = Field(default_factory=dict)
+    telos_context: Dict[str, str] = Field(default_factory=dict)
     created_at: float = 0.0
     expires_at: float = 0.0
 
@@ -149,6 +150,13 @@ class MatchPayload(BaseModel):
     ats_issues: List[str] = Field(default_factory=list)
 
 
+class ComparisonSection(BaseModel):
+    label_en: str
+    label_de: str
+    original: str
+    optimized: str
+
+
 class ArtifactRecord(BaseModel):
     token: str
     filename_cv: str
@@ -161,6 +169,12 @@ class ArtifactRecord(BaseModel):
     warning: Optional[str] = None
     expires_at: float
     meta: Dict[str, Any] = Field(default_factory=dict)
+    comparison_sections: List[ComparisonSection] = Field(default_factory=list)
+
+
+class PreSeedRequest(BaseModel):
+    profile: Dict[str, Any] = Field(default_factory=dict)
+    telos: Dict[str, str] = Field(default_factory=dict)
 
 
 class GenerateResponse(BaseModel):

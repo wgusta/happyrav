@@ -680,3 +680,191 @@ button:disabled {
     transform: none;
   }
 }
+
+/* ===== ADVANCED MODE ===== */
+.advanced-block {
+  border: 1px solid rgba(26, 26, 26, 0.2);
+  border-radius: 10px;
+  padding: 10px;
+  margin: 10px 0 12px;
+  background: #fff;
+}
+
+.advanced-block > summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.advanced-block[open] > summary {
+  margin-bottom: 12px;
+}
+
+.adv-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.exp-row,
+.edu-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-left: 4px solid var(--sun-red);
+  background: #fffdf9;
+  border-radius: 8px;
+  padding: 12px 12px 12px 14px;
+}
+
+.row-remove {
+  align-self: flex-end;
+  width: auto;
+  min-width: 0;
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(230, 47, 45, 0.5);
+  background: transparent;
+  color: var(--sun-red);
+  cursor: pointer;
+}
+
+.row-remove:hover {
+  background: rgba(230, 47, 45, 0.08);
+}
+
+.telos-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.telos-item label {
+  display: grid;
+  gap: 6px;
+}
+
+.telos-item textarea {
+  width: 100%;
+  min-height: 60px;
+  resize: vertical;
+}
+
+.adv-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.adv-actions button {
+  width: auto;
+  min-width: 140px;
+}
+
+@media (max-width: 600px) {
+  .adv-actions {
+    flex-direction: column;
+  }
+
+  .adv-actions button {
+    width: 100%;
+  }
+}
+
+#comparison-toggle {
+  margin: 1.2rem 0 0.6rem;
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.8rem 0 1.2rem;
+  font-size: 0.85rem;
+}
+
+.comparison-table th,
+.comparison-table td {
+  border: 1px solid var(--rule);
+  padding: 0.5rem 0.7rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.comparison-table thead th {
+  background: var(--brand-black);
+  color: var(--brand-white);
+  font-weight: 600;
+}
+
+.comparison-table tbody tr:nth-child(even) {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+@media (max-width: 600px) {
+  .comparison-table {
+    font-size: 0.75rem;
+  }
+
+  .comparison-table th,
+  .comparison-table td {
+    padding: 0.35rem 0.4rem;
+  }
+}
+
+.fmt-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+}
+
+.fmt-dialog {
+  background: var(--brand-white);
+  border-radius: 8px;
+  padding: 1.5rem 1.8rem;
+  max-width: 580px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+.fmt-dialog h3 {
+  margin: 0 0 0.6rem;
+  font-family: var(--font-stylish);
+  font-size: 1.2rem;
+}
+
+.fmt-dialog ul {
+  padding-left: 1.2rem;
+  margin: 0.5rem 0;
+}
+
+.fmt-dialog li {
+  margin-bottom: 0.35rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.fmt-example {
+  background: var(--off-white);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  margin: 0.6rem 0;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+.fmt-close {
+  margin-top: 0.8rem;
+  width: 100%;
+}
