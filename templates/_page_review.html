@@ -5,7 +5,6 @@
     <label><span data-i18n="label.template">Template</span>
       <select id="review-template">
         <option value="simple" data-i18n="template.simple">Simple</option>
-        <option value="sophisticated" data-i18n="template.sophisticated">Sophisticated</option>
         <option value="friendly" data-i18n="template.friendly">Friendly</option>
       </select>
     </label>
@@ -64,7 +63,15 @@
   </div>
   <div id="cv-generated-info" style="display:none" class="alert success">
     <span data-i18n="notify.cv_generated">CV generated.</span>
-    <a id="cv-download-link" href="#" target="_blank" data-i18n="action.download_cv">Download CV</a>
+    <a id="cv-download-link" href="#" target="_blank" class="btn-primary btn-link" data-i18n="action.download_cv" style="display:inline-flex;margin-top:10px;font-size:16px;padding:14px 28px;min-width:220px;text-align:center">Download CV</a>
+  </div>
+  <div id="chat-corrections" style="display:none" class="chat-bar-section">
+    <h3 data-i18n="chat.title">Request Changes</h3>
+    <div id="chat-messages" class="chat-messages"></div>
+    <div class="chat-input-row">
+      <input id="chat-input" type="text" data-i18n-placeholder="chat.placeholder" placeholder="e.g. Make my summary shorter...">
+      <button id="chat-send-btn" type="button" class="btn-primary" data-i18n="chat.send">Send</button>
+    </div>
   </div>
 </section>
 

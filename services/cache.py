@@ -5,7 +5,7 @@ import threading
 import time
 import uuid
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from happyrav.models import ArtifactRecord, ExtractedProfile, SessionState
 
@@ -19,6 +19,7 @@ class SessionRecord:
     llm_profile: Optional[ExtractedProfile] = None
     llm_warning: str = ""
     llm_debug: Dict[str, Any] = field(default_factory=dict)
+    chat_history: List[Dict[str, str]] = field(default_factory=list)
 
 
 class ArtifactCache:

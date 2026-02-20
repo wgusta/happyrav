@@ -1,6 +1,9 @@
 """FastAPI app for happyRAV document-first multi-phase generation."""
 from __future__ import annotations
 
+from dotenv import load_dotenv
+load_dotenv()
+
 import os
 import hashlib
 import base64
@@ -45,7 +48,7 @@ from happyrav.services.extract_documents import (
     is_supported_filename,
     merge_profiles,
 )
-from happyrav.services.llm_kimi import extract_profile_from_documents, generate_content, has_api_key
+from happyrav.services.llm_kimi import extract_profile_from_documents, generate_content, refine_content, has_api_key, QUALITY_MODE
 from happyrav.services.parsing import parse_hex_color, parse_language
 from happyrav.services.pdf_render import render_pdf
 from happyrav.services.question_engine import (
@@ -93,9 +96,9 @@ def _format_cover_date(location: str, language: str) -> str:
 
 def _template_alias(value: str) -> str:
     template_id = (value or "").strip().lower()
-    if template_id in {"ats_clean", "ats_modern"}:
+    if template_id in {"ats_clean", "ats_modern", "sophisticated"}:
         return "simple"
-    if template_id in {"simple", "sophisticated", "friendly"}:
+    if template_id in {"simple", "friendly"}:
         return template_id
     return "simple"
 
@@ -120,7 +123,7 @@ app = FastAPI(title="happyRAV", root_path=ROOT_PATH)
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
 
-artifact_cache = ArtifactCache(ttl_seconds=int(os.getenv("HAPPYRAV_CACHE_TTL", "600")))
+artifact_cache = ArtifactCache(ttl_seconds=int(os.getenv("HAPPYRAV_ARTIFACT_TTL", "3600")))
 session_cache = SessionCache(ttl_seconds=int(os.getenv("HAPPYRAV_SESSION_TTL", "7200")))
 
 
@@ -757,7 +760,7 @@ async def api_session_generate(
     if not has_api_key():
         raise HTTPException(
             status_code=503,
-            detail="OPENAI_API_KEY not configured. Cannot generate documents.",
+            detail="Required API keys not configured (OPENAI_API_KEY + ANTHROPIC_API_KEY). Cannot generate documents.",
         )
     record = _require_session(session_id)
     state = record.state
@@ -839,6 +842,7 @@ async def api_session_generate(
             "full_name": basic_profile.full_name,
             "session_id": session_id,
             "language": state.language,
+            "generated_content": generated.model_dump(),
         },
     )
     artifact_cache.set(artifact)
@@ -849,6 +853,75 @@ async def api_session_generate(
         "match": artifact.match.model_dump(),
         "warning": artifact.warning,
         "download_cv_url": str(request.url_for("download_file", token=token, file_id="cv")),
+    }
+
+
+@app.post("/api/session/{session_id}/chat")
+async def api_session_chat(request: Request, session_id: str, payload: dict = Body(...)):
+    if not has_api_key():
+        raise HTTPException(status_code=503, detail="API keys not configured.")
+    record = _require_session(session_id)
+    state = record.state
+    user_message = (payload.get("message") or "").strip()
+    token = (payload.get("token") or "").strip()
+    if not user_message:
+        raise HTTPException(400, "Message required.")
+
+    artifact = artifact_cache.get(token) if token else None
+    if not artifact or not artifact.meta.get("generated_content"):
+        raise HTTPException(422, "No generated CV found. Generate first.")
+
+    from happyrav.services.llm_kimi import _coerce_generated_payload
+    current_content = _coerce_generated_payload(artifact.meta["generated_content"])
+    profile = state.extracted_profile
+
+    record.chat_history.append({"role": "user", "content": user_message})
+
+    refined, warning = await refine_content(
+        language=state.language,
+        user_message=user_message,
+        current_content=current_content,
+        profile=profile,
+        job_ad_text=state.job_ad_text,
+        chat_history=record.chat_history,
+    )
+
+    record.chat_history.append({"role": "assistant", "content": "Applied changes."})
+
+    basic_profile = _profile_to_basic(profile)
+    refined = _validate_completeness(profile, refined)
+    cv_text = build_cv_text(basic_profile, refined)
+    if state.telos_context:
+        telos_lines = [f"{k}: {v}" for k, v in state.telos_context.items() if v]
+        cv_text += "\n\n# Career Goals & Values\n" + "\n".join(telos_lines)
+    match = compute_match(cv_text=cv_text, job_ad_text=state.job_ad_text, language=state.language)
+    cv_html = render_cv_html(
+        template_id=state.template_id, language=state.language,
+        profile=basic_profile, content=refined, theme=state.theme, match=match,
+    )
+    cv_pdf = render_pdf(cv_html)
+
+    comparison_sections = _build_comparison_sections(profile, refined)
+    new_token = artifact_cache.create_token()
+    new_artifact = ArtifactRecord(
+        token=new_token, filename_cv=artifact.filename_cv,
+        cv_pdf_bytes=cv_pdf, cv_html=cv_html,
+        cover_pdf_bytes=artifact.cover_pdf_bytes, cover_html=artifact.cover_html,
+        filename_cover=artifact.filename_cover,
+        match=match, warning=warning,
+        expires_at=time.time() + artifact_cache.ttl_seconds,
+        comparison_sections=comparison_sections,
+        meta={**artifact.meta, "generated_content": refined.model_dump()},
+    )
+    artifact_cache.set(new_artifact)
+    session_cache.set(record)
+
+    return {
+        "token": new_token,
+        "message": "Changes applied.",
+        "download_cv_url": str(request.url_for("download_file", token=new_token, file_id="cv")),
+        "match": match.model_dump(),
+        "warning": warning,
     }
 
 
@@ -892,7 +965,7 @@ async def api_session_generate_cover(
     if not has_api_key():
         raise HTTPException(
             status_code=503,
-            detail="OPENAI_API_KEY not configured. Cannot generate documents.",
+            detail="Required API keys not configured (OPENAI_API_KEY + ANTHROPIC_API_KEY). Cannot generate documents.",
         )
     record = _require_session(session_id)
     state = record.state

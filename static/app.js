@@ -170,6 +170,12 @@
       "notify.signature_uploaded": "Signature uploaded.",
       "notify.cover_generated": "Cover letter generated.",
 
+      "chat.title": "Request Changes",
+      "chat.placeholder": "e.g. Make my summary shorter...",
+      "chat.send": "Send",
+      "chat.sending": "Applying changes...",
+      "chat.error": "Could not apply changes.",
+
       "notify.session_started": "Session started.",
       "notify.documents_uploaded": "Documents uploaded.",
       "notify.extraction_refreshed": "Extraction refreshed.",
@@ -186,6 +192,20 @@
       "error.email_failed": "Email failed.",
       "warn.no_api_key": "AI features unavailable: API key not configured on server.",
 
+      "gen.generating": "Generating...",
+      "gen.step1": "Sharpening digital pencils...",
+      "gen.step2": "Teaching AI to appreciate your career choices...",
+      "gen.step3": "Translating buzzwords into actual skills...",
+      "gen.step4": "Convincing the algorithm you're awesome...",
+      "gen.step5": "Formatting pixels with Swiss precision...",
+      "gen.step6": "Adding that special Helvetica touch...",
+      "gen.step7": "Almost there, polishing the final draft...",
+
+      "upload.processing": "Processing your documents...",
+      "upload.step1": "Reading document contents...",
+      "upload.step2": "Extracting text and structure...",
+      "upload.step3": "Building your profile...",
+
       "comparison.show": "Show match analysis",
       "comparison.hide": "Hide match analysis",
       "comparison.original": "Original",
@@ -193,7 +213,8 @@
       "comparison.loading": "Loading...",
       "comparison.error": "Could not load comparison.",
 
-      "fmt.title": "Optimal input format",
+      "fmt.title": "Hey, you've clicked generate 6 times!",
+      "fmt.nudge": "Since I'm an AI that doesn't fully understand the context of your professional life, help me get that context. Go back and add these details manually if things are missing:",
       "fmt.intro": "Use this structure for best results and fewer regenerations:",
       "fmt.date": "Dates: MM/YYYY (e.g. 03/2021). Use ranges: 03/2021\u201306/2024. \"present\" for current.",
       "fmt.role": "Role: exact job title, no abbreviations (e.g. \"Digital Business Manager\", not \"DBM\")",
@@ -414,6 +435,12 @@
       "notify.signature_uploaded": "Unterschrift hochgeladen.",
       "notify.cover_generated": "Anschreiben generiert.",
 
+      "chat.title": "Änderungen anfragen",
+      "chat.placeholder": "z.B. Zusammenfassung kürzen...",
+      "chat.send": "Senden",
+      "chat.sending": "Änderungen werden angewendet...",
+      "chat.error": "Änderungen konnten nicht angewendet werden.",
+
       "notify.session_started": "Sitzung gestartet.",
       "notify.documents_uploaded": "Dokumente hochgeladen.",
       "notify.extraction_refreshed": "Extraktion aktualisiert.",
@@ -430,6 +457,20 @@
       "error.email_failed": "E-Mail-Versand fehlgeschlagen.",
       "warn.no_api_key": "KI-Funktionen nicht verfügbar: API-Schlüssel auf dem Server nicht konfiguriert.",
 
+      "gen.generating": "Generiere...",
+      "gen.step1": "Digitale Stifte werden gespitzt...",
+      "gen.step2": "KI lernt deine Karriereentscheidungen zu schätzen...",
+      "gen.step3": "Buzzwords werden in echte Skills übersetzt...",
+      "gen.step4": "Algorithmus wird überzeugt, dass du grossartig bist...",
+      "gen.step5": "Pixel werden mit Schweizer Präzision formatiert...",
+      "gen.step6": "Der besondere Helvetica-Touch wird hinzugefügt...",
+      "gen.step7": "Fast fertig, letzter Feinschliff...",
+
+      "upload.processing": "Dokumente werden verarbeitet...",
+      "upload.step1": "Dokumentinhalte werden gelesen...",
+      "upload.step2": "Text und Struktur werden extrahiert...",
+      "upload.step3": "Profil wird aufgebaut...",
+
       "comparison.show": "Match-Analyse anzeigen",
       "comparison.hide": "Match-Analyse ausblenden",
       "comparison.original": "Ursprünglich",
@@ -437,7 +478,8 @@
       "comparison.loading": "Laden...",
       "comparison.error": "Vergleich konnte nicht geladen werden.",
 
-      "fmt.title": "Optimales Eingabeformat",
+      "fmt.title": "Hey, du hast 6 Mal auf Generieren geklickt!",
+      "fmt.nudge": "Da ich eine KI bin, die den vollen Kontext deines Berufslebens nicht kennt, hilf mir dabei. Geh zurück und ergänze diese Details manuell, falls etwas fehlt:",
       "fmt.intro": "Verwende diese Struktur für beste Ergebnisse und weniger Neugenerierungen:",
       "fmt.date": "Datum: MM/JJJJ (z.B. 03/2021). Zeiträume: 03/2021\u201306/2024. \"heute\" für aktuelle Stelle.",
       "fmt.role": "Rolle: exakter Jobtitel, keine Abkürzungen (z.B. \"Digital Business Manager\", nicht \"DBM\")",
@@ -1065,28 +1107,33 @@
     const files = Array.from(uploadFiles.files || []);
     if (!files.length) throw new Error(t("error.select_files_first"));
 
-    const tagInputs = pendingUploadTags?.querySelectorAll("[data-pending-tag]") || [];
-    const formData = new FormData();
-    files.forEach((file, index) => {
-      formData.append("files", file);
-      const manualTag = tagInputs[index]?.value || uploadTagDefault?.value || "";
-      if (manualTag) formData.append("tags", manualTag);
-    });
-    const response = await fetch(endpoint(`/api/session/${state.sessionId}/upload`), {
-      method: "POST",
-      body: formData,
-    });
-    const data = await parseJsonResponse(response);
-    uploadFiles.value = "";
-    if (pendingUploadTags) pendingUploadTags.innerHTML = "";
-    renderUploadFileLabel();
-    if (data.state) {
-      state.server = data.state;
-      applyServerState();
-    } else {
-      await fetchState();
+    showGeneratingOverlay(getUploadSteps());
+    try {
+      const tagInputs = pendingUploadTags?.querySelectorAll("[data-pending-tag]") || [];
+      const formData = new FormData();
+      files.forEach((file, index) => {
+        formData.append("files", file);
+        const manualTag = tagInputs[index]?.value || uploadTagDefault?.value || "";
+        if (manualTag) formData.append("tags", manualTag);
+      });
+      const response = await fetch(endpoint(`/api/session/${state.sessionId}/upload`), {
+        method: "POST",
+        body: formData,
+      });
+      const data = await parseJsonResponse(response);
+      uploadFiles.value = "";
+      if (pendingUploadTags) pendingUploadTags.innerHTML = "";
+      renderUploadFileLabel();
+      if (data.state) {
+        state.server = data.state;
+        applyServerState();
+      } else {
+        await fetchState();
+      }
+      notify("success", t("notify.documents_uploaded"));
+    } finally {
+      hideGeneratingOverlay();
     }
-    notify("success", t("notify.documents_uploaded"));
   }
 
   async function uploadPhoto() {
@@ -1114,21 +1161,26 @@
     if (!state.sessionId) throw new Error(t("error.start_session_first"));
     const text = (pasteText?.value || "").trim();
     if (!text) throw new Error(t("error.select_files_first"));
-    const tag = "other";
-    const response = await fetch(endpoint(`/api/session/${state.sessionId}/paste`), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, tag }),
-    });
-    const data = await parseJsonResponse(response);
-    if (pasteText) pasteText.value = "";
-    if (data.state) {
-      state.server = data.state;
-      applyServerState();
-    } else {
-      await fetchState();
+    showGeneratingOverlay(getUploadSteps());
+    try {
+      const tag = "other";
+      const response = await fetch(endpoint(`/api/session/${state.sessionId}/paste`), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, tag }),
+      });
+      const data = await parseJsonResponse(response);
+      if (pasteText) pasteText.value = "";
+      if (data.state) {
+        state.server = data.state;
+        applyServerState();
+      } else {
+        await fetchState();
+      }
+      notify("success", t("notify.paste_submitted"));
+    } finally {
+      hideGeneratingOverlay();
     }
-    notify("success", t("notify.paste_submitted"));
   }
 
   async function extract() {
@@ -1167,38 +1219,153 @@
     notify("success", t("notify.answers_saved"));
   }
 
+  // ============================================================
+  // GENERATING OVERLAY
+  // ============================================================
+
+  let genOverlayEl = null;
+  let genMessageEl = null;
+  let genDotsEl = null;
+  let genTimer = null;
+  let genStepIndex = 0;
+
+  function getGenSteps() {
+    return [
+      t("gen.step1"), t("gen.step2"), t("gen.step3"), t("gen.step4"),
+      t("gen.step5"), t("gen.step6"), t("gen.step7"),
+    ];
+  }
+
+  function getUploadSteps() {
+    return [t("upload.step1"), t("upload.step2"), t("upload.step3")];
+  }
+
+  function createGenOverlay() {
+    if (genOverlayEl) return;
+    genOverlayEl = document.createElement("div");
+    genOverlayEl.className = "gen-overlay";
+    genOverlayEl.innerHTML = [
+      '<div class="gen-spinner"></div>',
+      '<div class="gen-message"></div>',
+      '<div class="gen-progress-dots"></div>',
+    ].join("");
+    document.body.appendChild(genOverlayEl);
+    genMessageEl = genOverlayEl.querySelector(".gen-message");
+    genDotsEl = genOverlayEl.querySelector(".gen-progress-dots");
+  }
+
+  function showGeneratingOverlay(customSteps) {
+    createGenOverlay();
+    genStepIndex = 0;
+    const steps = customSteps || getGenSteps();
+    genDotsEl.innerHTML = steps.map((_, i) =>
+      '<span class="gen-dot' + (i === 0 ? " active" : "") + '"></span>'
+    ).join("");
+    updateOverlayMessage(steps);
+    genOverlayEl.classList.add("visible");
+    genTimer = setInterval(() => {
+      genStepIndex = (genStepIndex + 1) % steps.length;
+      updateOverlayMessage(steps);
+    }, 3000);
+  }
+
+  function hideGeneratingOverlay() {
+    if (genTimer) { clearInterval(genTimer); genTimer = null; }
+    if (genOverlayEl) genOverlayEl.classList.remove("visible");
+  }
+
+  function updateOverlayMessage(steps) {
+    if (!genMessageEl) return;
+    genMessageEl.style.animation = "none";
+    void genMessageEl.offsetHeight;
+    genMessageEl.style.animation = "";
+    genMessageEl.textContent = steps[genStepIndex];
+    if (genDotsEl) {
+      const dots = genDotsEl.querySelectorAll(".gen-dot");
+      dots.forEach((d, i) => d.classList.toggle("active", i <= genStepIndex));
+    }
+  }
+
   async function generate() {
     if (!state.sessionId) throw new Error(t("error.start_session_first"));
     trackGenerate();
-    const payload = {
-      template_id: templateSelect?.value || "simple",
-      primary_color: primaryInput?.value || defaultPrimary,
-      accent_color: accentInput?.value || defaultAccent,
-      font_family: fontSelect?.value || "inter",
-      border_style: borderStyleSelect?.value || "rounded",
-      box_shadow: boxShadowCheck?.checked || false,
-      card_bg: cardBgInput?.value || "#ffffff",
-      page_bg: pageBgInput?.value || "#ffffff",
-      filename_cv: filenameCvInput?.value || "",
-      filename_cover: filenameCoverInput?.value || "",
-    };
-    const response = await fetch(endpoint(`/api/session/${state.sessionId}/generate`), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (response.status === 422) {
-      const data = await response.json();
-      const unresolved = data.detail?.unresolved_question_ids || [];
-      throw new Error(`${t("error.required_unresolved")}: ${unresolved.join(", ")}`);
+    showGeneratingOverlay();
+    try {
+      const payload = {
+        template_id: templateSelect?.value || "simple",
+        primary_color: primaryInput?.value || defaultPrimary,
+        accent_color: accentInput?.value || defaultAccent,
+        font_family: fontSelect?.value || "inter",
+        border_style: borderStyleSelect?.value || "rounded",
+        box_shadow: boxShadowCheck?.checked || false,
+        card_bg: cardBgInput?.value || "#ffffff",
+        page_bg: pageBgInput?.value || "#ffffff",
+        filename_cv: filenameCvInput?.value || "",
+        filename_cover: filenameCoverInput?.value || "",
+      };
+      const response = await fetch(endpoint(`/api/session/${state.sessionId}/generate`), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (response.status === 422) {
+        const data = await response.json();
+        const unresolved = data.detail?.unresolved_question_ids || [];
+        throw new Error(`${t("error.required_unresolved")}: ${unresolved.join(", ")}`);
+      }
+      const data = await parseJsonResponse(response);
+      state.artifactToken = data.token || "";
+      notify("success", t("notify.cv_generated"));
+      if (cvGeneratedInfo) cvGeneratedInfo.style.display = "";
+      if (cvDownloadLink && data.download_cv_url) cvDownloadLink.href = data.download_cv_url;
+      if (coverLetterSection) coverLetterSection.style.display = "";
+      if (btnGenerateCover) btnGenerateCover.disabled = false;
+      const chatSection = document.getElementById("chat-corrections");
+      if (chatSection) chatSection.style.display = "";
+    } finally {
+      hideGeneratingOverlay();
     }
-    const data = await parseJsonResponse(response);
-    state.artifactToken = data.token || "";
-    notify("success", t("notify.cv_generated"));
-    if (cvGeneratedInfo) cvGeneratedInfo.style.display = "";
-    if (cvDownloadLink && data.download_cv_url) cvDownloadLink.href = data.download_cv_url;
-    if (coverLetterSection) coverLetterSection.style.display = "";
-    if (btnGenerateCover) btnGenerateCover.disabled = false;
+  }
+
+  async function sendChatCorrection() {
+    const input = document.getElementById("chat-input");
+    const messagesDiv = document.getElementById("chat-messages");
+    const message = (input?.value || "").trim();
+    if (!message || !state.artifactToken || !state.sessionId) return;
+
+    const userBubble = document.createElement("div");
+    userBubble.className = "chat-msg user";
+    userBubble.textContent = message;
+    messagesDiv.appendChild(userBubble);
+    input.value = "";
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+    showGeneratingOverlay();
+    try {
+      const resp = await fetch(endpoint(`/api/session/${state.sessionId}/chat`), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, token: state.artifactToken }),
+      });
+      const data = await parseJsonResponse(resp);
+
+      const botBubble = document.createElement("div");
+      botBubble.className = "chat-msg assistant";
+      botBubble.textContent = data.message || t("chat.sending");
+      messagesDiv.appendChild(botBubble);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+      state.artifactToken = data.token;
+      if (cvDownloadLink && data.download_cv_url) cvDownloadLink.href = data.download_cv_url;
+      notify("success", t("notify.cv_generated"));
+    } catch (err) {
+      const errBubble = document.createElement("div");
+      errBubble.className = "chat-msg assistant";
+      errBubble.textContent = t("chat.error");
+      messagesDiv.appendChild(errBubble);
+    } finally {
+      hideGeneratingOverlay();
+    }
   }
 
   async function uploadSignature() {
@@ -1221,33 +1388,38 @@
 
   async function generateCoverLetter() {
     if (!state.sessionId) throw new Error(t("error.start_session_first"));
-    const known = coverAnredeKnown?.value === "yes";
-    let anrede = "";
-    if (known && coverAnredeCustom?.value?.trim()) {
-      anrede = coverAnredeCustom.value.trim();
-    } else {
-      anrede = state.uiLanguage === "de" ? "Sehr geehrte Damen und Herren" : "Dear Hiring Team";
-    }
-    const payload = {
-      recipient_company: state.server?.company_name || "",
-      recipient_street: coverRecipientStreet?.value || "",
-      recipient_plz_ort: coverRecipientPlz?.value || "",
-      recipient_contact: known ? (coverRecipientContact?.value || "") : "",
-      cover_date_location: coverDateLocation?.value || "",
-      cover_anrede: anrede,
-      sender_street: coverSenderStreet?.value || "",
-      sender_plz_ort: coverSenderPlz?.value || "",
-      filename_cover: filenameCoverInput?.value || "",
-    };
-    const response = await fetch(endpoint(`/api/session/${state.sessionId}/generate-cover`), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await parseJsonResponse(response);
-    notify("success", t("notify.cover_generated"));
-    if (data.result_url) {
-      window.location.assign(data.result_url);
+    showGeneratingOverlay();
+    try {
+      const known = coverAnredeKnown?.value === "yes";
+      let anrede = "";
+      if (known && coverAnredeCustom?.value?.trim()) {
+        anrede = coverAnredeCustom.value.trim();
+      } else {
+        anrede = state.uiLanguage === "de" ? "Sehr geehrte Damen und Herren" : "Dear Hiring Team";
+      }
+      const payload = {
+        recipient_company: state.server?.company_name || "",
+        recipient_street: coverRecipientStreet?.value || "",
+        recipient_plz_ort: coverRecipientPlz?.value || "",
+        recipient_contact: known ? (coverRecipientContact?.value || "") : "",
+        cover_date_location: coverDateLocation?.value || "",
+        cover_anrede: anrede,
+        sender_street: coverSenderStreet?.value || "",
+        sender_plz_ort: coverSenderPlz?.value || "",
+        filename_cover: filenameCoverInput?.value || "",
+      };
+      const response = await fetch(endpoint(`/api/session/${state.sessionId}/generate-cover`), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await parseJsonResponse(response);
+      notify("success", t("notify.cover_generated"));
+      if (data.result_url) {
+        window.location.assign(data.result_url);
+      }
+    } finally {
+      hideGeneratingOverlay();
     }
   }
 
@@ -1283,7 +1455,8 @@
     overlay.innerHTML = `
       <div class="fmt-dialog">
         <h3>${t("fmt.title")}</h3>
-        <p>${t("fmt.intro")}</p>
+        <p>${t("fmt.nudge")}</p>
+        <p style="margin-top:8px">${t("fmt.intro")}</p>
         <ul>
           <li>${t("fmt.date")}</li>
           <li>${t("fmt.role")}</li>
@@ -1309,7 +1482,7 @@
     generateTimestamps.push(now);
     const cutoff = now - 5 * 60 * 1000;
     while (generateTimestamps.length && generateTimestamps[0] < cutoff) generateTimestamps.shift();
-    if (generateTimestamps.length >= 3) showFormatGuide();
+    if (generateTimestamps.length >= 6) showFormatGuide();
   }
 
   // ============================================================
@@ -1928,6 +2101,10 @@
     if (btnAnswers) btnAnswers.addEventListener("click", () => run(saveAnswers));
     if (btnGenerate) btnGenerate.addEventListener("click", () => run(generate));
     if (btnGenerateCover) btnGenerateCover.addEventListener("click", () => run(generateCoverLetter));
+    const chatSendBtn = document.getElementById("chat-send-btn");
+    const chatInput = document.getElementById("chat-input");
+    if (chatSendBtn) chatSendBtn.addEventListener("click", () => run(sendChatCorrection));
+    if (chatInput) chatInput.addEventListener("keydown", (e) => { if (e.key === "Enter") run(sendChatCorrection); });
     if (btnToReview) btnToReview.addEventListener("click", gotoReview);
   }
 

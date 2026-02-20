@@ -1,7 +1,8 @@
-"""OpenAI integration for happyRAV extraction and generation."""
+"""Multi-provider LLM integration for happyRAV extraction and generation."""
 from __future__ import annotations
 
 import asyncio
+import base64
 import json
 import os
 from pathlib import Path
@@ -13,7 +14,16 @@ from happyrav.models import EducationItem, ExperienceItem, ExtractedProfile, Gen
 from happyrav.services.parsing import split_keywords
 
 
-DEFAULT_MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
+QUALITY_MODE = os.getenv("HAPPYRAV_QUALITY", "balanced").strip().lower()
+if QUALITY_MODE not in ("balanced", "max"):
+    QUALITY_MODE = "balanced"
+
+MODELS = {
+    "balanced": {"ocr": "gpt-5-mini", "extraction": "gpt-4.1-mini", "generation": "claude-sonnet-4-6", "crosscheck": None},
+    "max": {"ocr": "gpt-5-mini", "extraction": "gpt-5.2", "generation": "claude-opus-4-5", "crosscheck": "gemini-3.1-pro"},
+}
+CFG = MODELS[QUALITY_MODE]
+
 TRUE_VALUES = {"1", "true", "yes", "on"}
 
 
@@ -34,12 +44,14 @@ def _extract_json_payload(text: str) -> Dict[str, Any]:
 
 
 def has_api_key() -> bool:
-    """Check if an OpenAI API key or Codex OAuth token is available."""
-    if (os.getenv("OPENAI_API_KEY") or "").strip():
-        return True
-    if _load_codex_oauth_token():
-        return True
-    return False
+    """Check if required API keys are available."""
+    has_openai = bool((os.getenv("OPENAI_API_KEY") or "").strip() or _load_codex_oauth_token())
+    has_anthropic = bool((os.getenv("ANTHROPIC_API_KEY") or "").strip())
+    if not (has_openai and has_anthropic):
+        return False
+    if QUALITY_MODE == "max" and not (os.getenv("GOOGLE_API_KEY") or "").strip():
+        return False
+    return True
 
 
 def _build_client() -> OpenAI:
@@ -52,6 +64,23 @@ def _build_client() -> OpenAI:
     if base_url:
         return OpenAI(api_key=api_key, base_url=base_url)
     return OpenAI(api_key=api_key)
+
+
+def _build_anthropic_client():
+    from anthropic import Anthropic
+    key = (os.getenv("ANTHROPIC_API_KEY") or "").strip()
+    if not key:
+        raise ValueError("ANTHROPIC_API_KEY not set")
+    return Anthropic(api_key=key)
+
+
+def _build_google_client():
+    import google.generativeai as genai
+    key = (os.getenv("GOOGLE_API_KEY") or "").strip()
+    if not key:
+        raise ValueError("GOOGLE_API_KEY not set")
+    genai.configure(api_key=key)
+    return genai
 
 
 def _load_codex_oauth_token() -> str:
@@ -238,10 +267,10 @@ def _fallback_content(
     )
 
 
-def _chat_json(prompt: str, max_tokens: int) -> Dict[str, Any]:
+def _chat_json_openai(prompt: str, max_tokens: int, model: str = None) -> Dict[str, Any]:
     client = _build_client()
     response = client.chat.completions.create(
-        model=DEFAULT_MODEL,
+        model=model or CFG["extraction"],
         temperature=0.1,
         max_tokens=max_tokens,
         messages=[
@@ -251,6 +280,41 @@ def _chat_json(prompt: str, max_tokens: int) -> Dict[str, Any]:
     )
     text = response.choices[0].message.content or ""
     return _extract_json_payload(text)
+
+
+def _chat_json_anthropic(model: str, system: str, user: str, max_tokens: int) -> Dict[str, Any]:
+    client = _build_anthropic_client()
+    resp = client.messages.create(
+        model=model,
+        max_tokens=max_tokens,
+        system=system,
+        messages=[{"role": "user", "content": user}],
+    )
+    return _extract_json_payload(resp.content[0].text or "")
+
+
+def _chat_json_google(model: str, system: str, user: str) -> Dict[str, Any]:
+    client = _build_google_client()
+    m = client.GenerativeModel(model, system_instruction=system)
+    return _extract_json_payload(m.generate_content(user).text or "")
+
+
+def vision_ocr(image_bytes: bytes, mime_type: str = "image/png") -> str:
+    """Extract text from a document image using GPT vision."""
+    client = _build_client()
+    b64 = base64.b64encode(image_bytes).decode("ascii")
+    resp = client.chat.completions.create(
+        model=CFG["ocr"],
+        max_tokens=4000,
+        messages=[
+            {"role": "system", "content": "Extract all text from this document image. Raw text only, preserve structure."},
+            {"role": "user", "content": [
+                {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{b64}"}},
+                {"type": "text", "text": "Extract all text."},
+            ]},
+        ],
+    )
+    return (resp.choices[0].message.content or "").strip()
 
 
 def _profile_extract_prompt(language: str, source_documents: List[str]) -> str:
@@ -338,6 +402,78 @@ def _generate_prompt(
     )
 
 
+def _refine_prompt(
+    language: str,
+    user_message: str,
+    current_content: GeneratedContent,
+    profile: ExtractedProfile,
+    job_ad_text: str,
+    chat_history: List[Dict[str, str]],
+) -> str:
+    schema = {
+        "summary": "string",
+        "skills": ["string"],
+        "experience": [{"role": "string", "company": "string", "period": "string", "achievements": ["string"]}],
+        "education": [{"degree": "string", "school": "string", "period": "string"}],
+        "cover_greeting": "string",
+        "cover_opening": "string",
+        "cover_body": ["string", "string"],
+        "cover_closing": "string",
+        "matched_keywords": ["string"],
+    }
+    input_payload = {
+        "language": language,
+        "job_ad_text": job_ad_text,
+        "profile_confirmed": profile.model_dump(),
+        "current_generated_content": current_content.model_dump(),
+        "chat_history": chat_history,
+        "user_correction": user_message,
+    }
+    guard = (
+        "You are refining an existing CV and cover letter. Apply only the user's requested change. "
+        "Return the FULL updated content in the same JSON schema. Only modify what the user asks. "
+        "Keep everything else identical. Never invent facts not present in the profile."
+    )
+    return (
+        f"{guard}\n"
+        f"Output schema: {json.dumps(schema, ensure_ascii=True)}\n"
+        f"Input: {json.dumps(input_payload, ensure_ascii=True)}"
+    )
+
+
+def _refine_sync(
+    language: str,
+    user_message: str,
+    current_content: GeneratedContent,
+    profile: ExtractedProfile,
+    job_ad_text: str,
+    chat_history: List[Dict[str, str]],
+) -> Tuple[GeneratedContent, Optional[str]]:
+    prompt = _refine_prompt(language, user_message, current_content, profile, job_ad_text, chat_history)
+    try:
+        payload = _chat_json_anthropic(
+            model=CFG["generation"],
+            system="Return valid JSON only. No markdown.",
+            user=prompt,
+            max_tokens=2600,
+        )
+        generated = _coerce_generated_payload(payload)
+        return _merge_generated_with_profile(generated, profile, language), None
+    except Exception as exc:
+        return current_content, f"Refinement fallback: {exc}"
+
+
+def _crosscheck_gemini(generated: GeneratedContent, profile: ExtractedProfile, language: str) -> GeneratedContent:
+    """Non-fatal advisory crosscheck via Gemini. Logs issues but returns generated content regardless."""
+    try:
+        system = "CV fact-checker. Compare generated vs source profile. Return JSON with issues array and verified boolean."
+        user = json.dumps({"generated": generated.model_dump(), "source": profile.model_dump()})
+        _chat_json_google(model=CFG["crosscheck"], system=system, user=user)
+    except Exception:
+        pass
+    return generated
+
+
 def _extract_profile_sync(
     language: str,
     source_documents: List[str],
@@ -346,10 +482,10 @@ def _extract_profile_sync(
         return None, None, {"model_used": None, "source_chars": 0, "source_docs": 0}
     prompt = _profile_extract_prompt(language=language, source_documents=source_documents)
     try:
-        payload = _chat_json(prompt=prompt, max_tokens=2600)
+        payload = _chat_json_openai(prompt=prompt, max_tokens=2600, model=CFG["extraction"])
         profile = _coerce_profile_payload(payload)
         debug = {
-            "model_used": DEFAULT_MODEL,
+            "model_used": CFG["extraction"],
             "source_chars": sum(len(chunk) for chunk in source_documents),
             "source_docs": len(source_documents),
             "experience_count": len(profile.experience),
@@ -357,9 +493,9 @@ def _extract_profile_sync(
         }
         return profile, None, debug
     except Exception as exc:
-        prefix = "OpenAI-Extraktion Fallback" if language == "de" else "OpenAI extraction fallback used"
+        prefix = "Extraktion Fallback" if language == "de" else "Extraction fallback used"
         return None, f"{prefix}: {exc}", {
-            "model_used": DEFAULT_MODEL,
+            "model_used": CFG["extraction"],
             "source_chars": sum(len(chunk) for chunk in source_documents),
             "source_docs": len(source_documents),
         }
@@ -378,13 +514,20 @@ def _generate_sync(
         source_documents=source_documents,
     )
     try:
-        payload = _chat_json(prompt=prompt, max_tokens=2600)
+        payload = _chat_json_anthropic(
+            model=CFG["generation"],
+            system="Return valid JSON only. No markdown.",
+            user=prompt,
+            max_tokens=2600,
+        )
         generated = _coerce_generated_payload(payload)
-        return _merge_generated_with_profile(generated, profile, language), None
+        result = _merge_generated_with_profile(generated, profile, language)
+        if CFG["crosscheck"]:
+            result = _crosscheck_gemini(result, profile, language)
+        return result, None
     except Exception as exc:
         fallback = _fallback_content(language=language, job_ad_text=job_ad_text, profile=profile)
-        prefix = "OpenAI-Generierung Fallback" if language == "de" else "OpenAI generation fallback used"
-        return fallback, f"{prefix}: {exc}"
+        return fallback, f"Generation fallback: {exc}"
 
 
 async def extract_profile_from_documents(
@@ -406,4 +549,23 @@ async def generate_content(
         job_ad_text,
         profile,
         source_documents,
+    )
+
+
+async def refine_content(
+    language: str,
+    user_message: str,
+    current_content: GeneratedContent,
+    profile: ExtractedProfile,
+    job_ad_text: str,
+    chat_history: Optional[List[Dict[str, str]]] = None,
+) -> Tuple[GeneratedContent, Optional[str]]:
+    return await asyncio.to_thread(
+        _refine_sync,
+        language,
+        user_message,
+        current_content,
+        profile,
+        job_ad_text,
+        chat_history or [],
     )
