@@ -10,7 +10,7 @@
   {% set chosen_import = font_import_map.get(theme.font_family, "") %}
   <style>
     {% if chosen_import %}@import url('{{ chosen_import }}');{% endif %}
-    @page { size: A4; margin: 12mm 12mm; }
+    @page { size: A4; margin: 12mm 13mm; }
     :root {
       --primary: {{ theme.primary_hex }};
       --accent: {{ theme.accent_hex }};
@@ -19,96 +19,125 @@
       --rule: {% if theme.border_style == 'none' %}transparent{% else %}#d7dfed{% endif %};
       --panel: {{ theme.card_bg }};
       --radius: {% if theme.border_style == 'rounded' %}10px{% elif theme.border_style == 'square' %}0{% else %}0{% endif %};
-      --shadow: {% if theme.box_shadow %}0 2px 8px rgba(0,0,0,0.10){% else %}none{% endif %};
+      --shadow: {% if theme.box_shadow %}0 2px 8px rgba(0,0,0,0.07){% else %}none{% endif %};
       --page-bg: {{ theme.page_bg }};
     }
-    body { margin: 0; font-family: {{ chosen_font }}; color: var(--ink); font-size: 10.8px; line-height: 1.34; background: var(--page-bg); }
-    h1,h2,h3,p { margin: 0; }
-    .frame { border: {% if theme.border_style != 'none' %}1px solid var(--rule){% else %}none{% endif %}; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
-    .header { background: var(--panel); padding: 11px; border-bottom: {% if theme.border_style != 'none' %}1px solid var(--rule){% else %}none{% endif %}; display: grid; grid-template-columns: 1fr auto; gap: 10px; }
-    .header h1 { font-size: 26px; color: var(--primary); line-height: 1.04; }
-    .headline { margin-top: 4px; font-size: 11.5px; color: var(--accent); font-weight: 700; }
-    .contact { margin-top: 6px; color: var(--muted); font-size: 9.8px; }
-    .photo { width: 96px; height: 96px; border-radius: var(--radius); overflow: hidden; border: {% if theme.border_style != 'none' %}1px solid var(--rule){% else %}none{% endif %}; background: var(--panel); }
-    .photo img { width: 100%; height: 100%; object-fit: cover; }
-    .content { padding: 10px; display: grid; gap: 8px; }
-    .section { border: {% if theme.border_style != 'none' %}1px solid var(--rule){% else %}none{% endif %}; border-radius: var(--radius); background: var(--panel); padding: 8px; break-inside: avoid; box-shadow: var(--shadow); }
-    .section h2 { color: var(--primary); font-size: 11.2px; margin-bottom: 4px; }
-    .chips .skill-chip { display: inline-block; margin: 2px 5px 2px 0; padding: 2px 6px; border-radius: {% if theme.border_style == 'rounded' %}999px{% elif theme.border_style == 'square' %}0{% else %}999px{% endif %}; border: {% if theme.border_style != 'none' %}1px solid var(--rule){% else %}none{% endif %}; background: var(--panel); font-size: 9.4px; box-shadow: var(--shadow); }
-    .skill-level { font-size: 8px; color: var(--muted); display: block; margin-top: 1px; }
-    .entry { margin-bottom: 7px; }
-    .entry h3 { font-size: 10.7px; }
-    .meta { color: var(--muted); font-size: 9.2px; margin-top: 2px; }
-    ul { margin: 3px 0 0 13px; padding: 0; }
-    li { margin: 1px 0; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: {{ chosen_font }}; color: var(--ink); font-size: 10.4px; line-height: 1.4; background: var(--page-bg); -webkit-font-smoothing: antialiased; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    h1, h2, h3, p { margin: 0; }
+
+    /* Card sections */
+    .card { background: var(--panel); border: {% if theme.border_style != 'none' %}1px solid var(--rule){% else %}none{% endif %}; border-radius: var(--radius); padding: 10px 12px; margin-bottom: 8px; break-inside: avoid; page-break-inside: avoid; box-shadow: var(--shadow); }
+
+    /* Header card */
+    .hero { overflow: hidden; padding: 12px 14px; margin-bottom: 8px; }
+    .hero-text { float: left; max-width: 68%; }
+    .hero-photo { float: right; }
+    .hero h1 { font-size: 24px; color: var(--primary); line-height: 1.08; font-weight: 700; }
+    .hero .headline { margin-top: 4px; font-size: 11px; color: var(--accent); font-weight: 700; }
+    .hero .contact { margin-top: 8px; color: var(--muted); font-size: 9.4px; line-height: 1.6; }
+    .contact-sep { color: var(--rule); margin: 0 2px; }
+    .photo { width: 96px; height: 96px; border-radius: var(--radius); overflow: hidden; border: {% if theme.border_style != 'none' %}1.5px solid var(--rule){% else %}none{% endif %}; }
+    .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    /* Section headings */
+    .card h2 { color: var(--primary); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px; }
+
+    /* Summary */
+    .summary { font-size: 10.6px; line-height: 1.5; color: var(--ink); }
+
+    /* Skills */
+    .skill-pill {
+      display: inline-block;
+      margin: 2px 3px 2px 0;
+      padding: 2.5px 7px;
+      border-radius: {% if theme.border_style == 'rounded' %}999px{% else %}2px{% endif %};
+      background: {{ theme.primary_hex }}0D;
+      border: 1px solid {{ theme.primary_hex }}26;
+      color: var(--primary);
+      font-size: 9.2px;
+      font-weight: 600;
+    }
+    .skill-level { font-size: 7.6px; color: var(--muted); display: block; margin-top: 1px; font-weight: 400; }
+
+    /* Experience */
+    .entry { margin-bottom: 7px; break-inside: avoid; page-break-inside: avoid; }
+    .entry + .entry { padding-top: 6px; border-top: 1px solid var(--rule); }
+    .entry h3 { font-size: 10.8px; font-weight: 700; color: var(--ink); }
+    .entry-meta { color: var(--muted); font-size: 9.2px; margin-top: 1px; font-weight: 600; }
+    .entry ul { margin: 3px 0 0 13px; padding: 0; }
+    .entry li { margin: 2px 0; color: var(--muted); line-height: 1.38; }
+
+    /* Education */
+    .edu-entry { margin-bottom: 4px; }
+    .edu-entry h3 { font-size: 10.4px; font-weight: 700; }
+    .edu-meta { color: var(--muted); font-size: 9px; margin-top: 1px; }
   </style>
 </head>
 <body>
-  <article class="frame">
-    <header class="header">
-      <div>
-        <h1>{{ profile.full_name }}</h1>
-        <p class="headline">{{ profile.headline }}</p>
-        <p class="contact">
-          {% if profile.location %}{{ profile.location }}{% endif %}
-          {% if profile.email %} · {{ profile.email }}{% endif %}
-          {% if profile.phone %} · {{ profile.phone }}{% endif %}
-          {% if profile.linkedin %} · {{ profile.linkedin }}{% endif %}
-          {% if profile.portfolio %} · {{ profile.portfolio }}{% endif %}
-        </p>
-      </div>
-      {% if profile.photo_data_url %}
+  <header class="card hero">
+    <div class="hero-text">
+      <h1>{{ profile.full_name }}</h1>
+      {% if profile.headline %}<p class="headline">{{ profile.headline }}</p>{% endif %}
+      <p class="contact">
+        {% if profile.location %}<span>{{ profile.location }}</span>{% endif %}
+        {% if profile.email %}<span class="contact-sep">·</span><span>{{ profile.email }}</span>{% endif %}
+        {% if profile.phone %}<span class="contact-sep">·</span><span>{{ profile.phone }}</span>{% endif %}
+        {% if profile.linkedin %}<br><span>{{ profile.linkedin }}</span>{% endif %}
+        {% if profile.portfolio %}<span class="contact-sep">·</span><span>{{ profile.portfolio }}</span>{% endif %}
+      </p>
+    </div>
+    {% if profile.photo_data_url %}
+      <div class="hero-photo">
         <div class="photo"><img src="{{ profile.photo_data_url }}" alt=""></div>
-      {% endif %}
-    </header>
+      </div>
+    {% endif %}
+  </header>
 
-    <main class="content">
-      <section class="section">
-        <h2>{{ "Kurzprofil" if language == "de" else "Profile" }}</h2>
-        <p>{{ content.summary }}</p>
-      </section>
+  <section class="card">
+    <h2>{{ "Profil" if language == "de" else "Profile" }}</h2>
+    <p class="summary">{{ content.summary }}</p>
+  </section>
 
-      <section class="section">
-        <h2>{{ "Skills" if language == "de" else "Skills" }}</h2>
-        <div class="chips">
-          {% for skill in content.skills %}
-            {% set parts = skill.split(' (') %}
-            {% if parts|length > 1 %}
-              <span class="skill-chip">{{ parts[0] }}<small class="skill-level">{{ parts[1].rstrip(')') }}</small></span>
-            {% else %}
-              <span class="skill-chip">{{ skill }}</span>
-            {% endif %}
-          {% endfor %}
-        </div>
-      </section>
+  <section class="card">
+    <h2>{{ "Kernkompetenzen" if language == "de" else "Core Skills" }}</h2>
+    <div>
+      {% for skill in content.skills %}
+        {% set parts = skill.split(' (') %}
+        {% if parts|length > 1 %}
+          <span class="skill-pill">{{ parts[0] }}<small class="skill-level">{{ parts[1].rstrip(')') }}</small></span>
+        {% else %}
+          <span class="skill-pill">{{ skill }}</span>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </section>
 
-      <section class="section">
-        <h2>{{ "Berufserfahrung" if language == "de" else "Experience" }}</h2>
-        {% for item in content.experience %}
-          <article class="entry">
-            <h3>{{ item.role }}{% if item.company %} · {{ item.company }}{% endif %}</h3>
-            {% if item.period %}<p class="meta">{{ item.period }}</p>{% endif %}
-            {% if item.achievements %}
-              <ul>
-                {% for achievement in item.achievements %}
-                  <li>{{ achievement }}</li>
-                {% endfor %}
-              </ul>
-            {% endif %}
-          </article>
-        {% endfor %}
-      </section>
+  <section class="card">
+    <h2>{{ "Berufserfahrung" if language == "de" else "Experience" }}</h2>
+    {% for item in content.experience %}
+      <article class="entry">
+        <h3>{{ item.role }}{% if item.company %} · {{ item.company }}{% endif %}</h3>
+        {% if item.period %}<p class="entry-meta">{{ item.period }}</p>{% endif %}
+        {% if item.achievements %}
+          <ul>
+            {% for achievement in item.achievements %}
+              <li>{{ achievement }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </section>
 
-      <section class="section">
-        <h2>{{ "Ausbildung" if language == "de" else "Education" }}</h2>
-        {% for item in content.education %}
-          <article class="entry">
-            <h3>{{ item.degree }}</h3>
-            <p class="meta">{% if item.school %}{{ item.school }}{% endif %}{% if item.period %} · {{ item.period }}{% endif %}</p>
-          </article>
-        {% endfor %}
-      </section>
-    </main>
-  </article>
+  <section class="card">
+    <h2>{{ "Ausbildung" if language == "de" else "Education" }}</h2>
+    {% for item in content.education %}
+      <article class="edu-entry">
+        <h3>{{ item.degree }}</h3>
+        <p class="edu-meta">{% if item.school %}{{ item.school }}{% endif %}{% if item.period %} · {{ item.period }}{% endif %}</p>
+      </article>
+    {% endfor %}
+  </section>
 </body>
 </html>
