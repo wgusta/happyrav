@@ -24,6 +24,22 @@
       <label><span data-i18n="label.accent_color">Accent color</span>
         <input id="review-accent" type="color" value="{{ default_accent }}">
       </label>
+      <label><span data-i18n="label.card_bg">Card background</span>
+        <input id="review-card-bg" type="color" value="#ffffff">
+      </label>
+      <label><span data-i18n="label.page_bg">Page background</span>
+        <input id="review-page-bg" type="color" value="#ffffff">
+      </label>
+      <label><span data-i18n="label.border_style">Border style</span>
+        <select id="review-border-style">
+          <option value="rounded" data-i18n="style.rounded">Rounded corners</option>
+          <option value="square" data-i18n="style.square">Square corners</option>
+          <option value="none" data-i18n="style.no_borders">No borders</option>
+        </select>
+      </label>
+      <label class="check-inline"><span data-i18n="label.box_shadow">Box shadows</span>
+        <input id="review-box-shadow" type="checkbox">
+      </label>
     </div>
   </details>
   <div id="review-score" class="score-box" data-i18n="review.no_score">No review score yet.</div>

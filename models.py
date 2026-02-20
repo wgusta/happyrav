@@ -14,6 +14,10 @@ PhaseName = Literal["start", "upload", "questions", "review"]
 class ThemeConfig(BaseModel):
     primary_hex: str = "#1F5AA8"
     accent_hex: str = "#173A73"
+    border_style: Literal["rounded", "square", "none"] = "rounded"
+    box_shadow: bool = False
+    card_bg: str = "#ffffff"
+    page_bg: str = "#ffffff"
 
 
 class SourceAttribution(BaseModel):
@@ -128,6 +132,10 @@ class GenerateRequest(BaseModel):
     template_id: str = "simple"
     primary_color: str = "#1F5AA8"
     accent_color: str = "#173A73"
+    border_style: str = "rounded"
+    box_shadow: bool = False
+    card_bg: str = "#ffffff"
+    page_bg: str = "#ffffff"
 
 
 class GeneratedContent(BaseModel):

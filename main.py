@@ -704,9 +704,14 @@ async def api_session_generate(
     record = _require_session(session_id)
     state = record.state
     state.template_id = _template_alias(payload.template_id or state.template_id)
+    border_style = payload.border_style if payload.border_style in ("rounded", "square", "none") else "rounded"
     state.theme = ThemeConfig(
         primary_hex=parse_hex_color(payload.primary_color, "#1F5AA8"),
         accent_hex=parse_hex_color(payload.accent_color, "#173A73"),
+        border_style=border_style,
+        box_shadow=payload.box_shadow,
+        card_bg=parse_hex_color(payload.card_bg, "#ffffff"),
+        page_bg=parse_hex_color(payload.page_bg, "#ffffff"),
     )
 
     record = await _enrich_profile_with_openai(record)

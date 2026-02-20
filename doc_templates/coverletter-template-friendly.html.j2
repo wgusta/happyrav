@@ -6,10 +6,10 @@
   <title>Cover Letter - {{ profile.full_name }}</title>
   <style>
     @page { size: A4; margin: 16mm 16mm; }
-    :root { --primary: {{ theme.primary_hex }}; --accent: {{ theme.accent_hex }}; --ink: #18202a; --muted: #586375; --rule: #dbe3ef; --panel: #f4f8ff; }
-    body { margin: 0; font-family: "Nunito Sans", "Segoe UI", Arial, sans-serif; color: var(--ink); line-height: 1.56; font-size: 12px; }
-    .sheet { border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; }
-    .top { background: var(--panel); padding: 12px; border-bottom: 1px solid var(--rule); }
+    :root { --primary: {{ theme.primary_hex }}; --accent: {{ theme.accent_hex }}; --ink: #18202a; --muted: #586375; --rule: {% if theme.border_style == 'none' %}transparent{% else %}#dbe3ef{% endif %}; --panel: {{ theme.card_bg }}; --radius: {% if theme.border_style == 'rounded' %}14px{% elif theme.border_style == 'square' %}0{% else %}0{% endif %}; --shadow: {% if theme.box_shadow %}0 2px 8px rgba(0,0,0,0.10){% else %}none{% endif %}; --page-bg: {{ theme.page_bg }}; }
+    body { margin: 0; font-family: "Nunito Sans", "Segoe UI", Arial, sans-serif; color: var(--ink); line-height: 1.56; font-size: 12px; background: var(--page-bg); }
+    .sheet { border: {% if theme.border_style != 'none' %}1px solid var(--rule){% else %}none{% endif %}; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+    .top { background: var(--panel); padding: 12px; border-bottom: {% if theme.border_style != 'none' %}1px solid var(--rule){% else %}none{% endif %}; }
     .top strong { color: var(--primary); font-size: 13px; display: block; }
     .top p { margin: 4px 0 0; color: var(--muted); font-size: 11px; }
     .body { padding: 12px; }

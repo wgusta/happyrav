@@ -6,8 +6,8 @@
   <title>Cover Letter - {{ profile.full_name }}</title>
   <style>
     @page { size: A4; margin: 18mm 16mm; }
-    :root { --primary: {{ theme.primary_hex }}; --accent: {{ theme.accent_hex }}; --ink: #141a22; --muted: #4c5565; --rule: #d7dfed; }
-    body { margin: 0; font-family: "Inter", "Segoe UI", Arial, sans-serif; color: var(--ink); line-height: 1.52; font-size: 12px; }
+    :root { --primary: {{ theme.primary_hex }}; --accent: {{ theme.accent_hex }}; --ink: #141a22; --muted: #4c5565; --rule: {% if theme.border_style == 'none' %}transparent{% else %}#d7dfed{% endif %}; --page-bg: {{ theme.page_bg }}; }
+    body { margin: 0; font-family: "Inter", "Segoe UI", Arial, sans-serif; color: var(--ink); line-height: 1.52; font-size: 12px; background: var(--page-bg); }
     .sender { border-bottom: 1px solid var(--rule); padding-bottom: 8px; color: var(--muted); font-size: 11px; }
     .sender strong { color: var(--primary); font-size: 12.5px; }
     .recipient { margin-top: 18px; white-space: pre-line; }

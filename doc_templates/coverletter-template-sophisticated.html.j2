@@ -6,9 +6,9 @@
   <title>Cover Letter - {{ profile.full_name }}</title>
   <style>
     @page { size: A4; margin: 16mm 16mm; }
-    :root { --primary: {{ theme.primary_hex }}; --accent: {{ theme.accent_hex }}; --ink: #171a20; --muted: #535d70; --rule: #d5dbe8; --panel: #f4f8ff; }
-    body { margin: 0; font-family: Georgia, "Times New Roman", serif; color: var(--ink); line-height: 1.56; font-size: 12px; }
-    .sheet { border: 1px solid var(--rule); border-radius: 12px; padding: 14px; }
+    :root { --primary: {{ theme.primary_hex }}; --accent: {{ theme.accent_hex }}; --ink: #171a20; --muted: #535d70; --rule: {% if theme.border_style == 'none' %}transparent{% else %}#d5dbe8{% endif %}; --panel: {{ theme.card_bg }}; --radius: {% if theme.border_style == 'rounded' %}12px{% elif theme.border_style == 'square' %}0{% else %}0{% endif %}; --shadow: {% if theme.box_shadow %}0 2px 8px rgba(0,0,0,0.10){% else %}none{% endif %}; --page-bg: {{ theme.page_bg }}; }
+    body { margin: 0; font-family: Georgia, "Times New Roman", serif; color: var(--ink); line-height: 1.56; font-size: 12px; background: var(--page-bg); }
+    .sheet { border: {% if theme.border_style != 'none' %}1px solid var(--rule){% else %}none{% endif %}; border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow); }
     .sender { border-left: 3px solid var(--primary); padding-left: 9px; color: var(--muted); font-size: 11px; }
     .sender strong { color: var(--primary); font-size: 13px; }
     .recipient { margin-top: 16px; white-space: pre-line; font-family: "Inter", "Segoe UI", Arial, sans-serif; }

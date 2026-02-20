@@ -86,6 +86,13 @@
       "label.primary_color": "Primary color",
       "label.accent_color": "Accent color",
       "label.more_options": "More options",
+      "label.border_style": "Border style",
+      "label.box_shadow": "Box shadows",
+      "label.card_bg": "Card background",
+      "label.page_bg": "Page background",
+      "style.rounded": "Rounded corners",
+      "style.square": "Square corners",
+      "style.no_borders": "No borders",
       "label.session_actions": "Session actions",
       "label.tag": "Tag",
       "label.answer": "Answer",
@@ -290,6 +297,13 @@
       "label.primary_color": "Primärfarbe",
       "label.accent_color": "Akzentfarbe",
       "label.more_options": "Mehr Optionen",
+      "label.border_style": "Rahmenstil",
+      "label.box_shadow": "Schatten",
+      "label.card_bg": "Karten-Hintergrund",
+      "label.page_bg": "Seiten-Hintergrund",
+      "style.rounded": "Abgerundete Ecken",
+      "style.square": "Eckige Ecken",
+      "style.no_borders": "Keine Rahmen",
       "label.session_actions": "Sitzungsaktionen",
       "label.tag": "Kategorie",
       "label.answer": "Antwort",
@@ -463,6 +477,10 @@
   const templateSelect = document.getElementById("review-template");
   const primaryInput = document.getElementById("review-primary");
   const accentInput = document.getElementById("review-accent");
+  const borderStyleSelect = document.getElementById("review-border-style");
+  const boxShadowCheck = document.getElementById("review-box-shadow");
+  const cardBgInput = document.getElementById("review-card-bg");
+  const pageBgInput = document.getElementById("review-page-bg");
   const langBtnEn = document.getElementById("lang-btn-en");
   const langBtnDe = document.getElementById("lang-btn-de");
 
@@ -788,6 +806,10 @@
       templateId: templateSelect?.value || "simple",
       primary: primaryInput?.value || defaultPrimary,
       accent: accentInput?.value || defaultAccent,
+      borderStyle: borderStyleSelect?.value || "rounded",
+      boxShadow: boxShadowCheck?.checked || false,
+      cardBg: cardBgInput?.value || "#ffffff",
+      pageBg: pageBgInput?.value || "#ffffff",
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   }
@@ -810,6 +832,10 @@
       if (templateSelect) templateSelect.value = payload.templateId || "simple";
       if (primaryInput) primaryInput.value = payload.primary || defaultPrimary;
       if (accentInput) accentInput.value = payload.accent || defaultAccent;
+      if (borderStyleSelect) borderStyleSelect.value = payload.borderStyle || "rounded";
+      if (boxShadowCheck) boxShadowCheck.checked = Boolean(payload.boxShadow);
+      if (cardBgInput) cardBgInput.value = payload.cardBg || "#ffffff";
+      if (pageBgInput) pageBgInput.value = payload.pageBg || "#ffffff";
     } catch (_) {}
   }
 
@@ -1054,6 +1080,10 @@
       template_id: templateSelect?.value || "simple",
       primary_color: primaryInput?.value || defaultPrimary,
       accent_color: accentInput?.value || defaultAccent,
+      border_style: borderStyleSelect?.value || "rounded",
+      box_shadow: boxShadowCheck?.checked || false,
+      card_bg: cardBgInput?.value || "#ffffff",
+      page_bg: pageBgInput?.value || "#ffffff",
     };
     const response = await fetch(endpoint(`/api/session/${state.sessionId}/generate`), {
       method: "POST",
@@ -1588,6 +1618,10 @@
     if (templateSelect && state.server.template_id) templateSelect.value = state.server.template_id;
     if (primaryInput && state.server.theme?.primary_hex) primaryInput.value = state.server.theme.primary_hex;
     if (accentInput && state.server.theme?.accent_hex) accentInput.value = state.server.theme.accent_hex;
+    if (borderStyleSelect && state.server.theme?.border_style) borderStyleSelect.value = state.server.theme.border_style;
+    if (boxShadowCheck && state.server.theme?.box_shadow !== undefined) boxShadowCheck.checked = state.server.theme.box_shadow;
+    if (cardBgInput && state.server.theme?.card_bg) cardBgInput.value = state.server.theme.card_bg;
+    if (pageBgInput && state.server.theme?.page_bg) pageBgInput.value = state.server.theme.page_bg;
     renderAll();
   }
 
@@ -1681,7 +1715,7 @@
       photoFileTrigger.addEventListener("click", () => photoFile.click());
     }
 
-    [inputCompany, inputPosition, inputConsent, inputJobAd, templateSelect, primaryInput, accentInput]
+    [inputCompany, inputPosition, inputConsent, inputJobAd, templateSelect, primaryInput, accentInput, borderStyleSelect, boxShadowCheck, cardBgInput, pageBgInput]
       .filter(Boolean)
       .forEach((element) => {
         element.addEventListener("input", () => {
