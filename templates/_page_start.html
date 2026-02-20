@@ -34,6 +34,108 @@
 
   <p class="meta" data-i18n="start.auto_start">Session starts automatically when you enter input.</p>
 
+  <!-- ADVANCED: Build Profile Manually -->
+  <details class="advanced-block" id="adv-profile-block">
+    <summary data-i18n="adv.profile_title">Advanced: Build Profile Manually</summary>
+    <div class="adv-section">
+
+      <h3 data-i18n="adv.contact">Contact</h3>
+      <div class="grid two">
+        <label><span data-i18n="adv.name">Full name</span>
+          <input id="adv-name" type="text" data-i18n-placeholder="adv.ph_name" placeholder="Jane Doe">
+        </label>
+        <label><span data-i18n="adv.email">Email</span>
+          <input id="adv-email" type="email" data-i18n-placeholder="adv.ph_email" placeholder="jane@example.com">
+        </label>
+        <label><span data-i18n="adv.phone">Phone</span>
+          <input id="adv-phone" type="text" data-i18n-placeholder="adv.ph_phone" placeholder="+41 79 123 45 67">
+        </label>
+        <label><span data-i18n="adv.location">Location</span>
+          <input id="adv-location" type="text" data-i18n-placeholder="adv.ph_location" placeholder="Zurich, Switzerland">
+        </label>
+        <label><span data-i18n="adv.linkedin">LinkedIn</span>
+          <input id="adv-linkedin" type="text" data-i18n-placeholder="adv.ph_linkedin" placeholder="linkedin.com/in/janedoe">
+        </label>
+        <label><span data-i18n="adv.portfolio">Portfolio</span>
+          <input id="adv-portfolio" type="text" data-i18n-placeholder="adv.ph_portfolio" placeholder="janedoe.dev">
+        </label>
+      </div>
+
+      <h3 data-i18n="adv.experience">Experience</h3>
+      <div id="adv-experience-list" class="list-rows"></div>
+      <button type="button" id="adv-add-exp" class="btn-secondary" data-i18n="adv.add_experience">+ Add Experience</button>
+
+      <h3 data-i18n="adv.education">Education</h3>
+      <div id="adv-education-list" class="list-rows"></div>
+      <button type="button" id="adv-add-edu" class="btn-secondary" data-i18n="adv.add_education">+ Add Education</button>
+
+      <h3 data-i18n="adv.references">References (optional)</h3>
+      <label>
+        <textarea id="adv-references" rows="3" data-i18n-placeholder="adv.ph_references" placeholder="Dr. Jane Smith | Professor | ETH Zurich | jane@ethz.ch"></textarea>
+      </label>
+
+      <div class="adv-actions">
+        <button type="button" id="adv-export-profile" class="btn-secondary" data-i18n="adv.export">Export .txt</button>
+        <button type="button" id="adv-import-profile-btn" class="btn-secondary" data-i18n="adv.import">Import .txt</button>
+        <input type="file" id="adv-import-profile-file" accept=".txt" style="display:none">
+      </div>
+    </div>
+  </details>
+
+  <!-- ADVANCED: Career Goals & Values -->
+  <details class="advanced-block" id="adv-telos-block">
+    <summary data-i18n="adv.telos_title">Advanced: Career Goals &amp; Values</summary>
+    <div class="adv-section">
+      <div class="telos-grid">
+        <div class="telos-item">
+          <label for="telos-career_goal"><span data-i18n="telos.career_goal">What are you looking for in your next role?</span>
+            <textarea id="telos-career_goal" rows="3" data-i18n-placeholder="telos.ph_career_goal" placeholder="Lead product engineering in a scale-up with real impact..."></textarea>
+          </label>
+        </div>
+        <div class="telos-item">
+          <label for="telos-work_environment"><span data-i18n="telos.work_environment">Describe your ideal work environment</span>
+            <textarea id="telos-work_environment" rows="3" data-i18n-placeholder="telos.ph_work_environment" placeholder="Async-first, collaborative, data-driven team..."></textarea>
+          </label>
+        </div>
+        <div class="telos-item">
+          <label for="telos-values"><span data-i18n="telos.values">What are your core professional values?</span>
+            <textarea id="telos-values" rows="3" data-i18n-placeholder="telos.ph_values" placeholder="Ownership, continuous learning, shipping with quality..."></textarea>
+          </label>
+        </div>
+        <div class="telos-item">
+          <label for="telos-strengths"><span data-i18n="telos.strengths">What are your 3 main strengths with examples?</span>
+            <textarea id="telos-strengths" rows="3" data-i18n-placeholder="telos.ph_strengths" placeholder="System design, clear communication, debugging under pressure..."></textarea>
+          </label>
+        </div>
+        <div class="telos-item">
+          <label for="telos-motivators"><span data-i18n="telos.motivators">What motivates you most at work?</span>
+            <textarea id="telos-motivators" rows="3" data-i18n-placeholder="telos.ph_motivators" placeholder="Autonomy, mastery, shipping products people use..."></textarea>
+          </label>
+        </div>
+        <div class="telos-item">
+          <label for="telos-success_vision"><span data-i18n="telos.success_vision">What does success look like in this role?</span>
+            <textarea id="telos-success_vision" rows="3" data-i18n-placeholder="telos.ph_success_vision" placeholder="Own a feature end-to-end and see user adoption grow..."></textarea>
+          </label>
+        </div>
+        <div class="telos-item">
+          <label for="telos-work_style"><span data-i18n="telos.work_style">How do you prefer to work (autonomous/team)?</span>
+            <textarea id="telos-work_style" rows="3" data-i18n-placeholder="telos.ph_work_style" placeholder="Deep work mornings, collaborative afternoons..."></textarea>
+          </label>
+        </div>
+        <div class="telos-item">
+          <label for="telos-impact"><span data-i18n="telos.impact">What impact do you want to have?</span>
+            <textarea id="telos-impact" rows="3" data-i18n-placeholder="telos.ph_impact" placeholder="Help the product reach and serve 100k users..."></textarea>
+          </label>
+        </div>
+      </div>
+      <div class="adv-actions">
+        <button type="button" id="adv-export-telos" class="btn-secondary" data-i18n="adv.export">Export .txt</button>
+        <button type="button" id="adv-import-telos-btn" class="btn-secondary" data-i18n="adv.import">Import .txt</button>
+        <input type="file" id="adv-import-telos-file" accept=".txt" style="display:none">
+      </div>
+    </div>
+  </details>
+
   <div class="row-actions">
     <button id="start-continue-btn" type="button" class="btn-primary" disabled data-i18n="action.continue_upload">Continue to Upload</button>
   </div>

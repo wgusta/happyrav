@@ -14,6 +14,7 @@ class SessionRecord:
     state: SessionState
     document_texts: Dict[str, str] = field(default_factory=dict)
     photo_data_url: str = ""
+    signature_data_url: str = ""
     extraction_signature: str = ""
     llm_profile: Optional[ExtractedProfile] = None
     llm_warning: str = ""

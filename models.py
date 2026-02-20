@@ -133,6 +133,9 @@ class SessionState(BaseModel):
     extraction_warning: str = ""
     extraction_debug: Dict[str, Any] = Field(default_factory=dict)
     telos_context: Dict[str, str] = Field(default_factory=dict)
+    sender_street: str = ""
+    sender_plz_ort: str = ""
+    signature_data_url: str = ""
     created_at: float = 0.0
     expires_at: float = 0.0
 
@@ -196,14 +199,26 @@ class ComparisonSection(BaseModel):
     optimized: str
 
 
+class CoverLetterRequest(BaseModel):
+    recipient_company: str = ""
+    recipient_street: str = ""
+    recipient_plz_ort: str = ""
+    recipient_contact: str = ""
+    cover_date_location: str = ""
+    cover_anrede: str = ""
+    sender_street: str = ""
+    sender_plz_ort: str = ""
+    filename_cover: str = ""
+
+
 class ArtifactRecord(BaseModel):
     token: str
     filename_cv: str
-    filename_cover: str
+    filename_cover: str = ""
     cv_pdf_bytes: bytes
-    cover_pdf_bytes: bytes
+    cover_pdf_bytes: bytes = b""
     cv_html: str
-    cover_html: str
+    cover_html: str = ""
     match: MatchPayload
     warning: Optional[str] = None
     expires_at: float

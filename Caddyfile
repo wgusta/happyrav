@@ -1,8 +1,3 @@
-:80 {
-  handle_path /happyrav/* {
-    reverse_proxy happyrav:8000
-  }
-
-  respond /healthz 200
+happyrav.gusty.ch {
+  reverse_proxy happyrav:8000
 }
-

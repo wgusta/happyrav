@@ -60,7 +60,67 @@
   <div id="review-score" class="score-box" data-i18n="review.no_score">No review score yet.</div>
   <div id="review-missing" class="list-rows"></div>
   <div class="row-actions">
-    <button id="generate-btn" type="button" class="btn-primary" disabled data-i18n="action.generate">Generate CV + Cover Letter</button>
+    <button id="generate-btn" type="button" class="btn-primary" disabled data-i18n="action.generate_cv">Generate CV</button>
+  </div>
+  <div id="cv-generated-info" style="display:none" class="alert success">
+    <span data-i18n="notify.cv_generated">CV generated.</span>
+    <a id="cv-download-link" href="#" target="_blank" data-i18n="action.download_cv">Download CV</a>
+  </div>
+</section>
+
+<section class="block tone-white" id="cover-letter-section" style="display:none">
+  <h2 data-i18n="cover.title">Anschreiben / Cover Letter</h2>
+
+  <div class="grid two">
+    <label><span data-i18n="cover.sender_street">Sender street</span>
+      <input id="cover-sender-street" type="text" placeholder="Bahnhofstrasse 10">
+    </label>
+    <label><span data-i18n="cover.sender_plz">Sender PLZ/Ort</span>
+      <input id="cover-sender-plz" type="text" placeholder="5400 Baden">
+    </label>
+  </div>
+
+  <div class="grid two">
+    <label><span data-i18n="cover.recipient_street">Recipient street</span>
+      <input id="cover-recipient-street" type="text" placeholder="Industriestrasse 5">
+    </label>
+    <label><span data-i18n="cover.recipient_plz">Recipient PLZ/Ort</span>
+      <input id="cover-recipient-plz" type="text" placeholder="8000 Zürich">
+    </label>
+  </div>
+
+  <label><span data-i18n="cover.anrede_label">Anrede</span>
+    <select id="cover-anrede-known">
+      <option value="no" data-i18n="cover.anrede_unknown">Zuständige Person nicht bekannt</option>
+      <option value="yes" data-i18n="cover.anrede_known">Zuständige Person bekannt</option>
+    </select>
+  </label>
+  <label id="cover-anrede-custom-wrap" style="display:none">
+    <span data-i18n="cover.anrede_input">Anrede eingeben</span>
+    <input id="cover-anrede-custom" type="text" placeholder="Sehr geehrte Frau Müller">
+  </label>
+  <label id="cover-recipient-contact-wrap" style="display:none">
+    <span data-i18n="cover.contact_person">Kontaktperson (z.H.)</span>
+    <input id="cover-recipient-contact" type="text" placeholder="z.H. Frau Müller">
+  </label>
+
+  <label><span data-i18n="cover.date_location">Ort für Datum</span>
+    <input id="cover-date-location" type="text" placeholder="Baden">
+  </label>
+
+  <label><span data-i18n="cover.signature_label">Unterschrift (Scan/Bild, optional)</span>
+    <div class="file-picker">
+      <button id="signature-file-trigger" type="button" class="btn-secondary" data-i18n="cover.signature_choose">Datei wählen</button>
+      <span id="signature-file-name" class="file-picker-name" data-i18n="cover.no_signature">Keine Unterschrift</span>
+    </div>
+    <input id="signature-file" class="visually-hidden" type="file" accept=".png,.jpg,.jpeg,.webp">
+  </label>
+  <div class="row-actions">
+    <button id="upload-signature-btn" type="button" class="btn-secondary" disabled data-i18n="cover.upload_signature">Unterschrift hochladen</button>
+  </div>
+
+  <div class="row-actions">
+    <button id="generate-cover-btn" type="button" class="btn-primary" disabled data-i18n="action.generate_cover">Generate Cover Letter</button>
   </div>
 </section>
 

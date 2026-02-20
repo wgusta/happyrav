@@ -1,13 +1,15 @@
 <main class="site-wrap">
   <header class="hero tone-red">
-    <div class="lang-toggle" role="group" aria-label="Language toggle" data-i18n-aria="aria.language_toggle">
-      <button id="lang-btn-en" type="button" class="lang-btn" data-i18n-aria="aria.switch_en">EN</button>
-      <button id="lang-btn-de" type="button" class="lang-btn" data-i18n-aria="aria.switch_de">DE</button>
+    <div class="hero-top-row">
+      <div class="lang-toggle" role="group" aria-label="Language toggle" data-i18n-aria="aria.language_toggle">
+        <button id="lang-btn-en" type="button" class="lang-btn" data-i18n-aria="aria.switch_en">EN</button>
+        <button id="lang-btn-de" type="button" class="lang-btn" data-i18n-aria="aria.switch_de">DE</button>
+      </div>
+      <a href="https://gusty.ch" class="hero-link" target="_blank" rel="noopener">gusty.ch</a>
     </div>
-    <p class="meta">gusty.ch/happyrav</p>
     <h1>happyRAV</h1>
-    <p data-i18n="hero.description">Document-first ATS flow. Upload CV, cover letters, Arbeitszeugnisse, certificates, and supporting docs.</p>
-    <p class="hero-sub" data-i18n="hero.sub">At every phase you can upload more files or answer AI clarification questions.</p>
+    <p data-i18n="hero.description">Generate a CV and cover letter from a job ad that keeps the RAV* happy and maybe even lands you a job.</p>
+    <p class="hero-sub" data-i18n="hero.sub">*RAV naturally stands for Resume Altering Vessel</p>
   </header>
 
   <section class="wizard-shell">
@@ -32,4 +34,9 @@
 
     {% include content_template %}
   </section>
+
+  <footer class="site-footer">
+    <p class="footer-tagline" data-i18n="footer.tagline">Developed with love for you and hate for creating documents by Gusty aka Gueney Usta aka you know who I am.</p>
+    <a href="https://gusty.ch" class="footer-text-link" target="_blank" rel="noopener">gusty.ch</a>
+  </footer>
 </main>

@@ -21,8 +21,9 @@
   const I18N = {
     en: {
       "page.title": "happyRAV · Application Wizard",
-      "hero.description": "Document-first ATS flow. Upload CV, cover letters, Arbeitszeugnisse, certificates, and supporting docs.",
-      "hero.sub": "Five focused steps from job ad to tailored PDFs.",
+      "hero.description": "Generate a CV and cover letter from a job ad that keeps the RAV* happy and maybe even lands you a job.",
+      "hero.sub": "*RAV naturally stands for Resume Altering Vessel",
+      "footer.tagline": "Developed with love for you and hate for creating documents by Gusty aka Gueney Usta aka you know who I am.",
 
       "progress.start": "Start",
       "progress.upload": "Upload",
@@ -68,7 +69,10 @@
       "action.refresh_session": "Refresh session state",
       "action.save_answers": "Save answers + refresh",
       "action.clear_session": "Clear session",
+      "action.generate_cv": "Generate CV",
+      "action.generate_cover": "Generate Cover Letter",
       "action.generate": "Generate CV + Cover Letter",
+      "action.download_cv": "Download CV",
       "action.continue_upload": "Continue to Upload",
       "action.continue_questions": "Continue to Questions",
       "action.continue_review": "Continue to Review",
@@ -146,6 +150,25 @@
       "template.simple": "Simple",
       "template.sophisticated": "Sophisticated",
       "template.friendly": "Friendly",
+
+      "cover.title": "Cover Letter",
+      "cover.sender_street": "Sender street",
+      "cover.sender_plz": "Sender PLZ/City",
+      "cover.recipient_street": "Recipient street",
+      "cover.recipient_plz": "Recipient PLZ/City",
+      "cover.anrede_label": "Salutation",
+      "cover.anrede_unknown": "Contact person unknown",
+      "cover.anrede_known": "Contact person known",
+      "cover.anrede_input": "Enter salutation",
+      "cover.contact_person": "Contact person (attn.)",
+      "cover.date_location": "Location for date",
+      "cover.signature_label": "Signature (scan/image, optional)",
+      "cover.signature_choose": "Choose file",
+      "cover.no_signature": "No signature",
+      "cover.upload_signature": "Upload signature",
+      "notify.cv_generated": "CV generated.",
+      "notify.signature_uploaded": "Signature uploaded.",
+      "notify.cover_generated": "Cover letter generated.",
 
       "notify.session_started": "Session started.",
       "notify.documents_uploaded": "Documents uploaded.",
@@ -242,8 +265,9 @@
     },
     de: {
       "page.title": "happyRAV · Bewerbungs-Wizard",
-      "hero.description": "Dokument-zentrierter ATS-Flow. Lade CV, Anschreiben, Arbeitszeugnisse, Zertifikate und weitere Unterlagen hoch.",
-      "hero.sub": "Fünf fokussierte Schritte vom Job-Inserat zu massgeschneiderten PDFs.",
+      "hero.description": "Aus Inserattext einen CV und Anschreiben generieren mit dem das RAV* glücklich ist und du vielleicht sogar eine Stelle findest.",
+      "hero.sub": "*RAV steht natürlich für Richtig Angenehmer Verein",
+      "footer.tagline": "Mit viel Liebe für dich und Hass für das Erstellen von Dokumenten entwickelt von Gusty aka Güney Usta aka du weisch wär.",
 
       "progress.start": "Start",
       "progress.upload": "Upload",
@@ -289,7 +313,10 @@
       "action.refresh_session": "Sitzung aktualisieren",
       "action.save_answers": "Antworten speichern + aktualisieren",
       "action.clear_session": "Sitzung löschen",
+      "action.generate_cv": "CV generieren",
+      "action.generate_cover": "Anschreiben generieren",
       "action.generate": "CV + Anschreiben generieren",
+      "action.download_cv": "CV herunterladen",
       "action.continue_upload": "Weiter zum Upload",
       "action.continue_questions": "Weiter zu Fragen",
       "action.continue_review": "Weiter zur Prüfung",
@@ -367,6 +394,25 @@
       "template.simple": "Einfach",
       "template.sophisticated": "Souverän",
       "template.friendly": "Freundlich",
+
+      "cover.title": "Anschreiben",
+      "cover.sender_street": "Absender Strasse",
+      "cover.sender_plz": "Absender PLZ/Ort",
+      "cover.recipient_street": "Empfänger Strasse",
+      "cover.recipient_plz": "Empfänger PLZ/Ort",
+      "cover.anrede_label": "Anrede",
+      "cover.anrede_unknown": "Zuständige Person nicht bekannt",
+      "cover.anrede_known": "Zuständige Person bekannt",
+      "cover.anrede_input": "Anrede eingeben",
+      "cover.contact_person": "Kontaktperson (z.H.)",
+      "cover.date_location": "Ort für Datum",
+      "cover.signature_label": "Unterschrift (Scan/Bild, optional)",
+      "cover.signature_choose": "Datei wählen",
+      "cover.no_signature": "Keine Unterschrift",
+      "cover.upload_signature": "Unterschrift hochladen",
+      "notify.cv_generated": "CV generiert.",
+      "notify.signature_uploaded": "Unterschrift hochgeladen.",
+      "notify.cover_generated": "Anschreiben generiert.",
 
       "notify.session_started": "Sitzung gestartet.",
       "notify.documents_uploaded": "Dokumente hochgeladen.",
@@ -467,6 +513,7 @@
     sessionId: "",
     server: null,
     uiLanguage: "de",
+    artifactToken: "",
   };
 
   const statusBox = document.getElementById("global-status");
@@ -507,8 +554,26 @@
   const filenameCvInput = document.getElementById("review-filename-cv");
   const filenameCoverInput = document.getElementById("review-filename-cover");
 
+  const coverSenderStreet = document.getElementById("cover-sender-street");
+  const coverSenderPlz = document.getElementById("cover-sender-plz");
+  const coverRecipientStreet = document.getElementById("cover-recipient-street");
+  const coverRecipientPlz = document.getElementById("cover-recipient-plz");
+  const coverAnredeKnown = document.getElementById("cover-anrede-known");
+  const coverAnredeCustomWrap = document.getElementById("cover-anrede-custom-wrap");
+  const coverAnredeCustom = document.getElementById("cover-anrede-custom");
+  const coverRecipientContactWrap = document.getElementById("cover-recipient-contact-wrap");
+  const coverRecipientContact = document.getElementById("cover-recipient-contact");
+  const coverDateLocation = document.getElementById("cover-date-location");
+  const signatureFile = document.getElementById("signature-file");
+  const signatureFileTrigger = document.getElementById("signature-file-trigger");
+  const signatureFileName = document.getElementById("signature-file-name");
+  const btnUploadSignature = document.getElementById("upload-signature-btn");
+  const btnGenerateCover = document.getElementById("generate-cover-btn");
+  const coverLetterSection = document.getElementById("cover-letter-section");
+  const cvGeneratedInfo = document.getElementById("cv-generated-info");
+  const cvDownloadLink = document.getElementById("cv-download-link");
+
   const pasteText = document.getElementById("paste-text");
-  const pasteTag = document.getElementById("paste-tag");
   const btnPasteSubmit = document.getElementById("paste-submit-btn");
 
   const btnStartContinue = document.getElementById("start-continue-btn");
@@ -1049,7 +1114,7 @@
     if (!state.sessionId) throw new Error(t("error.start_session_first"));
     const text = (pasteText?.value || "").trim();
     if (!text) throw new Error(t("error.select_files_first"));
-    const tag = pasteTag?.value || "cv";
+    const tag = "other";
     const response = await fetch(endpoint(`/api/session/${state.sessionId}/paste`), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -1128,7 +1193,59 @@
       throw new Error(`${t("error.required_unresolved")}: ${unresolved.join(", ")}`);
     }
     const data = await parseJsonResponse(response);
-    notify("success", t("notify.files_generated"));
+    state.artifactToken = data.token || "";
+    notify("success", t("notify.cv_generated"));
+    if (cvGeneratedInfo) cvGeneratedInfo.style.display = "";
+    if (cvDownloadLink && data.download_cv_url) cvDownloadLink.href = data.download_cv_url;
+    if (coverLetterSection) coverLetterSection.style.display = "";
+    if (btnGenerateCover) btnGenerateCover.disabled = false;
+  }
+
+  async function uploadSignature() {
+    if (!state.sessionId) throw new Error(t("error.start_session_first"));
+    if (!signatureFile) throw new Error(t("error.select_files_first"));
+    const files = Array.from(signatureFile.files || []);
+    if (!files.length) throw new Error(t("error.select_files_first"));
+    const formData = new FormData();
+    formData.append("file", files[0]);
+    const response = await fetch(endpoint(`/api/session/${state.sessionId}/signature`), {
+      method: "POST",
+      body: formData,
+    });
+    await parseJsonResponse(response);
+    signatureFile.value = "";
+    if (signatureFileName) signatureFileName.textContent = t("cover.no_signature");
+    if (btnUploadSignature) btnUploadSignature.disabled = true;
+    notify("success", t("notify.signature_uploaded"));
+  }
+
+  async function generateCoverLetter() {
+    if (!state.sessionId) throw new Error(t("error.start_session_first"));
+    const known = coverAnredeKnown?.value === "yes";
+    let anrede = "";
+    if (known && coverAnredeCustom?.value?.trim()) {
+      anrede = coverAnredeCustom.value.trim();
+    } else {
+      anrede = state.uiLanguage === "de" ? "Sehr geehrte Damen und Herren" : "Dear Hiring Team";
+    }
+    const payload = {
+      recipient_company: state.server?.company_name || "",
+      recipient_street: coverRecipientStreet?.value || "",
+      recipient_plz_ort: coverRecipientPlz?.value || "",
+      recipient_contact: known ? (coverRecipientContact?.value || "") : "",
+      cover_date_location: coverDateLocation?.value || "",
+      cover_anrede: anrede,
+      sender_street: coverSenderStreet?.value || "",
+      sender_plz_ort: coverSenderPlz?.value || "",
+      filename_cover: filenameCoverInput?.value || "",
+    };
+    const response = await fetch(endpoint(`/api/session/${state.sessionId}/generate-cover`), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await parseJsonResponse(response);
+    notify("success", t("notify.cover_generated"));
     if (data.result_url) {
       window.location.assign(data.result_url);
     }
@@ -1773,6 +1890,25 @@
     if (pasteText) pasteText.addEventListener("input", setButtonStates);
     if (btnExtract) btnExtract.addEventListener("click", () => run(extract));
     if (btnClear) btnClear.addEventListener("click", () => run(clearSession));
+
+    if (coverAnredeKnown) {
+      coverAnredeKnown.addEventListener("change", () => {
+        const known = coverAnredeKnown.value === "yes";
+        if (coverAnredeCustomWrap) coverAnredeCustomWrap.style.display = known ? "" : "none";
+        if (coverRecipientContactWrap) coverRecipientContactWrap.style.display = known ? "" : "none";
+      });
+    }
+    if (signatureFile) {
+      signatureFile.addEventListener("change", () => {
+        const files = Array.from(signatureFile.files || []);
+        if (signatureFileName) signatureFileName.textContent = files.length ? files[0].name : t("cover.no_signature");
+        if (btnUploadSignature) btnUploadSignature.disabled = !files.length;
+      });
+    }
+    if (signatureFileTrigger && signatureFile) {
+      signatureFileTrigger.addEventListener("click", () => signatureFile.click());
+    }
+    if (btnUploadSignature) btnUploadSignature.addEventListener("click", () => run(uploadSignature));
   }
 
   function bindPageEvents() {
@@ -1791,6 +1927,7 @@
     if (btnUploadContinue) btnUploadContinue.addEventListener("click", gotoQuestions);
     if (btnAnswers) btnAnswers.addEventListener("click", () => run(saveAnswers));
     if (btnGenerate) btnGenerate.addEventListener("click", () => run(generate));
+    if (btnGenerateCover) btnGenerateCover.addEventListener("click", () => run(generateCoverLetter));
     if (btnToReview) btnToReview.addEventListener("click", gotoReview);
   }
 

@@ -7,6 +7,7 @@ import base64
 import io
 import time
 import uuid
+from datetime import date
 from typing import Dict, List, Optional
 
 from fastapi import Body, FastAPI, File, Form, HTTPException, Request, UploadFile
@@ -19,6 +20,7 @@ from happyrav.models import (
     ArtifactRecord,
     BasicProfile,
     ComparisonSection,
+    CoverLetterRequest,
     DocTag,
     ExtractedProfile,
     GenerateRequest,
@@ -73,6 +75,20 @@ WIZARD_PROGRESS = {
 }
 PHOTO_MAX_BYTES = 5 * 1024 * 1024
 PHOTO_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp"}
+SIGNATURE_MAX_BYTES = 5 * 1024 * 1024
+SIGNATURE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp"}
+
+DE_MONTHS = [
+    "Januar", "Februar", "März", "April", "Mai", "Juni",
+    "Juli", "August", "September", "Oktober", "November", "Dezember",
+]
+
+
+def _format_cover_date(location: str, language: str) -> str:
+    today = date.today()
+    if language == "de":
+        return f"{location}, {today.day}. {DE_MONTHS[today.month - 1]} {today.year}"
+    return f"{location}, {today.day} {today.strftime('%B')} {today.year}"
 
 
 def _template_alias(value: str) -> str:
@@ -645,6 +661,48 @@ async def api_preseed(session_id: str, req: PreSeedRequest) -> Dict:
     }
 
 
+def _validate_completeness(
+    profile: ExtractedProfile,
+    generated: "GeneratedContent",
+) -> "GeneratedContent":
+    """Append missing experience/education from profile and re-sort reverse-chronologically."""
+    from happyrav.models import GeneratedContent as GC  # noqa: F811
+
+    gen_exp_keys = {(e.role.lower().strip(), e.company.lower().strip()) for e in generated.experience}
+    missing_exp = [
+        e for e in profile.experience
+        if (e.role.lower().strip(), e.company.lower().strip()) not in gen_exp_keys
+    ]
+    if missing_exp:
+        generated.experience = list(generated.experience) + missing_exp
+
+    def _period_sort_key(period: str) -> str:
+        parts = period.replace("\u2013", "-").replace("\u2014", "-").split("-")
+        last = parts[-1].strip().lower()
+        if last in ("present", "heute", "now", "laufend", "current", ""):
+            return "9999-99"
+        digits = "".join(c for c in last if c.isdigit() or c == "/")
+        if "/" in digits:
+            segments = digits.split("/")
+            if len(segments) == 2 and len(segments[1]) == 4:
+                return f"{segments[1]}-{segments[0].zfill(2)}"
+        return digits if digits else "0000-00"
+
+    generated.experience = sorted(generated.experience, key=lambda e: _period_sort_key(e.period), reverse=True)
+
+    gen_edu_keys = {(e.degree.lower().strip(), e.school.lower().strip()) for e in generated.education}
+    missing_edu = [
+        e for e in profile.education
+        if (e.degree.lower().strip(), e.school.lower().strip()) not in gen_edu_keys
+    ]
+    if missing_edu:
+        generated.education = list(generated.education) + missing_edu
+
+    generated.education = sorted(generated.education, key=lambda e: _period_sort_key(e.period), reverse=True)
+
+    return generated
+
+
 def _build_comparison_sections(
     profile: ExtractedProfile,
     generated,
@@ -737,6 +795,7 @@ async def api_session_generate(
         profile=profile,
         source_documents=list(record.document_texts.values()),
     )
+    generated = _validate_completeness(profile, generated)
 
     cv_text = build_cv_text(basic_profile, generated)
     if state.telos_context:
@@ -751,19 +810,9 @@ async def api_session_generate(
         theme=state.theme,
         match=match,
     )
-    cover_html = render_cover_html(
-        template_id=state.template_id,
-        language=state.language,
-        profile=basic_profile,
-        content=generated,
-        company_name=state.company_name or "Company",
-        position_title=state.position_title or "Position",
-        theme=state.theme,
-    )
 
     try:
         cv_pdf = render_pdf(cv_html)
-        cover_pdf = render_pdf(cover_html)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"PDF generation failed: {exc}") from exc
     comparison_sections = _build_comparison_sections(profile, generated)
@@ -774,21 +823,12 @@ async def api_session_generate(
             artifact_filename_cv += ".pdf"
     else:
         artifact_filename_cv = filenames["cv"]
-    if payload.filename_cover.strip():
-        artifact_filename_cover = payload.filename_cover.strip()
-        if not artifact_filename_cover.endswith(".pdf"):
-            artifact_filename_cover += ".pdf"
-    else:
-        artifact_filename_cover = filenames["cover"]
     token = artifact_cache.create_token()
     artifact = ArtifactRecord(
         token=token,
         filename_cv=artifact_filename_cv,
-        filename_cover=artifact_filename_cover,
         cv_pdf_bytes=cv_pdf,
-        cover_pdf_bytes=cover_pdf,
         cv_html=cv_html,
-        cover_html=cover_html,
         match=match,
         warning=warning,
         expires_at=time.time() + artifact_cache.ttl_seconds,
@@ -806,14 +846,128 @@ async def api_session_generate(
     return {
         "token": token,
         "filename_cv": artifact.filename_cv,
-        "filename_cover": artifact.filename_cover,
         "match": artifact.match.model_dump(),
         "warning": artifact.warning,
-        "result_url": str(request.url_for("result_page", token=token)),
-        "result_fragment_url": str(request.url_for("result_fragment", token=token)),
         "download_cv_url": str(request.url_for("download_file", token=token, file_id="cv")),
-        "download_cover_url": str(request.url_for("download_file", token=token, file_id="cover")),
     }
+
+
+@app.post("/api/session/{session_id}/signature")
+async def api_session_signature(
+    session_id: str,
+    file: UploadFile = File(...),
+) -> Dict:
+    record = _require_session(session_id)
+    filename = (file.filename or "signature").strip().lower()
+    extension = os.path.splitext(filename)[1]
+    if extension not in SIGNATURE_EXTENSIONS:
+        raise HTTPException(status_code=415, detail="Unsupported image type. Allowed: png, jpg, jpeg, webp.")
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="Empty file.")
+    if len(content) > SIGNATURE_MAX_BYTES:
+        raise HTTPException(status_code=413, detail=f"File too large (max {SIGNATURE_MAX_BYTES // (1024 * 1024)} MB).")
+    try:
+        image = Image.open(io.BytesIO(content))
+        image.thumbnail((400, 200))
+        out = io.BytesIO()
+        image.save(out, format="PNG")
+        encoded = base64.b64encode(out.getvalue()).decode("ascii")
+        record.signature_data_url = f"data:image/png;base64,{encoded}"
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Could not process image: {exc}") from exc
+    session_cache.set(record)
+    return {
+        "session_id": session_id,
+        "signature_uploaded": True,
+    }
+
+
+@app.post("/api/session/{session_id}/generate-cover")
+async def api_session_generate_cover(
+    request: Request,
+    session_id: str,
+    payload: CoverLetterRequest,
+) -> Dict:
+    if not has_api_key():
+        raise HTTPException(
+            status_code=503,
+            detail="OPENAI_API_KEY not configured. Cannot generate documents.",
+        )
+    record = _require_session(session_id)
+    state = record.state
+
+    if payload.sender_street.strip():
+        state.sender_street = payload.sender_street.strip()
+    if payload.sender_plz_ort.strip():
+        state.sender_plz_ort = payload.sender_plz_ort.strip()
+
+    profile = state.extracted_profile
+    basic_profile = _profile_to_basic(profile)
+    generated, warning = await generate_content(
+        language=state.language,
+        job_ad_text=state.job_ad_text,
+        profile=profile,
+        source_documents=list(record.document_texts.values()),
+    )
+    generated = _validate_completeness(profile, generated)
+
+    if payload.cover_anrede.strip():
+        generated.cover_greeting = payload.cover_anrede.strip().rstrip(",")
+
+    cover_date = ""
+    if payload.cover_date_location.strip():
+        cover_date = _format_cover_date(payload.cover_date_location.strip(), state.language)
+
+    cover_html = render_cover_html(
+        template_id=state.template_id,
+        language=state.language,
+        profile=basic_profile,
+        content=generated,
+        company_name=payload.recipient_company.strip() or state.company_name or "Company",
+        position_title=state.position_title or "Position",
+        theme=state.theme,
+        sender_street=state.sender_street,
+        sender_plz_ort=state.sender_plz_ort,
+        recipient_street=payload.recipient_street.strip(),
+        recipient_plz_ort=payload.recipient_plz_ort.strip(),
+        recipient_contact=payload.recipient_contact.strip(),
+        cover_date=cover_date,
+        signature_data_url=record.signature_data_url,
+    )
+
+    try:
+        cover_pdf = render_pdf(cover_html)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"PDF generation failed: {exc}") from exc
+
+    filenames = build_filenames(basic_profile.full_name or "Candidate", state.company_name or "Company")
+    if payload.filename_cover.strip():
+        artifact_filename_cover = payload.filename_cover.strip()
+        if not artifact_filename_cover.endswith(".pdf"):
+            artifact_filename_cover += ".pdf"
+    else:
+        artifact_filename_cover = filenames["cover"]
+
+    session_meta = state.session_id
+    existing_tokens = [
+        tok for tok, rec in artifact_cache._records.items()
+        if rec.meta.get("session_id") == session_meta
+    ]
+    if existing_tokens:
+        artifact = artifact_cache.get(existing_tokens[-1])
+        if artifact:
+            artifact.filename_cover = artifact_filename_cover
+            artifact.cover_pdf_bytes = cover_pdf
+            artifact.cover_html = cover_html
+            artifact_cache.set(artifact)
+            session_cache.set(record)
+            return {
+                "token": artifact.token,
+                "result_url": str(request.url_for("result_page", token=artifact.token)),
+            }
+
+    raise HTTPException(status_code=404, detail="No CV artifact found. Generate CV first.")
 
 
 @app.get("/result/{token}", response_class=HTMLResponse, name="result_page")

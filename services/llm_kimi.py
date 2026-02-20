@@ -99,7 +99,7 @@ def _coerce_experience(items: Any) -> List[ExperienceItem]:
                 achievements=_safe_list(item.get("achievements", [])),
             )
         )
-    return output[:14]
+    return output[:50]
 
 
 def _coerce_education(items: Any) -> List[EducationItem]:
@@ -117,16 +117,16 @@ def _coerce_education(items: Any) -> List[EducationItem]:
                 period=str(item.get("period", "")).strip(),
             )
         )
-    return output[:10]
+    return output[:30]
 
 
 def _coerce_generated_payload(payload: Dict[str, Any]) -> GeneratedContent:
     return GeneratedContent(
         summary=str(payload.get("summary", "")).strip(),
-        skills=_safe_list(payload.get("skills", []))[:30],
+        skills=_safe_list(payload.get("skills", []))[:50],
         experience=_coerce_experience(payload.get("experience", [])),
         education=_coerce_education(payload.get("education", [])),
-        cover_greeting=str(payload.get("cover_greeting", "")).strip(),
+        cover_greeting=str(payload.get("cover_greeting", "")).strip().rstrip(","),
         cover_opening=str(payload.get("cover_opening", "")).strip(),
         cover_body=_safe_list(payload.get("cover_body", []))[:5],
         cover_closing=str(payload.get("cover_closing", "")).strip(),
@@ -311,13 +311,25 @@ def _generate_prompt(
     guard = (
         "You are a CV and cover-letter assistant. Use only factual inputs. "
         "Never invent employers, degrees, periods, or certifications. "
-        "If data is missing or uncertain, omit it."
+        "If data is missing or uncertain, omit it.\n"
+        "CRITICAL RULES:\n"
+        "- Include ALL job positions from the profile. Never omit, merge, or skip any role.\n"
+        "- List experience in reverse chronological order (most recent first). Mandatory for Swiss CVs.\n"
+        "- Preserve all original period dates exactly as provided.\n"
+        "- Rewrite achievements to match job ad keywords, but never remove an experience entry.\n"
+        "- Include ALL education entries, never skip any."
     )
     if language == "de":
         guard = (
             "Du bist ein CV/Anschreiben-Assistent. Nutze nur vorhandene Fakten. "
             "Erfinde niemals Arbeitgeber, Abschlüsse, Zeiträume oder Zertifikate. "
-            "Wenn Daten fehlen oder unsicher sind, lasse sie weg."
+            "Wenn Daten fehlen oder unsicher sind, lasse sie weg.\n"
+            "KRITISCHE REGELN:\n"
+            "- Alle Berufspositionen aus dem Profil aufführen. Niemals weglassen, zusammenfassen oder überspringen.\n"
+            "- Berufserfahrung in umgekehrt chronologischer Reihenfolge (neueste zuerst). Pflicht für Schweizer CVs.\n"
+            "- Alle originalen Zeitangaben exakt übernehmen.\n"
+            "- Erfolge auf Stelleninserat-Keywords anpassen, aber niemals einen Erfahrungseintrag entfernen.\n"
+            "- Alle Ausbildungseinträge aufführen, niemals überspringen."
         )
     return (
         f"{guard}\n"

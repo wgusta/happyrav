@@ -28,5 +28,4 @@ COPY . /app
 
 EXPOSE 8000
 
-ENV HAPPYRAV_PREFIX=/happyrav
 CMD ["uvicorn", "happyrav.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]

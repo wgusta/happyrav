@@ -68,6 +68,13 @@ def render_cover_html(
     company_name: str,
     position_title: str,
     theme: ThemeConfig,
+    sender_street: str = "",
+    sender_plz_ort: str = "",
+    recipient_street: str = "",
+    recipient_plz_ort: str = "",
+    recipient_contact: str = "",
+    cover_date: str = "",
+    signature_data_url: str = "",
 ) -> str:
     template_map = {
         "simple": "coverletter-template-simple.html.j2",
@@ -84,7 +91,14 @@ def render_cover_html(
         company_name=company_name,
         position_title=position_title,
         theme=theme,
-        today=date.today().isoformat(),
+        today=cover_date or date.today().isoformat(),
+        sender_street=sender_street,
+        sender_plz_ort=sender_plz_ort,
+        recipient_street=recipient_street,
+        recipient_plz_ort=recipient_plz_ort,
+        recipient_contact=recipient_contact,
+        cover_date=cover_date,
+        signature_data_url=signature_data_url,
     )
 
 

@@ -4,8 +4,8 @@ services:
       context: ..
       dockerfile: happyrav/Dockerfile
     environment:
-      HAPPYRAV_PREFIX: /happyrav
       HAPPYRAV_CACHE_TTL: 600
+      HAPPYRAV_PREFIX: ${HAPPYRAV_PREFIX:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
@@ -27,12 +27,19 @@ services:
     depends_on:
       - happyrav
     ports:
-      - "8080:80"
+      - "80:80"
+      - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
     networks:
       - happyrav-net
 
 networks:
   happyrav-net:
     driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:

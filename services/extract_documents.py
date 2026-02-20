@@ -35,6 +35,16 @@ ALLOWED_EXTENSIONS = {
 
 DOC_TAGS: Tuple[DocTag, ...] = ("cv", "cover_letter", "arbeitszeugnis", "certificate", "other")
 
+_SENSITIVE_BLOCK_RE = re.compile(
+    r"-----BEGIN\s[\w\s]+-----[\s\S]*?-----END\s[\w\s]+-----",
+    re.MULTILINE,
+)
+
+
+def _sanitize_text(text: str) -> str:
+    """Strip PEM-encoded key blocks and other sensitive material from extracted text."""
+    return _SENSITIVE_BLOCK_RE.sub("[REDACTED: sensitive key material removed]", text)
+
 MONTH_WORDS = (
     "jan",
     "feb",
@@ -130,7 +140,7 @@ def extract_text_from_bytes(filename: str, content: bytes) -> Tuple[str, ParseMe
                     blocks.append(text)
         parse_method: ParseMethod = "pdf_text_ocr" if used_ocr else "pdf_text"
         confidence = 0.78 if used_ocr else 0.93
-        return "\n\n".join(blocks).strip(), parse_method, confidence
+        return _sanitize_text("\n\n".join(blocks).strip()), parse_method, confidence
 
     if ext == ".docx":
         doc = DocxDocument(io.BytesIO(content))
@@ -140,7 +150,7 @@ def extract_text_from_bytes(filename: str, content: bytes) -> Tuple[str, ParseMe
                 row_cells = [cell.text.strip() for cell in row.cells if cell.text and cell.text.strip()]
                 if row_cells:
                     blocks.append(" | ".join(row_cells))
-        return "\n".join(blocks).strip(), "docx_text", 0.9
+        return _sanitize_text("\n".join(blocks).strip()), "docx_text", 0.9
 
     if ext in {".png", ".jpg", ".jpeg", ".webp"}:
         image = Image.open(io.BytesIO(content))
@@ -151,7 +161,7 @@ def extract_text_from_bytes(filename: str, content: bytes) -> Tuple[str, ParseMe
         decoded = content.decode("utf-8")
     except UnicodeDecodeError:
         decoded = content.decode("latin-1", errors="ignore")
-    return decoded.strip(), "plain_text", 0.55
+    return _sanitize_text(decoded.strip()), "plain_text", 0.55
 
 
 def _source_entry(doc_id: str, confidence: float) -> List[SourceAttribution]:

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ page_title }}</title>
-  <link rel="stylesheet" href="{{ request.url_for('static', path='style.css') }}?v={{ asset_version }}">
+  <link rel="stylesheet" href="{{ request.scope.root_path }}/static/style.css?v={{ asset_version }}">
 </head>
 <body
   data-page="{{ page_key }}"
@@ -17,6 +17,6 @@
 >
   {% include "_layout_wizard.html" %}
 
-  <script src="{{ request.url_for('static', path='app.js') }}?v={{ asset_version }}"></script>
+  <script src="{{ request.scope.root_path }}/static/app.js?v={{ asset_version }}"></script>
 </body>
 </html>
