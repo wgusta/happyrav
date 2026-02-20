@@ -65,18 +65,28 @@ def build_missing_questions(state: SessionState, profile: ExtractedProfile) -> L
             if period_key:
                 seen_periods[key].add(period_key)
 
-        has_conflict = any(len(periods) > 1 for periods in seen_periods.values())
-        if has_conflict:
+        conflicts = [(k, v) for k, v in seen_periods.items() if len(v) > 1]
+        if conflicts:
+            detail_lines = []
+            for (role, company), periods in conflicts:
+                sorted_periods = sorted(periods)
+                label = f"{role} @ {company}" if company else role
+                detail_lines.append(f"  {label}: {' vs '.join(sorted_periods)}")
+            detail_block = "\n".join(detail_lines)
             questions.append(
                 MissingQuestion(
-                    question_id="req_experience_conflict",
+                    question_id="opt_experience_conflict",
                     field_path="profile.experience",
-                    required=True,
-                    reason="Conflicting period data found across uploaded documents.",
+                    required=False,
+                    reason=_local_prompt(
+                        language,
+                        f"Widersprüchliche Zeiträume in hochgeladenen Dokumenten:\n{detail_block}",
+                        f"Conflicting periods found across uploaded documents:\n{detail_block}",
+                    ),
                     prompt=_local_prompt(
                         language,
-                        "Bitte widersprüchliche Zeiträume klären (Format: Rolle | Firma | Zeitraum | Erfolg1;Erfolg2).",
-                        "Please clarify conflicting periods (format: Role | Company | Period | achievement1;achievement2).",
+                        'Widersprüchliche Zeiträume gefunden (siehe Details). Korrekte Version eingeben oder "ok" um fortzufahren.',
+                        'Conflicting periods found (see details). Enter correct version or type "ok" to continue as-is.',
                     ),
                 )
             )
@@ -246,7 +256,12 @@ def apply_answers_to_profile(
         elif field_path == "profile.skills":
             updated.skills = parse_list_text(answer)
         elif field_path == "profile.experience":
-            updated.experience = parse_experience_text(answer)
+            skip_words = {"ok", "keep", "use cv", "passt", "weiter", "skip", "cv nehmen", "übernehmen"}
+            if answer.lower().strip().rstrip(".!") in skip_words:
+                continue
+            parsed = parse_experience_text(answer)
+            if parsed:
+                updated.experience = parsed
         elif field_path == "profile.education":
             updated.education = parse_education_text(answer)
         elif field_path == "profile.achievements":

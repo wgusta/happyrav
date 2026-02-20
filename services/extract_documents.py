@@ -95,11 +95,10 @@ def _has_date_like(line: str) -> bool:
 
 
 def _try_image_ocr(image: Image.Image) -> str:
-    try:
-        import pytesseract
-    except Exception as exc:
-        raise RuntimeError("OCR requires pytesseract and tesseract binaries.") from exc
-    return pytesseract.image_to_string(image, lang="deu+eng").strip()
+    from happyrav.services.llm_kimi import vision_ocr
+    buf = io.BytesIO()
+    image.save(buf, format="PNG")
+    return vision_ocr(image_bytes=buf.getvalue(), mime_type="image/png")
 
 
 def _ocr_pdf_page(content: bytes, page_index: int) -> str:
@@ -139,7 +138,7 @@ def extract_text_from_bytes(filename: str, content: bytes) -> Tuple[str, ParseMe
                 elif text:
                     blocks.append(text)
         parse_method: ParseMethod = "pdf_text_ocr" if used_ocr else "pdf_text"
-        confidence = 0.78 if used_ocr else 0.93
+        confidence = 0.90 if used_ocr else 0.93
         return _sanitize_text("\n\n".join(blocks).strip()), parse_method, confidence
 
     if ext == ".docx":
@@ -155,7 +154,7 @@ def extract_text_from_bytes(filename: str, content: bytes) -> Tuple[str, ParseMe
     if ext in {".png", ".jpg", ".jpeg", ".webp"}:
         image = Image.open(io.BytesIO(content))
         text = _try_image_ocr(image)
-        return text.strip(), "ocr_image", 0.65
+        return text.strip(), "ocr_image", 0.88
 
     try:
         decoded = content.decode("utf-8")

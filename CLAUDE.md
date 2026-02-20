@@ -2,7 +2,7 @@
 
 ## What is this
 
-Document-first ATS-optimized CV + cover letter generation wizard. Five-step flow: Start, Upload, Questions, Review, Result. FastAPI backend, Jinja2 templates, WeasyPrint PDF rendering, OpenAI LLM for content generation.
+Document-first ATS-optimized CV + cover letter generation wizard. Five-step flow: Start, Upload, Questions, Review, Result. FastAPI backend, Jinja2 templates, WeasyPrint PDF rendering, multi-provider LLM (OpenAI + Anthropic + Google).
 
 **Domain:** `happyrav.gusty.ch`
 
@@ -10,8 +10,8 @@ Document-first ATS-optimized CV + cover letter generation wizard. Five-step flow
 
 - **Backend:** FastAPI, Pydantic v2, Python 3.12
 - **PDF:** WeasyPrint (needs system libs: pango, harfbuzz, freetype)
-- **OCR:** Tesseract (eng + deu), PyMuPDF, pdfplumber
-- **LLM:** OpenAI SDK (model via `OPENAI_MODEL` env, default `gpt-4.1-mini`)
+- **OCR:** GPT-5 Mini vision, PyMuPDF, pdfplumber
+- **LLM:** Multi-provider: OpenAI (extraction/OCR), Anthropic Claude (generation), Google Gemini (crosscheck, max mode only). Quality via `HAPPYRAV_QUALITY` env (balanced/max)
 - **Frontend:** Vanilla JS, single `app.js` with inline i18n (EN/DE), no framework
 - **Templates:** Jinja2 for pages (`templates/`) and PDF docs (`doc_templates/`)
 - **Reverse proxy:** Caddy (auto HTTPS)
@@ -24,8 +24,8 @@ main.py                    # FastAPI app, all routes
 models.py                  # Pydantic models (SessionState, ThemeConfig, etc.)
 services/
   cache.py                 # In-memory SessionCache, ArtifactCache
-  llm_kimi.py              # OpenAI extraction + generation, fallback handling
-  extract_documents.py     # File parsing (PDF, DOCX, images via OCR)
+  llm_kimi.py              # Multi-provider LLM: OpenAI extraction, Anthropic generation, Gemini crosscheck
+  extract_documents.py     # File parsing (PDF, DOCX, images via vision OCR)
   scoring.py               # ATS match scoring via parser_scanner
   question_engine.py       # Gap detection, missing questions builder
   templating.py            # HTML rendering, filename builder
@@ -80,7 +80,7 @@ Docker compose file at `~/ats-scanner/happyrav/docker-compose.yml`. Build contex
 
 ```bash
 cd /Users/gusta/Projects/happyRAV
-# Needs OPENAI_API_KEY in env or .env
+# Needs OPENAI_API_KEY + ANTHROPIC_API_KEY in .env
 uvicorn happyrav.main:app --reload --port 8000
 ```
 
@@ -95,9 +95,11 @@ node --check static/app.js
 
 | Var | Purpose |
 |-----|---------|
-| `OPENAI_API_KEY` | LLM API key |
-| `OPENAI_BASE_URL` | Custom base URL |
-| `OPENAI_MODEL` | Model name (default: gpt-4.1-mini) |
+| `OPENAI_API_KEY` | OpenAI API key (extraction, OCR) |
+| `ANTHROPIC_API_KEY` | Anthropic API key (generation) |
+| `GOOGLE_API_KEY` | Google AI key (crosscheck, max mode only) |
+| `HAPPYRAV_QUALITY` | Quality mode: `balanced` (default) or `max` |
+| `OPENAI_BASE_URL` | Custom OpenAI base URL |
 | `HAPPYRAV_PREFIX` | URL prefix for reverse proxy |
 | `HAPPYRAV_CACHE_TTL` | Session TTL seconds (default: 600) |
 | `SMTP_HOST/PORT/USER/PASS/FROM` | Email sending |
@@ -110,7 +112,7 @@ node --check static/app.js
 - `sudo docker` required on VPS (docker not in ubuntu group)
 - Build context for Dockerfile is parent dir (`ats-scanner/`), so paths in Dockerfile use `happyrav/` prefix
 - ATS scoring uses shared `parser_scanner` from `ats-scanner/app/scanners/`
-- LLM fallback: if primary model fails, falls back to OpenAI directly. Warning messages need both EN and DE translations in `llm_kimi.py`
+- LLM fallback: if Anthropic generation fails, falls back to local content builder. Extraction fallback returns None profile. Warning messages need both EN and DE translations in `llm_kimi.py`
 - Cover letter templates use `content.cover_greeting`, `cover_opening`, `cover_body` (list), `cover_closing`
 - Skills format: `"Python (Expert)"` parsed via `skill.split(' (')` in templates
 

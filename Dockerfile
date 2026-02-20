@@ -16,9 +16,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libffi8 \
     shared-mime-info \
     fonts-dejavu-core \
-    tesseract-ocr \
-    tesseract-ocr-eng \
-    tesseract-ocr-deu \
     && rm -rf /var/lib/apt/lists/*
 
 COPY happyrav/requirements.txt /app/happyrav/requirements.txt

@@ -24,16 +24,21 @@
     }
     body { margin: 0; font-family: {{ chosen_font }}; color: var(--ink); font-size: 10.2px; line-height: 1.3; background: var(--page-bg); }
     h1,h2,h3,p { margin: 0; }
-    .top { display: grid; grid-template-columns: 1.34fr 1fr; gap: 10px; margin-bottom: 9px; }
+    .top { overflow: hidden; margin-bottom: 9px; }
+    .top .hero { float: left; width: 56%; }
+    .top .panel { float: right; width: 42%; }
     .hero, .panel { border: {% if theme.border_style != 'none' %}1px solid var(--rule){% else %}none{% endif %}; border-radius: var(--radius); background: var(--panel); padding: 10px; box-shadow: var(--shadow); }
     .hero h1 { font-size: 25px; color: var(--primary); line-height: 1.02; }
     .hero .headline { margin-top: 4px; font-size: 11px; color: var(--accent); font-weight: 700; }
-    .hero .contact { margin-top: 8px; color: var(--muted); font-size: 9.6px; display: grid; gap: 2px; }
-    .metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-    .metric { border-radius: var(--radius); background: var(--panel); border: {% if theme.border_style != 'none' %}1px solid var(--rule){% else %}none{% endif %}; padding: 7px; text-align: center; box-shadow: var(--shadow); }
+    .hero .contact { margin-top: 8px; color: var(--muted); font-size: 9.6px; display: block; }
+    .hero .contact span { display: block; margin-bottom: 2px; }
+    .metrics { display: block; overflow: hidden; }
+    .metric { float: left; width: 46%; margin: 0 2% 6px 2%; border-radius: var(--radius); background: var(--panel); border: {% if theme.border_style != 'none' %}1px solid var(--rule){% else %}none{% endif %}; padding: 7px; text-align: center; box-shadow: var(--shadow); }
     .metric strong { font-size: 18px; color: var(--primary); display: block; line-height: 1.05; }
-    .layout { display: grid; grid-template-columns: 1.34fr 1fr; gap: 10px; }
-    .section { border: {% if theme.border_style != 'none' %}1px solid var(--rule){% else %}none{% endif %}; border-radius: var(--radius); padding: 8px; background: var(--panel); margin-bottom: 8px; break-inside: avoid; box-shadow: var(--shadow); }
+    .layout { overflow: hidden; }
+    .col-left { float: left; width: 56%; }
+    .col-right { float: right; width: 42%; }
+    .section { border: {% if theme.border_style != 'none' %}1px solid var(--rule){% else %}none{% endif %}; border-radius: var(--radius); padding: 8px; background: var(--panel); margin-bottom: 8px; box-shadow: var(--shadow); }
     .section h2 { color: var(--primary); text-transform: uppercase; letter-spacing: 0.6px; font-size: 10.6px; margin-bottom: 4px; }
     .skill-chip { display: inline-block; border: {% if theme.border_style != 'none' %}1px solid var(--rule){% else %}none{% endif %}; border-left: 2px solid var(--primary); border-radius: var(--radius); padding: 2px 5px; margin: 2px 5px 2px 0; background: var(--panel); font-size: 9.2px; box-shadow: var(--shadow); }
     .skill-level { font-size: 8px; color: var(--muted); display: block; margin-top: 1px; }
@@ -66,7 +71,7 @@
   </section>
 
   <section class="layout">
-    <div>
+    <div class="col-left">
       <article class="section">
         <h2>{{ "Profil" if language == "de" else "Profile" }}</h2>
         <p>{{ content.summary }}</p>
@@ -88,7 +93,7 @@
         {% endfor %}
       </article>
     </div>
-    <div>
+    <div class="col-right">
       <article class="section">
         <h2>{{ "Kernkompetenzen" if language == "de" else "Core skills" }}</h2>
         {% for skill in content.skills %}
@@ -112,7 +117,7 @@
       {% if profile.photo_data_url %}
         <article class="section">
           <h2>{{ "Foto" if language == "de" else "Photo" }}</h2>
-          <img src="{{ profile.photo_data_url }}" alt="" style="width:100%; border-radius:8px; border:1px solid var(--rule);">
+          <img src="{{ profile.photo_data_url }}" alt="" style="width:100%; max-height:180px; object-fit:cover; border-radius:8px; border:1px solid var(--rule);">
         </article>
       {% endif %}
     </div>
