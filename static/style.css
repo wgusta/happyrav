@@ -21,24 +21,15 @@ body {
   color: var(--brand-black);
   font-family: var(--font-terminal);
   background-color: var(--off-white);
-  background-image:
-    radial-gradient(circle at 8% 2%, rgba(230, 47, 45, 0.16), rgba(230, 47, 45, 0) 34%),
-    linear-gradient(
-      180deg,
-      rgba(245, 243, 232, 0.98) 0,
-      rgba(245, 243, 232, 0.98) 220px,
-      rgba(230, 47, 45, 0.11) 220px,
-      rgba(26, 26, 26, 0.09) 100%
-    );
   min-height: 100vh;
 }
 
 .site-wrap {
-  max-width: 980px;
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 24px 18px 40px;
+  padding: 24px 24px 40px;
   display: grid;
-  gap: 16px;
+  gap: 18px;
 }
 
 .hero {
@@ -185,7 +176,7 @@ body {
   background: var(--off-white);
   border: 2px solid rgba(26, 26, 26, 0.25);
   border-radius: 14px;
-  padding: 18px;
+  padding: 24px;
   margin-bottom: 12px;
 }
 
@@ -259,14 +250,14 @@ button {
   width: 100%;
   border: 1px solid rgba(26, 26, 26, 0.25);
   border-radius: 11px;
-  padding: 10px 12px;
+  padding: 12px 14px;
   font: inherit;
   color: var(--brand-black);
   background: var(--brand-white);
 }
 
 textarea {
-  min-height: 120px;
+  min-height: 140px;
   resize: vertical;
 }
 
@@ -418,10 +409,10 @@ button:disabled {
   background: #fff;
   border: 1px solid rgba(26, 26, 26, 0.2);
   border-radius: 12px;
-  padding: 10px 12px;
+  padding: 14px 16px;
   display: grid;
   grid-template-columns: 1.4fr 0.6fr;
-  gap: 12px;
+  gap: 14px;
   align-items: start;
 }
 
@@ -476,7 +467,7 @@ button:disabled {
 .card.result {
   border: 2px solid var(--brand-black);
   border-radius: 14px;
-  padding: 16px;
+  padding: 24px;
   background: #fff;
 }
 
@@ -590,7 +581,7 @@ button:disabled {
   }
 
   .block {
-    padding: 14px;
+    padding: 16px;
   }
 
   .row-card,
@@ -607,10 +598,10 @@ button:disabled {
   }
 }
 
-@media (min-width: 960px) {
+@media (min-width: 1100px) {
   .site-wrap {
-    padding-left: 24px;
-    padding-right: 24px;
+    padding-left: 32px;
+    padding-right: 32px;
   }
 }
 
