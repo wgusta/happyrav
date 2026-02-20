@@ -480,6 +480,47 @@ async def api_session_upload(
     }
 
 
+@app.post("/api/session/{session_id}/paste")
+async def api_session_paste(
+    session_id: str,
+    payload: Dict[str, str] = Body(...),
+) -> Dict:
+    record = _require_session(session_id)
+    state = record.state
+    text = (payload.get("text") or "").strip()
+    tag = payload.get("tag") or "cv"
+    if tag not in ("cv", "cover_letter", "arbeitszeugnis", "certificate", "other"):
+        tag = "cv"
+    if not text:
+        raise HTTPException(status_code=400, detail="No text provided.")
+    if len(state.documents) >= MAX_SESSION_DOCS:
+        raise HTTPException(status_code=400, detail=f"Session limit exceeded: max {MAX_SESSION_DOCS} documents.")
+    doc_id = uuid.uuid4().hex
+    size_bytes = len(text.encode("utf-8"))
+    document_meta = build_document_meta(
+        doc_id=doc_id,
+        filename="pasted_text.txt",
+        mime="text/plain",
+        tag=tag,
+        parse_method="plain_text",
+        confidence=0.85,
+        size_bytes=size_bytes,
+        text=text,
+    )
+    state.documents.append(document_meta)
+    record.document_texts[doc_id] = text
+    record = await _enrich_profile_with_openai(record)
+    record = _refresh_state(record)
+    session_cache.set(record)
+    return {
+        "session_id": session_id,
+        "uploaded": [document_meta.model_dump()],
+        "documents_total": len(state.documents),
+        "expires_at": state.expires_at,
+        "state": _state_payload(record.state),
+    }
+
+
 @app.post("/api/session/{session_id}/photo")
 async def api_session_photo(
     session_id: str,

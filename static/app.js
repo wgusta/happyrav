@@ -53,6 +53,13 @@
       "upload.documents": "Documents",
       "upload.quick_tag": "Quick tag default",
 
+      "upload.paste_toggle": "Or paste CV text directly",
+      "upload.paste_label": "CV / document text",
+      "upload.paste_placeholder": "Paste your CV content, work experience, education, skills...",
+      "upload.paste_tag": "Document type",
+      "action.paste_submit": "Submit pasted text",
+      "notify.paste_submitted": "Pasted text submitted.",
+
       "action.upload": "Upload documents",
       "action.upload_photo": "Upload photo",
       "action.choose_files": "Choose files",
@@ -249,6 +256,13 @@
       "upload.photo": "Profilfoto (optional)",
       "upload.documents": "Dokumente",
       "upload.quick_tag": "Standard-Kategorie",
+
+      "upload.paste_toggle": "Oder CV-Text direkt einfügen",
+      "upload.paste_label": "CV / Dokumenttext",
+      "upload.paste_placeholder": "CV-Inhalt einfügen: Berufserfahrung, Ausbildung, Skills...",
+      "upload.paste_tag": "Dokumenttyp",
+      "action.paste_submit": "Text übermitteln",
+      "notify.paste_submitted": "Text übermittelt.",
 
       "action.upload": "Dokumente hochladen",
       "action.upload_photo": "Foto hochladen",
@@ -452,6 +466,10 @@
   const langBtnEn = document.getElementById("lang-btn-en");
   const langBtnDe = document.getElementById("lang-btn-de");
 
+  const pasteText = document.getElementById("paste-text");
+  const pasteTag = document.getElementById("paste-tag");
+  const btnPasteSubmit = document.getElementById("paste-submit-btn");
+
   const btnStartContinue = document.getElementById("start-continue-btn");
   const btnUploadContinue = document.getElementById("upload-continue-btn");
   const btnUpload = document.getElementById("upload-btn");
@@ -572,6 +590,7 @@
       const hasConsent = Boolean(inputConsent?.checked);
       btnStartContinue.disabled = !hasJobAd || !hasConsent;
     }
+    if (btnPasteSubmit) btnPasteSubmit.disabled = !(pasteText?.value?.trim());
     if (btnUploadContinue) btnUploadContinue.disabled = !hasSession || !hasDocs;
   }
 
@@ -968,6 +987,28 @@
     renderPhotoFileLabel();
     applyServerState();
     notify("success", t("notify.documents_uploaded"));
+  }
+
+  async function submitPastedText() {
+    await ensureSession({ silent: true });
+    if (!state.sessionId) throw new Error(t("error.start_session_first"));
+    const text = (pasteText?.value || "").trim();
+    if (!text) throw new Error(t("error.select_files_first"));
+    const tag = pasteTag?.value || "cv";
+    const response = await fetch(endpoint(`/api/session/${state.sessionId}/paste`), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, tag }),
+    });
+    const data = await parseJsonResponse(response);
+    if (pasteText) pasteText.value = "";
+    if (data.state) {
+      state.server = data.state;
+      applyServerState();
+    } else {
+      await fetchState();
+    }
+    notify("success", t("notify.paste_submitted"));
   }
 
   async function extract() {
@@ -1661,6 +1702,8 @@
 
     if (btnUpload) btnUpload.addEventListener("click", () => run(uploadDocuments));
     if (btnUploadPhoto) btnUploadPhoto.addEventListener("click", () => run(uploadPhoto));
+    if (btnPasteSubmit) btnPasteSubmit.addEventListener("click", () => run(submitPastedText));
+    if (pasteText) pasteText.addEventListener("input", setButtonStates);
     if (btnExtract) btnExtract.addEventListener("click", () => run(extract));
     if (btnClear) btnClear.addEventListener("click", () => run(clearSession));
   }

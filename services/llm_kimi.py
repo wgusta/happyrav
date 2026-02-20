@@ -33,6 +33,15 @@ def _extract_json_payload(text: str) -> Dict[str, Any]:
     return json.loads(clean)
 
 
+def has_api_key() -> bool:
+    """Check if an OpenAI API key or Codex OAuth token is available."""
+    if (os.getenv("OPENAI_API_KEY") or "").strip():
+        return True
+    if _load_codex_oauth_token():
+        return True
+    return False
+
+
 def _build_client() -> OpenAI:
     api_key = (os.getenv("OPENAI_API_KEY") or "").strip()
     if not api_key:
@@ -336,7 +345,8 @@ def _extract_profile_sync(
         }
         return profile, None, debug
     except Exception as exc:
-        return None, f"OpenAI extraction fallback used: {exc}", {
+        prefix = "OpenAI-Extraktion Fallback" if language == "de" else "OpenAI extraction fallback used"
+        return None, f"{prefix}: {exc}", {
             "model_used": DEFAULT_MODEL,
             "source_chars": sum(len(chunk) for chunk in source_documents),
             "source_docs": len(source_documents),
@@ -361,7 +371,8 @@ def _generate_sync(
         return _merge_generated_with_profile(generated, profile, language), None
     except Exception as exc:
         fallback = _fallback_content(language=language, job_ad_text=job_ad_text, profile=profile)
-        return fallback, f"OpenAI generation fallback used: {exc}"
+        prefix = "OpenAI-Generierung Fallback" if language == "de" else "OpenAI generation fallback used"
+        return fallback, f"{prefix}: {exc}"
 
 
 async def extract_profile_from_documents(
