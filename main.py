@@ -236,6 +236,18 @@ def _review_match_payload(state: SessionState) -> Optional[Dict]:
         return None
 
 
+def _generation_match_context(state: SessionState) -> Optional[Dict]:
+    payload = _review_match_payload(state)
+    if not payload:
+        return None
+    return {
+        "overall_score": payload.get("overall_score", 0.0),
+        "matched_keywords": list(payload.get("matched_keywords", []))[:40],
+        "missing_keywords": list(payload.get("missing_keywords", []))[:40],
+        "ats_issues": list(payload.get("ats_issues", []))[:20],
+    }
+
+
 def _extraction_signature(record: SessionRecord) -> str:
     hasher = hashlib.sha256()
     hasher.update(record.state.language.encode("utf-8"))
@@ -795,11 +807,13 @@ async def api_session_generate(
     state = record.state
     profile = state.extracted_profile
     basic_profile = _profile_to_basic(profile)
+    match_context = _generation_match_context(state)
     generated, warning = await generate_content(
         language=state.language,
         job_ad_text=state.job_ad_text,
         profile=profile,
         source_documents=list(record.document_texts.values()),
+        match_context=match_context,
     )
     generated = _validate_completeness(profile, generated)
 
@@ -845,6 +859,7 @@ async def api_session_generate(
             "full_name": basic_profile.full_name,
             "session_id": session_id,
             "language": state.language,
+            "pre_generation_match": match_context,
             "generated_content": generated.model_dump(),
         },
     )
@@ -980,11 +995,13 @@ async def api_session_generate_cover(
 
     profile = state.extracted_profile
     basic_profile = _profile_to_basic(profile)
+    match_context = _generation_match_context(state)
     generated, warning = await generate_content(
         language=state.language,
         job_ad_text=state.job_ad_text,
         profile=profile,
         source_documents=list(record.document_texts.values()),
+        match_context=match_context,
     )
     generated = _validate_completeness(profile, generated)
 

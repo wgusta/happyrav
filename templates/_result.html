@@ -44,6 +44,12 @@
   </button>
   <div id="comparison-container" style="display:none;"></div>
 
+  <details id="result-keyword-accordion" class="more-options">
+    <summary data-i18n="comparison.keywords_title">Job ad vs CV keyword comparison</summary>
+    <div id="result-keyword-comparison"></div>
+  </details>
+  <script id="result-match-payload" type="application/json">{{ record.match.model_dump()|tojson }}</script>
+
   <h3>{{ "Per E-Mail senden (optional)" if is_de else "Send by email (optional)" }}</h3>
   <form class="inline-form email-form" action="{{ request.url_for('send_email') }}" method="post">
     <input type="hidden" name="token" value="{{ record.token }}">

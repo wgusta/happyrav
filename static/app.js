@@ -8,6 +8,7 @@
   const STORAGE_PROFILE_KEY = "happyrav_v4_adv_profile";
   const STORAGE_TELOS_KEY = "happyrav_v4_telos";
   const TELOS_IDS = ["career_goal", "work_environment", "values", "strengths", "motivators", "success_vision", "work_style", "impact"];
+  const REVIEW_RECOMMEND_THRESHOLD = 70;
 
   const STEP_ORDER = ["start", "upload", "questions", "review", "result"];
   const STEP_PROGRESS = {
@@ -44,7 +45,7 @@
       "questions.title": "Questions",
       "questions.sub": "Answer required gaps to complete your profile.",
       "review.title": "Review + Generate",
-      "review.sub": "Choose template and colors, review match score, then generate your PDFs.",
+      "review.sub": "Choose template and colors, check match score first, then decide to generate your PDFs.",
       "review.no_score": "No review score yet.",
 
       "upload.page_title": "Upload your documents",
@@ -120,6 +121,8 @@
       "text.required_resolved": "All required questions resolved.",
       "text.review_no_score": "No review score yet. Add job ad + extract profile first.",
       "text.review_score": "Review match score",
+      "text.review_recommend_low": "Score below {threshold}. We do not recommend generating yet.",
+      "text.review_recommend_high": "Score {threshold} or higher. Good to generate.",
       "text.ats": "ATS",
       "text.skills": "Skills",
       "text.missing_keywords": "Missing keywords",
@@ -212,6 +215,12 @@
       "comparison.optimized": "Optimized for job ad",
       "comparison.loading": "Loading...",
       "comparison.error": "Could not load comparison.",
+      "comparison.keywords_title": "Job ad vs CV keyword comparison",
+      "comparison.job_ad_keywords": "Job ad keywords",
+      "comparison.cv_coverage": "CV coverage",
+      "comparison.keyword_matched": "Matched",
+      "comparison.keyword_missing": "Missing",
+      "comparison.no_keywords": "No keyword data available.",
 
       "fmt.title": "Hey, you've clicked generate 6 times!",
       "fmt.nudge": "Since I'm an AI that doesn't fully understand the context of your professional life, help me get that context. Go back and add these details manually if things are missing:",
@@ -309,7 +318,7 @@
       "questions.title": "Fragen",
       "questions.sub": "Beantworte Pflichtlücken, um dein Profil zu vervollständigen.",
       "review.title": "Prüfung + Generieren",
-      "review.sub": "Vorlage und Farben wählen, Match-Score prüfen, dann PDFs generieren.",
+      "review.sub": "Vorlage und Farben wählen, zuerst Match-Score prüfen, dann über Generierung entscheiden.",
       "review.no_score": "Noch kein Review-Score.",
 
       "upload.page_title": "Dokumente hochladen",
@@ -385,6 +394,8 @@
       "text.required_resolved": "Alle Pflichtfragen sind beantwortet.",
       "text.review_no_score": "Noch kein Review-Score. Erst Job-Inserat + Extraktion ausführen.",
       "text.review_score": "Review-Match-Score",
+      "text.review_recommend_low": "Score unter {threshold}. Generierung aktuell nicht empfohlen.",
+      "text.review_recommend_high": "Score ab {threshold}. Generierung ist sinnvoll.",
       "text.ats": "ATS",
       "text.skills": "Skills",
       "text.missing_keywords": "Fehlende Keywords",
@@ -477,6 +488,12 @@
       "comparison.optimized": "Optimiert für Stelleninserat",
       "comparison.loading": "Laden...",
       "comparison.error": "Vergleich konnte nicht geladen werden.",
+      "comparison.keywords_title": "Keyword Vergleich: Stelleninserat vs CV",
+      "comparison.job_ad_keywords": "Keywords aus Inserat",
+      "comparison.cv_coverage": "Abdeckung im CV",
+      "comparison.keyword_matched": "Treffer",
+      "comparison.keyword_missing": "Fehlend",
+      "comparison.no_keywords": "Keine Keyword Daten verfügbar.",
 
       "fmt.title": "Hey, du hast 6 Mal auf Generieren geklickt!",
       "fmt.nudge": "Da ich eine KI bin, die den vollen Kontext deines Berufslebens nicht kennt, hilf mir dabei. Geh zurück und ergänze diese Details manuell, falls etwas fehlt:",
@@ -565,7 +582,9 @@
   const questionsList = document.getElementById("questions-list");
   const requiredSummary = document.getElementById("required-summary");
   const reviewScore = document.getElementById("review-score");
+  const reviewRecommendation = document.getElementById("review-recommendation");
   const reviewMissing = document.getElementById("review-missing");
+  const reviewKeywordComparison = document.getElementById("review-keyword-comparison");
 
   const progressStepLabel = document.getElementById("progress-step-label");
   const progressPercent = document.getElementById("progress-percent");
@@ -903,7 +922,9 @@
       reviewScore.innerHTML = extractionWarning
         ? `<div class="alert warn">${extractionWarning}</div><p>${t("text.review_no_score")}</p>`
         : t("text.review_no_score");
+      if (reviewRecommendation) reviewRecommendation.style.display = "none";
       reviewMissing.innerHTML = "";
+      if (reviewKeywordComparison) reviewKeywordComparison.innerHTML = `<p>${t("comparison.no_keywords")}</p>`;
       return;
     }
     reviewScore.innerHTML = `
@@ -913,6 +934,13 @@
     `;
     const missing = payload.missing_keywords || [];
     const issues = payload.ats_issues || [];
+    const lowScore = payload.overall_score < REVIEW_RECOMMEND_THRESHOLD;
+    if (reviewRecommendation) {
+      const recommendation = lowScore ? t("text.review_recommend_low") : t("text.review_recommend_high");
+      reviewRecommendation.className = `alert ${lowScore ? "warn" : "success"}`;
+      reviewRecommendation.textContent = recommendation.replace("{threshold}", String(REVIEW_RECOMMEND_THRESHOLD));
+      reviewRecommendation.style.display = "";
+    }
     reviewMissing.innerHTML = `
       <div class="row-card">
         <strong>${t("text.missing_keywords")}</strong>
@@ -923,6 +951,65 @@
         <p>${issues.length ? issues.join(" · ") : t("text.none")}</p>
       </div>
     `;
+    renderKeywordComparisonTable(reviewKeywordComparison, payload);
+  }
+
+  function renderKeywordComparisonTable(container, payload) {
+    if (!container) return;
+    const matched = payload?.matched_keywords || [];
+    const missing = payload?.missing_keywords || [];
+    const issues = payload?.ats_issues || [];
+    const combined = [
+      ...matched.map((kw) => ({ keyword: kw, matched: true })),
+      ...missing.map((kw) => ({ keyword: kw, matched: false })),
+    ];
+    if (!combined.length && !issues.length) {
+      container.innerHTML = `<p>${t("comparison.no_keywords")}</p>`;
+      return;
+    }
+    const chips = (list, isMatched) =>
+      list.length
+        ? list.map((kw) => `<span class="kw-chip ${isMatched ? "kw-chip-match" : "kw-chip-missing"}">${escHtml(kw)}</span>`).join("")
+        : `<span class="kw-empty">${t("text.none")}</span>`;
+    const combinedChips = combined.length
+      ? combined.map((item) => `<span class="kw-chip ${item.matched ? "kw-chip-match" : "kw-chip-missing"}">${escHtml(item.keyword)}</span>`).join("")
+      : `<span class="kw-empty">${t("text.none")}</span>`;
+    const atsText = issues.length ? escHtml(issues.join(" · ")) : t("text.none");
+    container.innerHTML = `
+      <table class="comparison-table comparison-table-keywords">
+        <thead>
+          <tr>
+            <th>${t("comparison.job_ad_keywords")}</th>
+            <th>${t("comparison.cv_coverage")}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>${combinedChips}</td>
+            <td>
+              <div class="kw-group"><strong>${t("comparison.keyword_matched")}</strong><div class="kw-chip-wrap">${chips(matched, true)}</div></div>
+              <div class="kw-group"><strong>${t("comparison.keyword_missing")}</strong><div class="kw-chip-wrap">${chips(missing, false)}</div></div>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>${t("text.ats_issues")}</strong></td>
+            <td>${atsText}</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+  }
+
+  function renderResultKeywordComparison() {
+    const payloadEl = document.getElementById("result-match-payload");
+    const container = document.getElementById("result-keyword-comparison");
+    if (!payloadEl || !container) return;
+    try {
+      const payload = JSON.parse(payloadEl.textContent || "{}");
+      renderKeywordComparisonTable(container, payload);
+    } catch (_) {
+      container.innerHTML = `<p>${t("comparison.no_keywords")}</p>`;
+    }
   }
 
   function saveLocal() {
@@ -1970,6 +2057,7 @@
     renderDocuments();
     renderQuestions();
     renderReview();
+    renderResultKeywordComparison();
     renderUploadFileLabel();
     renderPhotoFileLabel();
     setButtonStates();

@@ -814,6 +814,43 @@ button:disabled {
   background: rgba(0, 0, 0, 0.03);
 }
 
+.comparison-table-keywords .kw-group + .kw-group {
+  margin-top: 10px;
+}
+
+.kw-chip-wrap {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.kw-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  padding: 2px 8px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.kw-chip-match {
+  background: rgba(26, 26, 26, 0.1);
+  border-color: rgba(26, 26, 26, 0.35);
+  font-weight: 600;
+}
+
+.kw-chip-missing {
+  background: rgba(230, 47, 45, 0.1);
+  border-color: rgba(230, 47, 45, 0.32);
+}
+
+.kw-empty {
+  color: rgba(26, 26, 26, 0.6);
+  font-size: 12px;
+}
+
 @media (max-width: 600px) {
   .comparison-table {
     font-size: 0.75rem;

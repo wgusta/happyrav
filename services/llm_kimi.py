@@ -353,6 +353,7 @@ def _generate_prompt(
     job_ad_text: str,
     profile: ExtractedProfile,
     source_documents: Optional[List[str]],
+    match_context: Optional[Dict[str, Any]] = None,
 ) -> str:
     schema = {
         "summary": "string",
@@ -371,6 +372,7 @@ def _generate_prompt(
         "job_ad_text": job_ad_text,
         "profile_confirmed": profile.model_dump(),
         "source_documents_excerpt": source_blob,
+        "pre_generation_match_context": match_context or {},
     }
     guard = (
         "You are a CV and cover-letter assistant. Use only factual inputs. "
@@ -381,7 +383,9 @@ def _generate_prompt(
         "- List experience in reverse chronological order (most recent first). Mandatory for Swiss CVs.\n"
         "- Preserve all original period dates exactly as provided.\n"
         "- Rewrite achievements to match job ad keywords, but never remove an experience entry.\n"
-        "- Include ALL education entries, never skip any."
+        "- Include ALL education entries, never skip any.\n"
+        "- Treat pre_generation_match_context as optimization guidance:\n"
+        "  prioritize missing keywords, keep matched keywords present, and fix ATS issues where possible."
     )
     if language == "de":
         guard = (
@@ -393,7 +397,9 @@ def _generate_prompt(
             "- Berufserfahrung in umgekehrt chronologischer Reihenfolge (neueste zuerst). Pflicht für Schweizer CVs.\n"
             "- Alle originalen Zeitangaben exakt übernehmen.\n"
             "- Erfolge auf Stelleninserat-Keywords anpassen, aber niemals einen Erfahrungseintrag entfernen.\n"
-            "- Alle Ausbildungseinträge aufführen, niemals überspringen."
+            "- Alle Ausbildungseinträge aufführen, niemals überspringen.\n"
+            "- pre_generation_match_context als Optimierungsleitplanken nutzen:\n"
+            "  fehlende Keywords gezielt integrieren, vorhandene Treffer erhalten, ATS Probleme verbessern."
         )
     return (
         f"{guard}\n"
@@ -506,12 +512,14 @@ def _generate_sync(
     job_ad_text: str,
     profile: ExtractedProfile,
     source_documents: Optional[List[str]],
+    match_context: Optional[Dict[str, Any]] = None,
 ) -> Tuple[GeneratedContent, Optional[str]]:
     prompt = _generate_prompt(
         language=language,
         job_ad_text=job_ad_text,
         profile=profile,
         source_documents=source_documents,
+        match_context=match_context,
     )
     try:
         payload = _chat_json_anthropic(
@@ -542,6 +550,7 @@ async def generate_content(
     job_ad_text: str,
     profile: ExtractedProfile,
     source_documents: Optional[List[str]] = None,
+    match_context: Optional[Dict[str, Any]] = None,
 ) -> Tuple[GeneratedContent, Optional[str]]:
     return await asyncio.to_thread(
         _generate_sync,
@@ -549,6 +558,7 @@ async def generate_content(
         job_ad_text,
         profile,
         source_documents,
+        match_context,
     )
 
 
