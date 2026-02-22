@@ -9,9 +9,11 @@ Document-first ATS-optimized CV + cover letter generation wizard. Five-step flow
 ## Stack
 
 - **Backend:** FastAPI, Pydantic v2, Python 3.12
+- **Persistence:** Disk-backed pickle storage (`data/sessions`, `data/artifacts`, `data/documents`).
 - **PDF:** WeasyPrint (needs system libs: pango, harfbuzz, freetype)
 - **OCR:** GPT-5 Mini vision, PyMuPDF, pdfplumber
 - **LLM:** Multi-provider: OpenAI (extraction/OCR), Anthropic Claude (generation), Google Gemini (crosscheck, max mode only). Quality via `HAPPYRAV_QUALITY` env (balanced/max)
+- **Token Optimization:** Source documents injected via raw XML `<DOCUMENTS>` tags (no JSON escaping).
 - **Frontend:** Vanilla JS, single `app.js` with inline i18n (EN/DE), no framework
 - **Templates:** Jinja2 for pages (`templates/`) and PDF docs (`doc_templates/`)
 - **Reverse proxy:** Caddy (auto HTTPS)
@@ -20,10 +22,10 @@ Document-first ATS-optimized CV + cover letter generation wizard. Five-step flow
 ## Project Structure
 
 ```
-main.py                    # FastAPI app, all routes
+main.py                    # FastAPI app, all routes, OCR Caching
 models.py                  # Pydantic models (SessionState, ThemeConfig, etc.)
 services/
-  cache.py                 # In-memory SessionCache, ArtifactCache
+  cache.py                 # File-based persistent caches (Session/Artifact/Document)
   llm_kimi.py              # Multi-provider LLM: OpenAI extraction, Anthropic generation, Gemini crosscheck
   extract_documents.py     # File parsing (PDF, DOCX, images via vision OCR)
   scoring.py               # ATS match scoring via parser_scanner
@@ -37,6 +39,7 @@ templates/                 # Page fragments, wizard layout
 static/
   app.js                   # All frontend logic, i18n, state management
   style.css                # App styles
+data/                      # Persistent storage (sessions, artifacts, doc text cache)
 ```
 
 ## Key Patterns
@@ -45,10 +48,10 @@ static/
 All UI text lives in `I18N` object inside `app.js` with `en` and `de` keys. HTML uses `data-i18n="key"` attributes. `t(key)` function resolves strings. Placeholders use `data-i18n-placeholder`. Always add both EN and DE keys.
 
 ### State Management
-- Server: `SessionCache` (dict keyed by session_id), `ArtifactCache` (keyed by token)
-- Client: `localStorage` with key `happyrav_v4_state`, saved on every input change
-- `saveLocal()` / `restoreLocal()` handle persistence
-- `applyServerState(data)` syncs server response to UI
+- Server: `SessionCache` (persistent pickle files), `ArtifactCache` (persistent), `DocumentCache` (MD5-based text store).
+- Client: `localStorage` with key `happyrav_v4_state`, saved on every input change.
+- `saveLocal()` / `restoreLocal()` handle persistence.
+- `applyServerState(data)` syncs server response to UI.
 
 ### Theme System
 `ThemeConfig` model with: `primary_hex`, `accent_hex`, `border_style`, `box_shadow`, `card_bg`, `page_bg`, `font_family`. All passed to Jinja2 doc templates as CSS custom properties (`--primary`, `--accent`, `--radius`, `--shadow`, `--panel`, `--page-bg`).
@@ -56,8 +59,10 @@ All UI text lives in `I18N` object inside `app.js` with `en` and `de` keys. HTML
 ### Doc Templates
 6 active templates (simple/sophisticated/friendly x CV/cover letter). Each has inline CSS with `@page` rules for A4. Font selection via Jinja2 dict lookup (`font_css_map`, `font_import_map`). Skill levels parsed from "skill (level)" format.
 
-### ROOT_PATH
-`HAPPYRAV_PREFIX` env var for reverse proxy sub-path support. All JS endpoints use `endpoint(path)` which prepends `rootPath`.
+### Token Economy
+- **Source Injection:** Documents are concatenated with `\n\n` and wrapped in `<DOCUMENTS>...</DOCUMENTS>`. No `json.dumps()` of source text.
+- **Context Limits:** 64k chars (Extraction), 48k chars (Generation). Explicit `llm_warning` returned if truncated.
+- **OCR Cache:** `main.py` checks `document_cache` (MD5 of bytes) before calling `extract_text_from_bytes`.
 
 ## Deploy
 
@@ -65,8 +70,8 @@ All UI text lives in `I18N` object inside `app.js` with `en` and `de` keys. HTML
 **SSH key:** `~/.ssh/happyrav_rsa`
 
 ```bash
-# Rsync and rebuild
-rsync -avz --exclude '__pycache__' --exclude '*.pyc' --exclude '.git' --exclude 'venv' --exclude '.env' \
+# Rsync and rebuild (excluding data/ to preserve server state if needed, though usually volume is better)
+rsync -avz --exclude '__pycache__' --exclude '*.pyc' --exclude '.git' --exclude 'venv' --exclude '.env' --exclude 'data' \
   -e "ssh -i ~/.ssh/happyrav_rsa" \
   /Users/gusta/Projects/happyRAV/ ubuntu@83.228.223.48:~/ats-scanner/happyrav/
 
@@ -74,7 +79,7 @@ ssh -i ~/.ssh/happyrav_rsa ubuntu@83.228.223.48 \
   "cd ~/ats-scanner/happyrav && sudo docker compose up -d --build happyrav"
 ```
 
-Docker compose file at `~/ats-scanner/happyrav/docker-compose.yml`. Build context is `..` (parent dir `ats-scanner/`). Dockerfile copies `happyrav/` into `/app/happyrav/`.
+Docker compose file at `~/ats-scanner/happyrav/docker-compose.yml`. Build context is `..` (parent dir `ats-scanner/`). Dockerfile copies `happyrav/` into `/app/happyrav/`. **Ensure `data/` volume is mounted.**
 
 ## Dev
 
@@ -106,27 +111,8 @@ node --check static/app.js
 
 ## Gotchas
 
-- `app.js` is large (~1800 lines). Both agents can edit it concurrently but watch for conflicts in shared sections (DOM refs, saveLocal, restoreLocal, event binding array, generate payload)
-- `node -c` for syntax check needs file path, not stdin via `$(cat ...)`
-- Doc templates duplicate font maps inline (Jinja2 dicts). If adding a font, update all 6 templates plus `models.py` FONT_FAMILY_CSS/FONT_IMPORT_URL
-- `sudo docker` required on VPS (docker not in ubuntu group)
-- Build context for Dockerfile is parent dir (`ats-scanner/`), so paths in Dockerfile use `happyrav/` prefix
-- ATS scoring uses shared `parser_scanner` from `ats-scanner/app/scanners/`
-- LLM fallback: if Anthropic generation fails, falls back to local content builder. Extraction fallback returns None profile. Warning messages need both EN and DE translations in `llm_kimi.py`
-- Cover letter templates use `content.cover_greeting`, `cover_opening`, `cover_body` (list), `cover_closing`
-- Skills format: `"Python (Expert)"` parsed via `skill.split(' (')` in templates
-
-## API Endpoints
-
-Key routes (all prefixed with ROOT_PATH):
-- `POST /api/session` -- create session
-- `PATCH /api/session/{id}/intake` -- update company/position/jobad
-- `POST /api/session/{id}/upload` -- upload documents
-- `POST /api/session/{id}/paste` -- paste text as document
-- `POST /api/session/{id}/extract` -- trigger LLM extraction
-- `POST /api/session/{id}/answers` -- submit question answers
-- `POST /api/session/{id}/generate` -- generate CV + cover letter
-- `GET /api/result/{token}/cv` -- download CV PDF
-- `GET /api/result/{token}/cover` -- download cover letter PDF
-- `GET /api/result/{token}/comparison` -- lazy-loaded comparison table
-- `GET /api/session/{id}/state` -- full session state
+- `app.js` is large (~1800 lines). Both agents can edit it concurrently but watch for conflicts in shared sections.
+- **Persistence:** Deleting `data/` wipes all active sessions.
+- **OCR Costs:** Testing image uploads consumes tokens unless the file is already in `data/documents`.
+- **Truncation:** If a user uploads >64k chars, the `extraction_warning` field in `SessionState` will be populated. The UI should display this.
+- ATS scoring uses shared `parser_scanner` from `ats-scanner/app/scanners/`.

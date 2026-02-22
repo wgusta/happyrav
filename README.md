@@ -22,10 +22,13 @@ Document-first ATS CV + cover letter app for `gusty.ch/happyrav`.
 - ATS score + missing keywords + ATS issues in review and result
 - PDF generation from HTML templates via WeasyPrint
 - Optional SMTP email with both generated PDFs
-- Ephemeral only:
-  - in-memory session cache with TTL
-  - in-memory artifact cache with TTL
-  - no DB persistence
+
+## Architecture & Reliability
+
+- **Persistence:** Sessions and artifacts are saved to disk (`data/sessions`, `data/artifacts`) using pickle. The system is resilient to server restarts.
+- **Token Efficiency:** Source documents are injected using raw `<DOCUMENTS>` XML tags to avoid JSON escaping overhead.
+- **OCR Economy:** Uploaded files are hashed (MD5). If a file is re-uploaded (even in a new session), the system retrieves the extracted text/OCR result from `data/documents` instead of re-billing for Vision tokens.
+- **Data Integrity:** Explicit truncation warnings if input exceeds 64k chars (extraction) or 48k chars (generation).
 
 ## API (v2)
 
@@ -46,6 +49,7 @@ Document-first ATS CV + cover letter app for `gusty.ch/happyrav`.
 - max 20 documents / session
 - max 12 MB / file
 - max 25 MB / session
+- Context Window: 64k chars (Extraction), 48k chars (Generation)
 
 ## Run locally
 
@@ -75,6 +79,7 @@ docker build -t happyrav -f happyrav/Dockerfile .
 docker run --rm -p 8010:8000 \
   -e OPENAI_API_KEY=your_key \
   -e HAPPYRAV_PREFIX=/happyrav \
+  -v $(pwd)/happyrav/data:/app/happyrav/data \
   happyrav
 ```
 

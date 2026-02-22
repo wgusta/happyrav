@@ -1,13 +1,20 @@
 """In-memory TTL caches for sessions and generated artifacts."""
 from __future__ import annotations
 
+import json
+import os
+import pickle
 import threading
 import time
 import uuid
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from happyrav.models import ArtifactRecord, ExtractedProfile, SessionState
+
+DATA_DIR = Path("data")
+
 
 @dataclass
 class SessionRecord:
@@ -27,70 +34,124 @@ class ArtifactCache:
     def __init__(self, ttl_seconds: int = 600) -> None:
         self.ttl_seconds = ttl_seconds
         self._lock = threading.Lock()
-        self._records: Dict[str, ArtifactRecord] = {}
+        self._root = DATA_DIR / "artifacts"
+        self._root.mkdir(parents=True, exist_ok=True)
 
-    def cleanup(self) -> None:
+    def _cleanup(self) -> None:
         now = time.time()
-        with self._lock:
-            expired = [key for key, record in self._records.items() if record.expires_at <= now]
-            for key in expired:
-                self._records.pop(key, None)
+        for path in self._root.glob("*.pkl"):
+            try:
+                if path.stat().st_mtime < now - self.ttl_seconds:
+                    path.unlink()
+            except Exception:
+                pass
 
     def create_token(self) -> str:
         return uuid.uuid4().hex
 
     def set(self, record: ArtifactRecord) -> str:
-        self.cleanup()
+        self._cleanup()
         with self._lock:
-            self._records[record.token] = record
+            path = self._root / f"{record.token}.pkl"
+            with open(path, "wb") as f:
+                pickle.dump(record, f)
         return record.token
 
     def get(self, token: str) -> Optional[ArtifactRecord]:
-        self.cleanup()
+        self._cleanup()
+        path = self._root / f"{token}.pkl"
+        if not path.exists():
+            return None
         with self._lock:
-            return self._records.get(token)
+            try:
+                with open(path, "rb") as f:
+                    return pickle.load(f)
+            except Exception:
+                return None
 
     def delete(self, token: str) -> None:
+        path = self._root / f"{token}.pkl"
+        try:
+            path.unlink(missing_ok=True)
+        except Exception:
+            pass
+
+
+class DocumentCache:
+    def __init__(self) -> None:
+        self._root = DATA_DIR / "documents"
+        self._root.mkdir(parents=True, exist_ok=True)
+        self._lock = threading.Lock()
+
+    def get(self, content_hash: str) -> Optional[Dict[str, Any]]:
+        path = self._root / f"{content_hash}.json"
+        if not path.exists():
+            return None
         with self._lock:
-            self._records.pop(token, None)
+            try:
+                return json.loads(path.read_text())
+            except Exception:
+                return None
+
+    def set(self, content_hash: str, payload: Dict[str, Any]) -> None:
+        path = self._root / f"{content_hash}.json"
+        with self._lock:
+            try:
+                path.write_text(json.dumps(payload))
+            except Exception:
+                pass
 
 
 class SessionCache:
     def __init__(self, ttl_seconds: int = 3600) -> None:
         self.ttl_seconds = ttl_seconds
         self._lock = threading.Lock()
-        self._records: Dict[str, SessionRecord] = {}
+        self._root = DATA_DIR / "sessions"
+        self._root.mkdir(parents=True, exist_ok=True)
 
-    def cleanup(self) -> None:
+    def _cleanup(self) -> None:
         now = time.time()
-        with self._lock:
-            expired = [sid for sid, rec in self._records.items() if rec.state.expires_at <= now]
-            for sid in expired:
-                self._records.pop(sid, None)
+        for path in self._root.glob("*.pkl"):
+            try:
+                if path.stat().st_mtime < now - self.ttl_seconds:
+                    path.unlink()
+            except Exception:
+                pass
 
     def create_session_id(self) -> str:
         return uuid.uuid4().hex
 
     def set(self, record: SessionRecord) -> str:
-        self.cleanup()
+        self._cleanup()
         with self._lock:
-            self._records[record.state.session_id] = record
+            path = self._root / f"{record.state.session_id}.pkl"
+            with open(path, "wb") as f:
+                pickle.dump(record, f)
         return record.state.session_id
 
     def get(self, session_id: str) -> Optional[SessionRecord]:
-        self.cleanup()
+        self._cleanup()
+        path = self._root / f"{session_id}.pkl"
+        if not path.exists():
+            return None
         with self._lock:
-            return self._records.get(session_id)
+            try:
+                with open(path, "rb") as f:
+                    return pickle.load(f)
+            except Exception:
+                return None
 
     def touch(self, session_id: str) -> Optional[SessionRecord]:
-        self.cleanup()
-        with self._lock:
-            record = self._records.get(session_id)
-            if not record:
-                return None
-            record.state.expires_at = time.time() + self.ttl_seconds
-            return record
+        record = self.get(session_id)
+        if not record:
+            return None
+        record.state.expires_at = time.time() + self.ttl_seconds
+        self.set(record)
+        return record
 
     def delete(self, session_id: str) -> None:
-        with self._lock:
-            self._records.pop(session_id, None)
+        path = self._root / f"{session_id}.pkl"
+        try:
+            path.unlink(missing_ok=True)
+        except Exception:
+            pass

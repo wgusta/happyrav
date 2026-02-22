@@ -125,6 +125,8 @@ app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), na
 
 artifact_cache = ArtifactCache(ttl_seconds=int(os.getenv("HAPPYRAV_ARTIFACT_TTL", "3600")))
 session_cache = SessionCache(ttl_seconds=int(os.getenv("HAPPYRAV_SESSION_TTL", "7200")))
+from happyrav.services.cache import DocumentCache
+document_cache = DocumentCache()
 
 
 def _require_session(session_id: str) -> SessionRecord:
@@ -477,10 +479,23 @@ async def api_session_upload(
                 detail=f"Session size exceeded (max {MAX_SESSION_BYTES // (1024 * 1024)} MB total).",
             )
 
-        try:
-            text, parse_method, confidence = extract_text_from_bytes(filename=filename, content=content)
-        except Exception as exc:
-            raise HTTPException(status_code=400, detail=f"Could not parse {filename}: {exc}") from exc
+        content_hash = hashlib.md5(content).hexdigest()
+        cached = document_cache.get(content_hash)
+        if cached:
+            text = cached.get("text", "")
+            parse_method = cached.get("parse_method", "cached")
+            confidence = cached.get("confidence", 0.9)
+        else:
+            try:
+                text, parse_method, confidence = extract_text_from_bytes(filename=filename, content=content)
+                document_cache.set(content_hash, {
+                    "text": text,
+                    "parse_method": parse_method,
+                    "confidence": confidence,
+                    "size_bytes": size_bytes,
+                })
+            except Exception as exc:
+                raise HTTPException(status_code=400, detail=f"Could not parse {filename}: {exc}") from exc
 
         provided_tag = tags[idx] if tags and idx < len(tags) else None
         doc_tag = guess_doc_tag(filename=filename, provided_tag=provided_tag)

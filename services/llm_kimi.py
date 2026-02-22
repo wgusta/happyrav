@@ -317,7 +317,7 @@ def vision_ocr(image_bytes: bytes, mime_type: str = "image/png") -> str:
     return (resp.choices[0].message.content or "").strip()
 
 
-def _profile_extract_prompt(language: str, source_documents: List[str]) -> str:
+def _profile_extract_prompt(language: str, source_documents: List[str]) -> Tuple[str, Optional[str]]:
     schema = {
         "full_name": "string",
         "headline": "string",
@@ -333,19 +333,26 @@ def _profile_extract_prompt(language: str, source_documents: List[str]) -> str:
         "experience": [{"role": "string", "company": "string", "period": "string", "achievements": ["string"]}],
         "education": [{"degree": "string", "school": "string", "period": "string"}],
     }
-    source_blob = "\n\n--- DOCUMENT ---\n\n".join(source_documents)[:28000]
+    raw_blob = "\n\n--- DOCUMENT ---\n\n".join(source_documents)
+    limit = 64000
+    warning = None
+    if len(raw_blob) > limit:
+        raw_blob = raw_blob[:limit]
+        warning = "Source documents truncated to 64k chars for extraction."
+
     guard = (
         "Extract structured CV facts from the provided documents. "
         "Use only explicit facts from input. Do not infer employers, dates, degrees, locations, or contacts. "
         "If a field is unknown return empty string/list. "
         "Return concise normalized values."
     )
-    return (
+    prompt = (
         f"{guard}\n"
         f"Preferred language: {language}\n"
-        f"Output schema: {json.dumps(schema, ensure_ascii=True)}\n"
-        f"Input documents:\n{json.dumps(source_blob, ensure_ascii=True)}"
+        f"Output schema: {json.dumps(schema, ensure_ascii=True)}\n\n"
+        f"Input documents:\n<DOCUMENTS>\n{raw_blob}\n</DOCUMENTS>"
     )
+    return prompt, warning
 
 
 def _generate_prompt(
@@ -354,7 +361,7 @@ def _generate_prompt(
     profile: ExtractedProfile,
     source_documents: Optional[List[str]],
     match_context: Optional[Dict[str, Any]] = None,
-) -> str:
+) -> Tuple[str, Optional[str]]:
     schema = {
         "summary": "string",
         "skills": ["string"],
@@ -366,12 +373,17 @@ def _generate_prompt(
         "cover_closing": "string",
         "matched_keywords": ["string"],
     }
-    source_blob = "\n\n".join((source_documents or [])[:5])[:22000]
+    raw_blob = "\n\n".join((source_documents or [])[:10])
+    limit = 48000
+    warning = None
+    if len(raw_blob) > limit:
+        raw_blob = raw_blob[:limit]
+        warning = "Source documents truncated to 48k chars for generation."
+
     input_payload = {
         "language": language,
         "job_ad_text": job_ad_text,
         "profile_confirmed": profile.model_dump(),
-        "source_documents_excerpt": source_blob,
         "pre_generation_match_context": match_context or {},
     }
     guard = (
@@ -401,11 +413,13 @@ def _generate_prompt(
             "- pre_generation_match_context als Optimierungsleitplanken nutzen:\n"
             "  fehlende Keywords gezielt integrieren, vorhandene Treffer erhalten, ATS Probleme verbessern."
         )
-    return (
+    prompt = (
         f"{guard}\n"
         f"Output schema: {json.dumps(schema, ensure_ascii=True)}\n"
-        f"Input data:\n{json.dumps(input_payload, ensure_ascii=True)}"
+        f"Input Metadata: {json.dumps(input_payload, ensure_ascii=True)}\n\n"
+        f"Source Documents Context:\n<DOCUMENTS>\n{raw_blob}\n</DOCUMENTS>"
     )
+    return prompt, warning
 
 
 def _refine_prompt(
@@ -486,7 +500,7 @@ def _extract_profile_sync(
 ) -> Tuple[Optional[ExtractedProfile], Optional[str], Dict[str, Any]]:
     if not source_documents:
         return None, None, {"model_used": None, "source_chars": 0, "source_docs": 0}
-    prompt = _profile_extract_prompt(language=language, source_documents=source_documents)
+    prompt, warning = _profile_extract_prompt(language=language, source_documents=source_documents)
     try:
         payload = _chat_json_openai(prompt=prompt, max_tokens=2600, model=CFG["extraction"])
         profile = _coerce_profile_payload(payload)
@@ -497,10 +511,13 @@ def _extract_profile_sync(
             "experience_count": len(profile.experience),
             "skills_count": len(profile.skills),
         }
-        return profile, None, debug
+        return profile, warning, debug
     except Exception as exc:
         prefix = "Extraktion Fallback" if language == "de" else "Extraction fallback used"
-        return None, f"{prefix}: {exc}", {
+        err_msg = f"{prefix}: {exc}"
+        if warning:
+            err_msg = f"{warning} | {err_msg}"
+        return None, err_msg, {
             "model_used": CFG["extraction"],
             "source_chars": sum(len(chunk) for chunk in source_documents),
             "source_docs": len(source_documents),
@@ -514,7 +531,7 @@ def _generate_sync(
     source_documents: Optional[List[str]],
     match_context: Optional[Dict[str, Any]] = None,
 ) -> Tuple[GeneratedContent, Optional[str]]:
-    prompt = _generate_prompt(
+    prompt, warning = _generate_prompt(
         language=language,
         job_ad_text=job_ad_text,
         profile=profile,
@@ -532,10 +549,13 @@ def _generate_sync(
         result = _merge_generated_with_profile(generated, profile, language)
         if CFG["crosscheck"]:
             result = _crosscheck_gemini(result, profile, language)
-        return result, None
+        return result, warning
     except Exception as exc:
         fallback = _fallback_content(language=language, job_ad_text=job_ad_text, profile=profile)
-        return fallback, f"Generation fallback: {exc}"
+        err_msg = f"Generation fallback: {exc}"
+        if warning:
+            err_msg = f"{warning} | {err_msg}"
+        return fallback, err_msg
 
 
 async def extract_profile_from_documents(
