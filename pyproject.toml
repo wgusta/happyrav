@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "happyrav"
+version = "0.1.0"
+description = "ATS-optimized CV and cover letter generator"
+requires-python = ">=3.12"
+
+[tool.setuptools]
+packages = ["happyrav"]
+
+[tool.setuptools.package-dir]
+happyrav = "."

@@ -51,6 +51,26 @@ Document-first ATS CV + cover letter app for `gusty.ch/happyrav`.
 - max 25 MB / session
 - Context Window: 64k chars (Extraction), 48k chars (Generation)
 
+## Testing
+
+Run integration tests:
+
+```bash
+# Install package in editable mode (first time only)
+pip install -e .
+
+# Run all tests
+pytest tests/
+
+# Run specific test
+pytest tests/test_integration.py::TestOCRCache::test_same_file_uploaded_twice_uses_cache -v
+```
+
+Test coverage:
+- **OCR Cache:** Duplicate file uploads use cached extraction
+- **Disk Persistence:** Sessions/artifacts survive restarts
+- **Truncation Warnings:** >64k (extraction), >48k (generation)
+
 ## Run locally
 
 ```bash
