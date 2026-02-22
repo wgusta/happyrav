@@ -29,16 +29,26 @@ Result: **Hardened Chassis**.
     *   **Old:** Re-running Vision API on every upload/page reload.
     *   **New:** `main.py` calculates MD5 hash of uploads. Checks persistent `DocumentCache` (`data/documents/`) before calling extraction.
 
+5.  **Strategic Guidance Pillar (Feb 2026):**
+    *   **Feature:** LLM-generated application advice when match score < 70.
+    *   **Backend:** `generate_strategic_analysis()` in `llm_kimi.py` generates strengths, gaps, actionable recommendations.
+    *   **Chat:** `ask-recommendation` endpoint allows interactive Q&A about application strategy.
+    *   **Cost Control:** Only triggered for low-scoring profiles (< 70%). High scores skip to save tokens.
+    *   **Frontend:** Accordion UI in Review page + chat interface for follow-up questions.
+    *   **Action:** Do NOT generate strategic analysis for high scores (>= 70). Threshold: `REVIEW_RECOMMEND_THRESHOLD = 70`.
+
 ## Operational Mandates
 1.  **Do Not regress to volatile storage.** The `data/` directory is the source of truth.
 2.  **Respect the `.gitignore`.** `data/` must not be committed.
 3.  **Verify Context Limits.** If users complain of "missing experience", check the `extraction_warning` field in their session.
 
 ## Key Files
-- `main.py`: Orchestration, endpoints, MD5 hashing.
+- `main.py`: Orchestration, endpoints, MD5 hashing, Strategic recommendations endpoint.
 - `services/cache.py`: The persistence layer.
-- `services/llm_kimi.py`: The "brain" (Prompts, API calls, XML injection).
+- `services/llm_kimi.py`: The "brain" (Prompts, API calls, XML injection, Strategic analysis generation).
 - `services/extract_documents.py`: Parsing logic (PDF/DOCX/OCR).
+- `static/app.js`: Frontend logic, i18n, Strategic UI rendering + chat.
+- `tests/test_strategic_recommendations.py`: TDD test suite for strategic features.
 
 ## User Persona
 The user ("Gusty") prefers direct, high-energy ("NetworkChuck style") interaction. Uses "Deep Truth" / "Forensic" framing for audits.

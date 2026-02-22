@@ -20,6 +20,8 @@ Document-first ATS CV + cover letter app for `gusty.ch/happyrav`.
 - Templates: `simple`, `sophisticated`, `friendly` (+ advanced color options)
 - Required gaps block generation (`422`) until resolved
 - ATS score + missing keywords + ATS issues in review and result
+- **Strategic recommendations:** LLM-generated application advice when match score < 70 (strengths, gaps, recommendations)
+- **Interactive chat:** Ask follow-up questions about application strategy
 - PDF generation from HTML templates via WeasyPrint
 - Optional SMTP email with both generated PDFs
 
@@ -39,6 +41,8 @@ Document-first ATS CV + cover letter app for `gusty.ch/happyrav`.
 - `POST /api/session/{session_id}/extract`
 - `POST /api/session/{session_id}/answer`
 - `GET /api/session/{session_id}/state`
+- `POST /api/session/{session_id}/preview-match` (includes strategic_analysis if score < 70)
+- `POST /api/session/{session_id}/ask-recommendation` (interactive strategic chat)
 - `POST /api/session/{session_id}/generate`
 - `DELETE /api/session/{session_id}` (clear session)
 - `GET /download/{token}/{file_id}`
@@ -70,6 +74,7 @@ Test coverage:
 - **OCR Cache:** Duplicate file uploads use cached extraction
 - **Disk Persistence:** Sessions/artifacts survive restarts
 - **Truncation Warnings:** >64k (extraction), >48k (generation)
+- **Strategic Recommendations:** Analysis generation, chat endpoint, score thresholds
 
 ## Run locally
 

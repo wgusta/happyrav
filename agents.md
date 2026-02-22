@@ -22,10 +22,18 @@ happyRAV is a high-performance CV/Cover Letter wizard. Your goal is to maintain 
     - **Never** call `vision_ocr` without first checking the `DocumentCache` (MD5 hash).
     - If modifying `extract_documents.py`, ensure the MD5 check remains in `main.py`.
 
+5.  **Strategic Guidance (NEW):**
+    - **Only** generate strategic analysis when match score < 70 (`REVIEW_RECOMMEND_THRESHOLD`).
+    - **Cost-aware:** Strategic generation costs ~$0.07 per analysis. Don't trigger for high-scoring profiles.
+    - **Context:** Strategic chat uses `state.server.strategic_analysis` and `state.server.review_match` for context.
+    - **Testing:** Use TDD approach. Tests in `tests/test_strategic_recommendations.py`.
+
 ## Key Files
-- `main.py`: The API orchestration layer. Handles MD5 hashing and persistent cache interaction.
+- `main.py`: The API orchestration layer. Handles MD5 hashing, persistent cache interaction, strategic endpoints.
 - `services/cache.py`: The persistence engine. Uses `pickle` and file locks.
-- `services/llm_kimi.py`: The LLM integration layer. Handles prompts and token optimization.
+- `services/llm_kimi.py`: The LLM integration layer. Handles prompts, token optimization, strategic analysis generation.
+- `static/app.js`: Frontend state management, i18n, strategic UI + chat rendering.
+- `tests/`: TDD integration tests for persistence, caching, strategic features.
 
 ## Workflow
 1.  **Read:** Check `README.md` and `CLAUDE.md` for architectural context.

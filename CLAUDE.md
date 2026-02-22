@@ -22,11 +22,11 @@ Document-first ATS-optimized CV + cover letter generation wizard. Five-step flow
 ## Project Structure
 
 ```
-main.py                    # FastAPI app, all routes, OCR Caching
+main.py                    # FastAPI app, all routes, OCR Caching, Strategic recommendations
 models.py                  # Pydantic models (SessionState, ThemeConfig, etc.)
 services/
   cache.py                 # File-based persistent caches (Session/Artifact/Document)
-  llm_kimi.py              # Multi-provider LLM: OpenAI extraction, Anthropic generation, Gemini crosscheck
+  llm_kimi.py              # Multi-provider LLM: OpenAI extraction, Anthropic generation, Gemini crosscheck, Strategic analysis
   extract_documents.py     # File parsing (PDF, DOCX, images via vision OCR)
   scoring.py               # ATS match scoring via parser_scanner
   question_engine.py       # Gap detection, missing questions builder
@@ -37,9 +37,10 @@ services/
 doc_templates/             # Jinja2 PDF templates (3 CV + 3 cover letter variants)
 templates/                 # Page fragments, wizard layout
 static/
-  app.js                   # All frontend logic, i18n, state management
+  app.js                   # All frontend logic, i18n, state management, Strategic chat
   style.css                # App styles
 data/                      # Persistent storage (sessions, artifacts, doc text cache)
+tests/                     # Integration tests, TDD test suites
 ```
 
 ## Key Patterns
@@ -63,6 +64,16 @@ All UI text lives in `I18N` object inside `app.js` with `en` and `de` keys. HTML
 - **Source Injection:** Documents are concatenated with `\n\n` and wrapped in `<DOCUMENTS>...</DOCUMENTS>`. No `json.dumps()` of source text.
 - **Context Limits:** 64k chars (Extraction), 48k chars (Generation). Explicit `llm_warning` returned if truncated.
 - **OCR Cache:** `main.py` checks `document_cache` (MD5 of bytes) before calling `extract_text_from_bytes`.
+
+### Strategic Recommendations (NEW)
+LLM-generated application advice when match score < 70:
+- **Backend:** `generate_strategic_analysis()` in `llm_kimi.py` generates strengths, gaps, recommendations
+- **Endpoint:** `POST /api/session/{session_id}/preview-match` includes `strategic_analysis` field
+- **Chat:** `POST /api/session/{session_id}/ask-recommendation` for follow-up questions
+- **Frontend:** Strategic accordion in Review page (after keyword comparison), interactive chat interface
+- **Threshold:** `REVIEW_RECOMMEND_THRESHOLD = 70` in `main.py`
+- **Cost:** ~$0.07 per analysis, ~$0.04 per chat message (Claude Sonnet)
+- **i18n:** Full EN/DE support for all strategic UI text
 
 ## Deploy
 
@@ -111,8 +122,9 @@ node --check static/app.js
 
 ## Gotchas
 
-- `app.js` is large (~1800 lines). Both agents can edit it concurrently but watch for conflicts in shared sections.
+- `app.js` is large (~1900 lines). Both agents can edit it concurrently but watch for conflicts in shared sections.
 - **Persistence:** Deleting `data/` wipes all active sessions.
 - **OCR Costs:** Testing image uploads consumes tokens unless the file is already in `data/documents`.
 - **Truncation:** If a user uploads >64k chars, the `extraction_warning` field in `SessionState` will be populated. The UI should display this.
 - ATS scoring uses shared `parser_scanner` from `ats-scanner/app/scanners/`.
+- **Strategic analysis:** Only generated when match score < 70. High-scoring profiles skip this step to save costs.
