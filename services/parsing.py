@@ -106,3 +106,53 @@ def split_keywords(job_ad_text: str) -> Tuple[List[str], List[str]]:
     soft = [w for w in normalized if 3 <= len(w) < 8]
     return hard[:25], soft[:25]
 
+
+def parse_date_for_sort(date_str: str) -> int:
+    """
+    Parse date string to sortable int (YYYYMMDD).
+    Handles: YYYY, YYYY-MM, YYYY-MM-DD, "Month YYYY", "Januar 2018", etc.
+    Returns 0 for unparseable dates (sorted to end).
+    """
+    if not date_str:
+        return 0
+
+    date_str = date_str.strip()
+
+    # Try YYYY-MM-DD
+    match = re.match(r"^(\d{4})-(\d{2})-(\d{2})$", date_str)
+    if match:
+        y, m, d = match.groups()
+        return int(y) * 10000 + int(m) * 100 + int(d)
+
+    # Try YYYY-MM
+    match = re.match(r"^(\d{4})-(\d{2})$", date_str)
+    if match:
+        y, m = match.groups()
+        return int(y) * 10000 + int(m) * 100 + 1
+
+    # Try YYYY
+    match = re.match(r"^(\d{4})$", date_str)
+    if match:
+        return int(match.group(1)) * 10000 + 101
+
+    # Try "Month YYYY" (English and German)
+    months_en = {
+        "january": 1, "february": 2, "march": 3, "april": 4, "may": 5, "june": 6,
+        "july": 7, "august": 8, "september": 9, "october": 10, "november": 11, "december": 12
+    }
+    months_de = {
+        "januar": 1, "februar": 2, "märz": 3, "april": 4, "mai": 5, "juni": 6,
+        "juli": 7, "august": 8, "september": 9, "oktober": 10, "november": 11, "dezember": 12
+    }
+
+    match = re.match(r"^([a-zA-ZäöüÄÖÜß]+)\s+(\d{4})$", date_str, re.IGNORECASE)
+    if match:
+        month_str, year_str = match.groups()
+        month_str_lower = month_str.lower()
+        month = months_en.get(month_str_lower) or months_de.get(month_str_lower)
+        if month:
+            return int(year_str) * 10000 + month * 100 + 1
+
+    # Unparseable
+    return 0
+

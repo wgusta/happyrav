@@ -224,6 +224,10 @@
       "gen.step6": "Adding that special Helvetica touch...",
       "gen.step7": "Almost there, polishing the final draft...",
 
+      "validation.step1": "Analyzing readability & complexity...",
+      "validation.step2": "Checking action verbs & metrics...",
+      "validation.step3": "Validating visual balance...",
+
       "upload.processing": "Processing your documents...",
       "upload.step1": "Reading document contents...",
       "upload.step2": "Extracting text and structure...",
@@ -250,6 +254,27 @@
       "strategic.chat_title": "Ask About Recommendations",
       "strategic.chat_placeholder": "e.g., How should I address the Kubernetes gap?",
       "strategic.send": "Ask",
+
+      "quality.title": "Quality Analysis",
+      "quality.readability": "Readability (Flesch)",
+      "quality.fog_index": "Complexity (Fog Index)",
+      "quality.action_verbs": "Strong action verbs",
+      "quality.quantification": "Quantified achievements",
+      "quality.buzzwords": "Buzzword count",
+      "quality.balance": "Section balance",
+      "quality.tense": "Tense consistency",
+      "quality.warning": "Quality check:",
+      "quality.good": "Good",
+      "quality.needs_improvement": "Needs improvement",
+
+      "optimization.title": "Content Optimization",
+      "optimization.subtitle": "How your input was tailored to match this job",
+      "optimization.original": "Original",
+      "optimization.optimized": "Job-Optimized",
+      "optimization.improvements": "Improvements Made",
+      "optimization.keywords_added": "Keywords added",
+      "optimization.sections_enhanced": "Sections enhanced",
+      "optimization.view_details": "View detailed comparison",
 
       "fmt.title": "Hey, you've clicked generate 6 times!",
       "fmt.nudge": "Since I'm an AI that doesn't fully understand the context of your professional life, help me get that context. Go back and add these details manually if things are missing:",
@@ -526,6 +551,10 @@
       "gen.step6": "Der besondere Helvetica-Touch wird hinzugefügt...",
       "gen.step7": "Fast fertig, letzter Feinschliff...",
 
+      "validation.step1": "Lesbarkeit & Komplexität werden analysiert...",
+      "validation.step2": "Aktionsverben & Metriken werden geprüft...",
+      "validation.step3": "Visuelle Balance wird validiert...",
+
       "upload.processing": "Dokumente werden verarbeitet...",
       "upload.step1": "Dokumentinhalte werden gelesen...",
       "upload.step2": "Text und Struktur werden extrahiert...",
@@ -552,6 +581,27 @@
       "strategic.chat_title": "Fragen zu Empfehlungen",
       "strategic.chat_placeholder": "z.B., Wie soll ich die Kubernetes-Lücke adressieren?",
       "strategic.send": "Fragen",
+
+      "quality.title": "Qualitätsanalyse",
+      "quality.readability": "Lesbarkeit (Flesch)",
+      "quality.fog_index": "Komplexität (Fog-Index)",
+      "quality.action_verbs": "Starke Aktionsverben",
+      "quality.quantification": "Quantifizierte Erfolge",
+      "quality.buzzwords": "Buzzword-Anzahl",
+      "quality.balance": "Abschnittsbalance",
+      "quality.tense": "Zeitform-Konsistenz",
+      "quality.warning": "Qualitätsprüfung:",
+      "quality.good": "Gut",
+      "quality.needs_improvement": "Verbesserungsbedarf",
+
+      "optimization.title": "Inhaltsoptimierung",
+      "optimization.subtitle": "So wurde Ihre Eingabe an diese Stelle angepasst",
+      "optimization.original": "Original",
+      "optimization.optimized": "Job-Optimiert",
+      "optimization.improvements": "Vorgenommene Verbesserungen",
+      "optimization.keywords_added": "Keywords hinzugefügt",
+      "optimization.sections_enhanced": "Abschnitte verbessert",
+      "optimization.view_details": "Detailvergleich anzeigen",
 
       "fmt.title": "Hey, du hast 6 Mal auf Generieren geklickt!",
       "fmt.nudge": "Da ich eine KI bin, die den vollen Kontext deines Berufslebens nicht kennt, hilf mir dabei. Geh zurück und ergänze diese Details manuell, falls etwas fehlt:",
@@ -1014,6 +1064,8 @@
       </div>
     `;
     renderKeywordComparisonTable(reviewKeywordComparison, payload);
+    displayQualityMetrics();
+    displayOptimizationComparison();
   }
 
   function renderKeywordComparisonTable(container, payload) {
@@ -1031,10 +1083,10 @@
     }
     const chips = (list, isMatched) =>
       list.length
-        ? list.map((kw) => `<span class="kw-chip ${isMatched ? "kw-chip-match" : "kw-chip-missing"}">${escHtml(kw)}</span>`).join("")
+        ? list.map((kw) => `<span class="kw-chip ${isMatched ? "kw-chip-match" : "kw-chip-missing"}">${escHtml(kw)}</span>`).join(" ")
         : `<span class="kw-empty">${t("text.none")}</span>`;
     const combinedChips = combined.length
-      ? combined.map((item) => `<span class="kw-chip ${item.matched ? "kw-chip-match" : "kw-chip-missing"}">${escHtml(item.keyword)}</span>`).join("")
+      ? combined.map((item) => `<span class="kw-chip ${item.matched ? "kw-chip-match" : "kw-chip-missing"}">${escHtml(item.keyword)}</span>`).join(" ")
       : `<span class="kw-empty">${t("text.none")}</span>`;
     const atsText = issues.length ? escHtml(issues.join(" · ")) : t("text.none");
     container.innerHTML = `
@@ -1060,6 +1112,151 @@
         </tbody>
       </table>
     `;
+  }
+
+  function displayQualityMetrics() {
+    const quality = state.server?.review_match?.quality_metrics;
+    const container = document.getElementById("quality-content");
+    if (!container || !quality) return;
+
+    const getScoreClass = (score, threshold, invert) => {
+      if (invert) return score <= threshold ? "good" : "warn";
+      return score >= threshold ? "good" : "warn";
+    };
+
+    const metrics = [
+      {
+        key: "readability_score",
+        label: t("quality.readability"),
+        value: quality.readability_score || 0,
+        target: 60,
+        format: (v) => `${v.toFixed(1)}/100`,
+        help: "60-70 = optimal, <50 = too complex",
+        invert: false
+      },
+      {
+        key: "fog_index",
+        label: t("quality.fog_index"),
+        value: quality.fog_index || 0,
+        target: 14,
+        format: (v) => v.toFixed(1),
+        help: "12-14 years = professional, >16 = too complex",
+        invert: true
+      },
+      {
+        key: "action_verb_ratio",
+        label: t("quality.action_verbs"),
+        value: quality.action_verb_ratio || 0,
+        target: 0.6,
+        format: (v) => `${(v*100).toFixed(0)}%`,
+        help: "Target: >60% strong verbs",
+        invert: false
+      },
+      {
+        key: "quantification_ratio",
+        label: t("quality.quantification"),
+        value: quality.quantification_ratio || 0,
+        target: 0.4,
+        format: (v) => `${(v*100).toFixed(0)}%`,
+        help: "Target: >40% with metrics",
+        invert: false
+      },
+      {
+        key: "buzzword_count",
+        label: t("quality.buzzwords"),
+        value: quality.buzzword_count || 0,
+        target: 3,
+        format: (v) => String(v),
+        help: "Lower is better, >3 = too many",
+        invert: true
+      },
+    ];
+
+    let html = '<div class="quality-grid">';
+
+    metrics.forEach(m => {
+      const val = m.value;
+      const isGood = m.invert
+        ? (typeof val === 'number' && val <= m.target)
+        : (typeof val === 'number' && val >= m.target);
+      const badge = isGood ? t("quality.good") : t("quality.needs_improvement");
+      const badgeClass = isGood ? "badge-success" : "badge-warn";
+
+      html += `
+        <div class="quality-metric">
+          <div class="quality-label">${escHtml(m.label)}</div>
+          <div class="quality-value">${escHtml(m.format(val))}</div>
+          <div class="quality-badge ${badgeClass}">${escHtml(badge)}</div>
+          ${m.help ? `<div class="quality-help">${escHtml(m.help)}</div>` : ''}
+        </div>
+      `;
+    });
+
+    html += '</div>';
+
+    if (quality.warnings && quality.warnings.length > 0) {
+      html += '<div class="alert alert-warn" style="margin-top: 16px;">';
+      html += `<strong>${escHtml(t("quality.warning"))}</strong><ul>`;
+      quality.warnings.forEach(w => {
+        html += `<li>${escHtml(w)}</li>`;
+      });
+      html += '</ul></div>';
+    }
+
+    container.innerHTML = html;
+  }
+
+  function displayOptimizationComparison() {
+    const artifact = state.server?.result_artifact;
+    if (!artifact) return;
+
+    const comparison = artifact.comparison_sections;
+    const metadata = artifact.meta?.comparison_metadata;
+    const container = document.getElementById("optimization-content");
+
+    if (!container || !comparison) return;
+
+    let statsHtml = '<div class="optimization-stats">';
+    if (metadata) {
+      statsHtml += `
+        <div class="stat">
+          <span class="stat-label">${escHtml(t("optimization.keywords_added"))}</span>
+          <span class="stat-value">${metadata.keywords_added || 0}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">${escHtml(t("optimization.sections_enhanced"))}</span>
+          <span class="stat-value">${metadata.transformations?.experience_optimized || 0}</span>
+        </div>
+      `;
+    }
+    statsHtml += '</div>';
+
+    let comparisonHtml = '<div class="comparison-grid">';
+
+    if (comparison.length > 0) {
+      comparison.slice(0, 4).forEach((section) => {
+        const label = state.language === "de" ? section.label_de : section.label_en;
+        comparisonHtml += `
+          <div class="comparison-section">
+            <h4>${escHtml(label)}</h4>
+            <div class="comparison-row">
+              <div class="comparison-col">
+                <label>${escHtml(t("optimization.original"))}</label>
+                <p class="text-muted">${escHtml(section.original || "N/A")}</p>
+              </div>
+              <div class="comparison-col">
+                <label>${escHtml(t("optimization.optimized"))}</label>
+                <p class="text-primary">${escHtml(section.optimized || "N/A")}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    comparisonHtml += '</div>';
+
+    container.innerHTML = statsHtml + comparisonHtml;
   }
 
   function renderResultKeywordComparison() {
@@ -1380,8 +1577,16 @@
 
   function getGenSteps() {
     return [
-      t("gen.step1"), t("gen.step2"), t("gen.step3"), t("gen.step4"),
-      t("gen.step5"), t("gen.step6"), t("gen.step7"),
+      t("gen.step1"),
+      t("gen.step2"),
+      t("validation.step1"),
+      t("validation.step2"),
+      t("validation.step3"),
+      t("gen.step3"),
+      t("gen.step4"),
+      t("gen.step5"),
+      t("gen.step6"),
+      t("gen.step7"),
     ];
   }
 
@@ -1474,7 +1679,11 @@
       state.artifactToken = data.token || "";
       notify("success", t("notify.cv_generated"));
       if (cvGeneratedInfo) cvGeneratedInfo.style.display = "";
-      if (cvDownloadLink && data.download_cv_url) cvDownloadLink.href = data.download_cv_url;
+      if (cvDownloadLink && data.download_cv_url) {
+        cvDownloadLink.href = data.download_cv_url;
+        // Auto-open PDF in new tab
+        window.open(data.download_cv_url, '_blank');
+      }
       if (coverLetterSection) coverLetterSection.style.display = "";
       if (btnGenerateCover) btnGenerateCover.disabled = false;
       const chatSection = document.getElementById("chat-corrections");
@@ -1511,6 +1720,7 @@
 
   async function previewMatch() {
     if (!state.sessionId) throw new Error(t("error.start_session_first"));
+    showGeneratingOverlay();
     try {
       const response = await fetch(endpoint(`/api/session/${state.sessionId}/preview-match`), {
         method: "POST",
@@ -1534,6 +1744,8 @@
       }
     } catch (err) {
       notify("error", err.message || t("error.action_failed"));
+    } finally {
+      hideGeneratingOverlay();
     }
   }
 

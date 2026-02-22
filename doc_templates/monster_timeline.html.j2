@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="{{ 'de-CH' if language == 'de' else 'en' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ "Umfassende Karrierechronologie" if language == "de" else "Comprehensive Career Timeline" }} - {{ profile_name }}</title>
+  {% set font_css_map = {"inter": '"Inter", "Segoe UI", Arial, sans-serif', "roboto": '"Roboto", "Segoe UI", Arial, sans-serif', "lato": '"Lato", "Segoe UI", Arial, sans-serif', "georgia": 'Georgia, "Times New Roman", serif', "source_sans": '"Source Sans 3", "Segoe UI", Arial, sans-serif'} %}
+  {% set font_import_map = {"inter": "https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap", "roboto": "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap", "lato": "https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap", "source_sans": "https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap"} %}
+  {% set chosen_font = font_css_map.get(theme.font_family, font_css_map["inter"]) %}
+  {% set chosen_import = font_import_map.get(theme.font_family, "") %}
+  <style>
+    {% if chosen_import %}@import url('{{ chosen_import }}');{% endif %}
+    @page { size: A4; margin: 14mm 16mm; }
+    :root {
+      --primary: {{ theme.primary_hex }};
+      --accent: {{ theme.accent_hex }};
+      --ink: #1a1d23;
+      --muted: #555d6e;
+      --rule: {% if theme.border_style == 'none' %}transparent{% else %}#d4d9e3{% endif %};
+      --page-bg: {{ theme.page_bg }};
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); font-family: {{ chosen_font }}; font-size: 10px; line-height: 1.44; background: var(--page-bg); -webkit-font-smoothing: antialiased; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    h1, h2, h3, p { margin: 0; }
+
+    /* Header */
+    .header { padding-bottom: 12px; border-bottom: 2.5px solid var(--primary); margin-bottom: 16px; }
+    .doc-title { font-size: 22px; line-height: 1.1; color: var(--primary); font-weight: 700; letter-spacing: -0.2px; }
+    .doc-subtitle { margin-top: 4px; color: var(--accent); font-size: 10px; font-weight: 600; }
+    .stats-line { margin-top: 6px; color: var(--muted); font-size: 9px; }
+
+    /* Timeline container */
+    .timeline { position: relative; padding-left: 20px; }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 6px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--rule);
+    }
+
+    /* Timeline entry */
+    .timeline-entry { margin-bottom: 16px; position: relative; break-inside: avoid; page-break-inside: avoid; }
+    .timeline-marker {
+      position: absolute;
+      left: -17px;
+      top: 2px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: 2px solid var(--page-bg);
+    }
+
+    .entry-header { margin-bottom: 4px; }
+    .entry-date { font-size: 9px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.3px; }
+    .entry-title { font-size: 11px; font-weight: 700; color: var(--ink); margin-top: 2px; }
+    .entry-org { font-size: 9.5px; color: var(--accent); font-weight: 600; margin-top: 1px; }
+    .entry-type-badge {
+      display: inline-block;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 7.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-left: 4px;
+      background: {{ theme.accent_hex }}1A;
+      color: var(--accent);
+    }
+
+    .entry-context { color: var(--muted); font-size: 9px; font-style: italic; margin-top: 3px; }
+
+    .entry-section { margin-top: 4px; }
+    .entry-section-label { font-size: 8.5px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 2px; }
+    .entry-list { margin: 2px 0 0 10px; padding: 0; list-style-type: disc; }
+    .entry-list li { margin: 2px 0; color: var(--ink); line-height: 1.4; font-size: 9.5px; }
+
+    .skill-tags { margin-top: 4px; }
+    .skill-tag {
+      display: inline-block;
+      margin: 2px 3px 2px 0;
+      padding: 1.5px 5px;
+      border-radius: {% if theme.border_style == 'rounded' %}4px{% else %}1px{% endif %};
+      background: {{ theme.primary_hex }}0D;
+      border: 1px solid {{ theme.primary_hex }}26;
+      color: var(--primary);
+      font-size: 8px;
+      font-weight: 600;
+    }
+
+    /* All skills/certifications section */
+    .summary-section { margin-top: 16px; break-inside: avoid; page-break-inside: avoid; }
+    .summary-section-head { color: var(--primary); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; padding-bottom: 2px; border-bottom: 1px solid var(--rule); }
+    .summary-list { margin: 4px 0 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 3px; }
+    .summary-chip {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: {% if theme.border_style == 'rounded' %}4px{% else %}1px{% endif %};
+      background: {{ theme.primary_hex }}0D;
+      border: 1px solid {{ theme.primary_hex }}1A;
+      color: var(--primary);
+      font-size: 8.5px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1 class="doc-title">{{ "Umfassende Karrierechronologie" if language == "de" else "Comprehensive Career Timeline" }}</h1>
+    <p class="doc-subtitle">{{ profile_name }}</p>
+    <p class="stats-line">
+      {% if entry_count %}{{ entry_count }} {{ "Einträge" if language == "de" else "entries" }}{% endif %}
+      {% if date_range %}<span> · </span>{{ date_range }}{% endif %}
+    </p>
+  </header>
+
+  <div class="timeline">
+    {% for entry in timeline.timeline %}
+    <div class="timeline-entry">
+      <div class="timeline-marker"></div>
+      <div class="entry-header">
+        <div class="entry-date">
+          {% if entry.start_date %}{{ entry.start_date }}{% endif %}
+          {% if entry.end_date %} – {{ entry.end_date }}{% elif entry.start_date %} – {{ "Heute" if language == "de" else "Present" }}{% endif %}
+          <span class="entry-type-badge">{{ entry.entry_type }}</span>
+        </div>
+        <h3 class="entry-title">{{ entry.role_or_title }}</h3>
+        {% if entry.organization %}<div class="entry-org">{{ entry.organization }}</div>{% endif %}
+      </div>
+
+      {% if entry.context %}
+      <p class="entry-context">{{ entry.context }}</p>
+      {% endif %}
+
+      {% if entry.responsibilities %}
+      <div class="entry-section">
+        <div class="entry-section-label">{{ "Verantwortlichkeiten" if language == "de" else "Responsibilities" }}</div>
+        <ul class="entry-list">
+          {% for item in entry.responsibilities %}
+          <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if entry.achievements %}
+      <div class="entry-section">
+        <div class="entry-section-label">{{ "Erfolge" if language == "de" else "Achievements" }}</div>
+        <ul class="entry-list">
+          {% for item in entry.achievements %}
+          <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if entry.skills_used %}
+      <div class="skill-tags">
+        {% for skill in entry.skills_used %}
+        <span class="skill-tag">{{ skill }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if timeline.all_skills %}
+  <div class="summary-section">
+    <h2 class="summary-section-head">{{ "Alle Fähigkeiten" if language == "de" else "All Skills" }}</h2>
+    <div class="summary-list">
+      {% for skill in timeline.all_skills %}
+      <span class="summary-chip">{{ skill }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if timeline.all_certifications %}
+  <div class="summary-section">
+    <h2 class="summary-section-head">{{ "Zertifizierungen" if language == "de" else "Certifications" }}</h2>
+    <div class="summary-list">
+      {% for cert in timeline.all_certifications %}
+      <span class="summary-chip">{{ cert }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</body>
+</html>

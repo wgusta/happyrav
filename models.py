@@ -136,6 +136,7 @@ class SessionState(BaseModel):
     sender_street: str = ""
     sender_plz_ort: str = ""
     signature_data_url: str = ""
+    monster_cv_generated: bool = False
     created_at: float = 0.0
     expires_at: float = 0.0
 
@@ -184,12 +185,28 @@ class GeneratedContent(BaseModel):
     matched_keywords: List[str] = Field(default_factory=list)
 
 
+class QualityMetrics(BaseModel):
+    """CV quality validation results."""
+    readability_score: float = 0.0  # Flesch Reading Ease
+    fog_index: float = 0.0  # Gunning Fog
+    action_verb_ratio: float = 0.0  # 0-1
+    quantification_ratio: float = 0.0  # 0-1
+    avg_sentence_length: float = 0.0
+    buzzword_count: int = 0
+    section_balance_score: float = 0.0  # 0-100
+    tense_consistency_score: float = 0.0  # 0-100
+    warnings: List[str] = Field(default_factory=list)
+    recommendations: List[str] = Field(default_factory=list)
+
+
 class MatchPayload(BaseModel):
     overall_score: float
     category_scores: Dict[str, float] = Field(default_factory=dict)
     matched_keywords: List[str] = Field(default_factory=list)
     missing_keywords: List[str] = Field(default_factory=list)
     ats_issues: List[str] = Field(default_factory=list)
+    quality_metrics: Optional[QualityMetrics] = None
+    quality_warnings: List[str] = Field(default_factory=list)
 
 
 class ComparisonSection(BaseModel):
@@ -237,3 +254,33 @@ class GenerateResponse(BaseModel):
     filename_cover: str
     match: MatchPayload
     warning: Optional[str] = None
+
+
+class ChronologicalEntry(BaseModel):
+    start_date: str
+    end_date: str = ""
+    entry_type: Literal["employment", "education", "achievement", "certification"]
+    organization: str
+    role_or_title: str
+    responsibilities: List[str] = Field(default_factory=list)
+    achievements: List[str] = Field(default_factory=list)
+    skills_used: List[str] = Field(default_factory=list)
+    context: str = ""
+    source_doc_id: str = ""
+    confidence: float = 0.0
+
+
+class MonsterCVProfile(BaseModel):
+    timeline: List[ChronologicalEntry] = Field(default_factory=list)
+    all_skills: List[str] = Field(default_factory=list)
+    all_certifications: List[str] = Field(default_factory=list)
+    extraction_metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
+class MonsterArtifactRecord(BaseModel):
+    token: str
+    filename: str
+    pdf_bytes: bytes
+    html: str
+    timeline: MonsterCVProfile
+    expires_at: float

@@ -73,7 +73,7 @@
   <section class="layout">
     <div class="col-left">
       <article class="section">
-        <h2>{{ "Profil" if language == "de" else "Profile" }}</h2>
+        <h2>{{ "Kurzprofil" if language == "de" else "Profile" }}</h2>
         <p>{{ content.summary }}</p>
       </article>
       <article class="section">
@@ -94,16 +94,33 @@
       </article>
     </div>
     <div class="col-right">
+      {% if profile.languages %}
+      <article class="section" style="background: {{ theme.primary_hex }}08; border-color: {{ theme.primary_hex }}30;">
+        <h2>{{ "Sprachen" if language == "de" else "Languages" }}</h2>
+        <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+          {% for lang in profile.languages %}
+            <span style="padding: 3px 7px; background: var(--primary); color: white; border-radius: {% if theme.border_style == 'rounded' %}5px{% else %}2px{% endif %}; font-size: 9px; font-weight: 600;">{{ lang }}</span>
+          {% endfor %}
+        </div>
+      </article>
+      {% endif %}
       <article class="section">
-        <h2>{{ "Kernkompetenzen" if language == "de" else "Core skills" }}</h2>
-        {% for skill in content.skills %}
-          {% set parts = skill.split(' (') %}
-          {% if parts|length > 1 %}
-            <span class="skill-chip">{{ parts[0] }}<small class="skill-level">{{ parts[1].rstrip(')') }}</small></span>
-          {% else %}
-            <span class="skill-chip">{{ skill }}</span>
-          {% endif %}
-        {% endfor %}
+        <h2>{{ "Kernkompetenzen" if language == "de" else "Core competencies" }}</h2>
+        <div style="display: flex; flex-direction: column; gap: 3px;">
+          {% for skill in content.skills %}
+            {% set parts = skill.split(' (') %}
+            {% if parts|length > 1 %}
+              <div style="padding: 2px 0; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: baseline; gap: 6px;">
+                <span style="font-weight: 600; font-size: 9.6px; color: var(--ink); flex: 1;">{{ parts[0] }}</span>
+                <span style="font-size: 8.6px; color: var(--muted); font-weight: 500; white-space: nowrap;">{{ parts[1].rstrip(')') }}</span>
+              </div>
+            {% else %}
+              <div style="padding: 2px 0; border-bottom: 1px solid var(--rule);">
+                <span style="font-weight: 600; font-size: 9.6px; color: var(--ink);">{{ skill }}</span>
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
       </article>
       <article class="section">
         <h2>{{ "Ausbildung" if language == "de" else "Education" }}</h2>

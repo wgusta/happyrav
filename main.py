@@ -29,6 +29,7 @@ from happyrav.models import (
     GenerateRequest,
     MonsterArtifactRecord,
     PreSeedRequest,
+    QualityMetrics,
     SessionAnswerRequest,
     SessionIntakeRequest,
     SessionStartRequest,
@@ -66,6 +67,7 @@ from happyrav.services.question_engine import (
     unresolved_required_ids,
 )
 from happyrav.services.scoring import compute_match
+from happyrav.services.cv_quality import validate_cv_quality
 from happyrav.services.templating import (
     build_cv_text,
     build_filenames,
@@ -792,6 +794,17 @@ def _build_comparison_sections(
     return sections
 
 
+def _count_transformations(original: ExtractedProfile, optimized) -> Dict[str, int]:
+    """Count how many fields were enhanced/rewritten."""
+    changes = {
+        "summary_rewritten": int(original.summary != optimized.summary),
+        "skills_enhanced": int(len(optimized.skills) > len(original.skills)),
+        "experience_optimized": sum(1 for exp in optimized.experience if exp.achievements),
+        "education_enhanced": int(len(optimized.education) > len(original.education)),
+    }
+    return changes
+
+
 @app.post("/api/session/{session_id}/preview-match")
 async def api_session_preview_match(session_id: str) -> Dict:
     """Preview ATS match score before generating PDFs."""
@@ -950,11 +963,26 @@ async def api_session_generate(
     )
     generated = _validate_completeness(profile, generated)
 
+    # Build CV text for validation and scoring
     cv_text = build_cv_text(basic_profile, generated)
     if state.telos_context:
         telos_lines = [f"{k}: {v}" for k, v in state.telos_context.items() if v]
         cv_text += "\n\n# Career Goals & Values\n" + "\n".join(telos_lines)
+
+    # Run quality validation
+    quality_metrics_data = validate_cv_quality(
+        cv_text=cv_text,
+        generated=generated,
+        language=state.language
+    )
+    quality_metrics = QualityMetrics(**quality_metrics_data.__dict__)
+
+    # Run ATS scoring
     match = compute_match(cv_text=cv_text, job_ad_text=state.job_ad_text, language=state.language)
+
+    # Attach quality metrics to match
+    match.quality_metrics = quality_metrics
+    match.quality_warnings = quality_metrics.warnings[:5]  # Top 5 for UI
     cv_html = render_cv_html(
         template_id=state.template_id,
         language=state.language,
@@ -969,6 +997,11 @@ async def api_session_generate(
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"PDF generation failed: {exc}") from exc
     comparison_sections = _build_comparison_sections(profile, generated)
+    comparison_metadata = {
+        "keywords_added": len(match.matched_keywords),
+        "optimization_score": match.overall_score,
+        "transformations": _count_transformations(profile, generated),
+    }
     filenames = build_filenames(basic_profile.full_name or "Candidate", state.company_name or "Company")
     if payload.filename_cv.strip():
         artifact_filename_cv = payload.filename_cv.strip()
@@ -994,6 +1027,7 @@ async def api_session_generate(
             "language": state.language,
             "pre_generation_match": match_context,
             "generated_content": generated.model_dump(),
+            "comparison_metadata": comparison_metadata,
         },
     )
     artifact_cache.set(artifact)

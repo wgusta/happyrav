@@ -39,6 +39,8 @@
     <a class="btn" href="{{ request.url_for('download_file', token=record.token, file_id='cover') }}">{{ "Anschreiben PDF herunterladen" if is_de else "Download Cover Letter PDF" }}</a>
   </div>
 
+  <div id="monster-cv-section" style="margin-top: 1.5rem;"></div>
+
   <button id="comparison-toggle" class="btn-secondary" data-token="{{ record.token }}">
     {{ "Match-Analyse anzeigen" if is_de else "Show match analysis" }}
   </button>

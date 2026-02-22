@@ -7,7 +7,8 @@ from typing import Dict
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from happyrav.models import BasicProfile, GeneratedContent, MatchPayload, ThemeConfig
+from happyrav.models import BasicProfile, GeneratedContent, MatchPayload, MonsterCVProfile, ThemeConfig
+from happyrav.services.parsing import parse_date_for_sort
 
 
 TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "doc_templates"
@@ -114,3 +115,51 @@ def build_filenames(profile_name: str, company_name: str) -> Dict[str, str]:
         "cv": f"CV_{safe_name}_{safe_company}.pdf",
         "cover": f"CoverLetter_{safe_name}_{safe_company}.pdf",
     }
+
+
+def compute_date_range(timeline: MonsterCVProfile) -> str:
+    """Compute date range from timeline entries (e.g., '2015-2025')."""
+    if not timeline.timeline:
+        return ""
+
+    dates = []
+    for entry in timeline.timeline:
+        if entry.start_date:
+            dates.append(parse_date_for_sort(entry.start_date))
+        if entry.end_date:
+            dates.append(parse_date_for_sort(entry.end_date))
+
+    valid_dates = [d for d in dates if d > 0]
+    if not valid_dates:
+        return ""
+
+    min_date = min(valid_dates)
+    max_date = max(valid_dates)
+
+    min_year = min_date // 10000
+    max_year = max_date // 10000
+
+    if min_year == max_year:
+        return str(min_year)
+    return f"{min_year}-{max_year}"
+
+
+def render_monster_cv_html(
+    language: str,
+    profile_name: str,
+    timeline: MonsterCVProfile,
+    theme: ThemeConfig,
+) -> str:
+    """Render Monster CV chronological timeline template."""
+    template = env.get_template("monster_timeline.html.j2")
+    date_range = compute_date_range(timeline)
+    entry_count = len(timeline.timeline)
+
+    return template.render(
+        language=language,
+        profile_name=profile_name,
+        timeline=timeline,
+        theme=theme,
+        date_range=date_range,
+        entry_count=entry_count,
+    )
