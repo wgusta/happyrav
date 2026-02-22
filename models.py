@@ -199,6 +199,31 @@ class QualityMetrics(BaseModel):
     recommendations: List[str] = Field(default_factory=list)
 
 
+class SemanticKeyword(BaseModel):
+    """Semantic keyword with alternatives."""
+    skill: str
+    alternatives: List[str] = Field(default_factory=list)
+    criticality: float = 0.5  # 0-1
+
+
+class SemanticMatchResult(BaseModel):
+    """LLM-based semantic matching result."""
+    matched_hard_skills: List[Dict[str, Any]] = Field(default_factory=list)
+    matched_soft_skills: List[Dict[str, Any]] = Field(default_factory=list)
+    missing_critical: List[str] = Field(default_factory=list)
+    transferable_matches: List[Dict[str, Any]] = Field(default_factory=list)
+    overall_fit: float = 0.0
+
+
+class ContextualGap(BaseModel):
+    """Gap with severity classification."""
+    gap_type: str  # skill|experience|education|certification
+    missing: str
+    severity: str  # critical|important|nice-to-have
+    substitutable: bool = False
+    suggestions: str = ""
+
+
 class MatchPayload(BaseModel):
     overall_score: float
     category_scores: Dict[str, float] = Field(default_factory=dict)
@@ -207,6 +232,11 @@ class MatchPayload(BaseModel):
     ats_issues: List[str] = Field(default_factory=list)
     quality_metrics: Optional[QualityMetrics] = None
     quality_warnings: List[str] = Field(default_factory=list)
+
+    # Semantic matching fields
+    semantic_match: Optional[SemanticMatchResult] = None
+    contextual_gaps: List[ContextualGap] = Field(default_factory=list)
+    matching_strategy: str = "hybrid"  # baseline|semantic|hybrid
 
 
 class ComparisonSection(BaseModel):
