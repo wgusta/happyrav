@@ -29,10 +29,26 @@ Result: **Hardened Chassis**.
     *   **Old:** Re-running Vision API on every upload/page reload.
     *   **New:** `main.py` calculates MD5 hash of uploads. Checks persistent `DocumentCache` (`data/documents/`) before calling extraction.
 
-5.  **Strategic Guidance Pillar (Feb 2026):**
+5.  **Semantic Matching Pillar (Feb 2026):**
+    *   **Old:** Rigid regex keyword matching via `parser_scanner` (baseline only).
+    *   **New:** Hybrid approach - 40% baseline (regex) + 60% semantic (LLM contextual understanding).
+    *   **Module:** `services/llm_matching.py` (OpenAI GPT-4.1-mini).
+    *   **Features:**
+        - Synonym resolution: "React" matches "frontend framework"
+        - Transferable skills: "SQL" matches "data modeling"
+        - Contextual gaps: Severity classification (critical/important/nice-to-have)
+        - Skill ranking: 0-1 relevance scores for CV skills
+        - Achievement optimization: Flags vague achievements, suggests metric-rich rewrites
+    *   **Integration:** `preview-match` endpoint uses hybrid scoring. `generate_content()` pre-processes with skill ranking.
+    *   **Fallback:** Gracefully falls back to baseline regex if LLM unavailable.
+    *   **Cost:** ~$0.008 per match (GPT-4.1-mini).
+    *   **Action:** Do NOT remove baseline matching. It's the fallback for reliability.
+
+6.  **Strategic Guidance Pillar (Feb 2026):**
     *   **Feature:** LLM-generated application advice when match score < 70.
     *   **Backend:** `generate_strategic_analysis()` in `llm_kimi.py` generates strengths, gaps, actionable recommendations.
     *   **Chat:** `ask-recommendation` endpoint allows interactive Q&A about application strategy.
+    *   **Enhanced:** Now includes contextual gaps and transferable skills from semantic matching.
     *   **Cost Control:** Only triggered for low-scoring profiles (< 70%). High scores skip to save tokens.
     *   **Frontend:** Accordion UI in Review page + chat interface for follow-up questions.
     *   **Action:** Do NOT generate strategic analysis for high scores (>= 70). Threshold: `REVIEW_RECOMMEND_THRESHOLD = 70`.
@@ -43,11 +59,14 @@ Result: **Hardened Chassis**.
 3.  **Verify Context Limits.** If users complain of "missing experience", check the `extraction_warning` field in their session.
 
 ## Key Files
-- `main.py`: Orchestration, endpoints, MD5 hashing, Strategic recommendations endpoint.
+- `main.py`: Orchestration, endpoints, MD5 hashing, Hybrid matching integration, Strategic recommendations endpoint.
 - `services/cache.py`: The persistence layer.
-- `services/llm_kimi.py`: The "brain" (Prompts, API calls, XML injection, Strategic analysis generation).
+- `services/llm_kimi.py`: The "brain" (Prompts, API calls, XML injection, Strategic analysis generation, Skill ranking integration).
+- `services/llm_matching.py`: Semantic matching (keyword extraction, skill ranking, achievement scoring, gap detection).
+- `services/scoring.py`: Baseline ATS matching (regex-based, used in hybrid approach).
 - `services/extract_documents.py`: Parsing logic (PDF/DOCX/OCR).
 - `static/app.js`: Frontend logic, i18n, Strategic UI rendering + chat.
+- `tests/test_semantic_matching_unit.py`: TDD test suite for semantic matching (6 tests, mocked LLM).
 - `tests/test_strategic_recommendations.py`: TDD test suite for strategic features.
 
 ## User Persona

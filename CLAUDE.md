@@ -12,7 +12,8 @@ Document-first ATS-optimized CV + cover letter generation wizard. Five-step flow
 - **Persistence:** Disk-backed pickle storage (`data/sessions`, `data/artifacts`, `data/documents`).
 - **PDF:** WeasyPrint (needs system libs: pango, harfbuzz, freetype)
 - **OCR:** GPT-5 Mini vision, PyMuPDF, pdfplumber
-- **LLM:** Multi-provider: OpenAI (extraction/OCR), Anthropic Claude (generation), Google Gemini (crosscheck, max mode only). Quality via `HAPPYRAV_QUALITY` env (balanced/max)
+- **LLM:** Multi-provider: OpenAI (extraction/OCR/semantic matching), Anthropic Claude (generation), Google Gemini (crosscheck, max mode only). Quality via `HAPPYRAV_QUALITY` env (balanced/max)
+- **Semantic Matching:** LLM-based contextual CV-job alignment (GPT-4.1-mini). Hybrid scoring: 40% baseline regex + 60% semantic understanding. Detects transferable skills, contextual gaps, ranks skills by relevance.
 - **Token Optimization:** Source documents injected via raw XML `<DOCUMENTS>` tags (no JSON escaping).
 - **Frontend:** Vanilla JS, single `app.js` with inline i18n (EN/DE), no framework
 - **Templates:** Jinja2 for pages (`templates/`) and PDF docs (`doc_templates/`)
@@ -27,8 +28,9 @@ models.py                  # Pydantic models (SessionState, ThemeConfig, etc.)
 services/
   cache.py                 # File-based persistent caches (Session/Artifact/Document)
   llm_kimi.py              # Multi-provider LLM: OpenAI extraction, Anthropic generation, Gemini crosscheck, Strategic analysis
+  llm_matching.py          # Semantic matching: keyword extraction, skill ranking, achievement scoring, gap detection (OpenAI GPT-4.1-mini)
   extract_documents.py     # File parsing (PDF, DOCX, images via vision OCR)
-  scoring.py               # ATS match scoring via parser_scanner
+  scoring.py               # ATS match scoring via parser_scanner (baseline)
   question_engine.py       # Gap detection, missing questions builder
   templating.py            # HTML rendering, filename builder
   pdf_render.py            # WeasyPrint HTML to PDF
@@ -65,7 +67,29 @@ All UI text lives in `I18N` object inside `app.js` with `en` and `de` keys. HTML
 - **Context Limits:** 64k chars (Extraction), 48k chars (Generation). Explicit `llm_warning` returned if truncated.
 - **OCR Cache:** `main.py` checks `document_cache` (MD5 of bytes) before calling `extract_text_from_bytes`.
 
-### Strategic Recommendations (NEW)
+### Semantic Matching (NEW)
+LLM-based contextual CV-job alignment replaces rigid regex matching:
+- **Module:** `services/llm_matching.py` (OpenAI GPT-4.1-mini)
+- **Functions:**
+  - `extract_semantic_keywords()` - Job ad → keywords with alternatives/synonyms and criticality scores
+  - `match_skills_semantic()` - CV skills + keywords → semantic match with transferable skills detection
+  - `rank_skills_by_relevance()` - Rank CV skills by job relevance (0-1 scores)
+  - `score_achievement_relevance()` - Score achievements, suggest metric-rich rewrites
+  - `detect_contextual_gaps()` - Identify gaps with severity (critical/important/nice-to-have)
+  - `merge_match_scores()` - Combine baseline + semantic scores (40/60 weighting)
+- **Integration:**
+  - **Preview-match:** Hybrid scoring with fallback to baseline on LLM errors
+  - **Generation:** Pre-processes with skill ranking + achievement scoring, injects optimization hints into prompts
+  - **Strategic analysis:** Enhanced with contextual gaps and transferable skills
+- **Features:**
+  - Synonym resolution: "React" matches "frontend framework"
+  - Transferable skills: "SQL database design" matches "data modeling"
+  - Gap substitutability: Identifies which gaps can be compensated
+  - Achievement optimization: Flags vague achievements, suggests adding metrics
+- **Cost:** ~$0.008 per match (GPT-4.1-mini)
+- **Tests:** 6 unit tests with mocked LLM responses (`tests/test_semantic_matching_unit.py`)
+
+### Strategic Recommendations
 LLM-generated application advice when match score < 70:
 - **Backend:** `generate_strategic_analysis()` in `llm_kimi.py` generates strengths, gaps, recommendations
 - **Endpoint:** `POST /api/session/{session_id}/preview-match` includes `strategic_analysis` field
@@ -73,6 +97,7 @@ LLM-generated application advice when match score < 70:
 - **Frontend:** Strategic accordion in Review page (after keyword comparison), interactive chat interface
 - **Threshold:** `REVIEW_RECOMMEND_THRESHOLD = 70` in `main.py`
 - **Cost:** ~$0.07 per analysis, ~$0.04 per chat message (Claude Sonnet)
+- **Enhanced:** Now includes contextual gaps and transferable skills from semantic matching
 - **i18n:** Full EN/DE support for all strategic UI text
 
 ## Deploy
@@ -126,5 +151,6 @@ node --check static/app.js
 - **Persistence:** Deleting `data/` wipes all active sessions.
 - **OCR Costs:** Testing image uploads consumes tokens unless the file is already in `data/documents`.
 - **Truncation:** If a user uploads >64k chars, the `extraction_warning` field in `SessionState` will be populated. The UI should display this.
-- ATS scoring uses shared `parser_scanner` from `ats-scanner/app/scanners/`.
+- **ATS Scoring:** Hybrid approach - 40% baseline (parser_scanner from `ats-scanner/app/scanners/`) + 60% semantic (LLM-based). Falls back to baseline if LLM unavailable.
+- **Semantic matching costs:** ~$0.008 per preview-match (GPT-4.1-mini). All LLM calls have error handling with fallback to baseline.
 - **Strategic analysis:** Only generated when match score < 70. High-scoring profiles skip this step to save costs.

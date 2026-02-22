@@ -19,8 +19,14 @@ Document-first ATS CV + cover letter app for `gusty.ch/happyrav`.
 - Optional Codex OAuth token fallback (`~/.codex/auth.json`) when `OPENAI_API_KEY` is not set
 - Templates: `simple`, `sophisticated`, `friendly` (+ advanced color options)
 - Required gaps block generation (`422`) until resolved
-- ATS score + missing keywords + ATS issues in review and result
-- **Strategic recommendations:** LLM-generated application advice when match score < 70 (strengths, gaps, recommendations)
+- **Hybrid ATS Matching (40% baseline + 60% semantic):**
+  - Semantic keyword extraction with alternatives/synonyms
+  - Transferable skills detection (e.g., "React" → "frontend framework")
+  - Contextual gap analysis with severity classification (critical/important/nice-to-have)
+  - Skill ranking by job relevance (0-1 scores)
+  - Achievement optimization with metric-rich rewrite suggestions
+  - Fallback to baseline regex matching on LLM errors
+- **Strategic recommendations:** LLM-generated application advice when match score < 70 (strengths, gaps, recommendations, transferable skills)
 - **Interactive chat:** Ask follow-up questions about application strategy
 - PDF generation from HTML templates via WeasyPrint
 - Optional SMTP email with both generated PDFs
@@ -31,6 +37,10 @@ Document-first ATS CV + cover letter app for `gusty.ch/happyrav`.
 - **Token Efficiency:** Source documents are injected using raw `<DOCUMENTS>` XML tags to avoid JSON escaping overhead.
 - **OCR Economy:** Uploaded files are hashed (MD5). If a file is re-uploaded (even in a new session), the system retrieves the extracted text/OCR result from `data/documents` instead of re-billing for Vision tokens.
 - **Data Integrity:** Explicit truncation warnings if input exceeds 64k chars (extraction) or 48k chars (generation).
+- **Semantic Matching:** Multi-provider LLM approach:
+  - OpenAI GPT-4.1-mini for semantic keyword extraction, skill ranking, achievement scoring (~$0.008/match)
+  - Anthropic Claude Sonnet for strategic analysis (~$0.07, only if score <70%)
+  - Hybrid scoring: 40% baseline (regex) + 60% semantic (LLM) with graceful fallback
 
 ## API (v2)
 
@@ -75,6 +85,7 @@ Test coverage:
 - **Disk Persistence:** Sessions/artifacts survive restarts
 - **Truncation Warnings:** >64k (extraction), >48k (generation)
 - **Strategic Recommendations:** Analysis generation, chat endpoint, score thresholds
+- **Semantic Matching:** Keyword extraction, transferable skills, gap severity, hybrid scoring, skill ranking, achievement optimization (unit tests with mocked LLM)
 
 ## Run locally
 
