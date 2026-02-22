@@ -63,7 +63,25 @@
     <summary data-i18n="comparison.keywords_title">Job ad vs CV keyword comparison</summary>
     <div id="review-keyword-comparison"></div>
   </details>
+
+  <!-- Strategic Analysis Section -->
+  <details id="strategic-accordion" class="more-options" style="display:none;">
+    <summary data-i18n="strategic.title">Application Strategy & Recommendations</summary>
+    <div id="strategic-content"></div>
+
+    <!-- Recommendations Chat -->
+    <div id="strategic-chat" class="chat-bar-section" style="margin-top: 16px;">
+      <h4 data-i18n="strategic.chat_title">Ask About Recommendations</h4>
+      <div id="strategic-messages" class="chat-messages"></div>
+      <div class="chat-input-row">
+        <input id="strategic-input" type="text" data-i18n-placeholder="strategic.chat_placeholder" placeholder="e.g., How should I address the Kubernetes gap?">
+        <button id="strategic-send-btn" type="button" class="btn-secondary" data-i18n="strategic.send">Ask</button>
+      </div>
+    </div>
+  </details>
+
   <div class="row-actions">
+    <button id="preview-match-btn" type="button" class="btn-secondary" disabled data-i18n="action.preview_match">Preview Match Score</button>
     <button id="generate-btn" type="button" class="btn-primary" disabled data-i18n="action.generate_cv">Generate CV</button>
   </div>
   <div id="cv-generated-info" style="display:none" class="alert success">

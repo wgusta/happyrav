@@ -10,7 +10,14 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from openai import OpenAI
 
-from happyrav.models import EducationItem, ExperienceItem, ExtractedProfile, GeneratedContent
+from happyrav.models import (
+    ChronologicalEntry,
+    EducationItem,
+    ExperienceItem,
+    ExtractedProfile,
+    GeneratedContent,
+    MonsterCVProfile,
+)
 from happyrav.services.parsing import split_keywords
 
 
@@ -344,7 +351,12 @@ def _profile_extract_prompt(language: str, source_documents: List[str]) -> Tuple
         "Extract structured CV facts from the provided documents. "
         "Use only explicit facts from input. Do not infer employers, dates, degrees, locations, or contacts. "
         "If a field is unknown return empty string/list. "
-        "Return concise normalized values."
+        "Return concise normalized values.\n\n"
+        "CRITICAL: Separate language skills from technical skills:\n"
+        "- languages: ONLY spoken/written languages with levels (e.g., 'Deutsch (Muttersprache)', 'Französisch (B2)', 'English (C1)')\n"
+        "- skills: Technical competencies, tools, frameworks, domain expertise (e.g., 'Python (Expert)', 'Requirements Engineering (IREB)', 'Kundenportal')\n"
+        "- Never put language skills in the skills array\n"
+        "- Always include proficiency levels in parentheses when available"
     )
     prompt = (
         f"{guard}\n"
@@ -396,6 +408,8 @@ def _generate_prompt(
         "- Preserve all original period dates exactly as provided.\n"
         "- Rewrite achievements to match job ad keywords, but never remove an experience entry.\n"
         "- Include ALL education entries, never skip any.\n"
+        "- Skills array: ONLY technical/domain skills. Languages are handled separately, never include them.\n"
+        "- Always include skill levels in parentheses when known (e.g., 'Python (Expert)', 'SQL (Advanced)').\n"
         "- Treat pre_generation_match_context as optimization guidance:\n"
         "  prioritize missing keywords, keep matched keywords present, and fix ATS issues where possible."
     )
@@ -410,6 +424,8 @@ def _generate_prompt(
             "- Alle originalen Zeitangaben exakt übernehmen.\n"
             "- Erfolge auf Stelleninserat-Keywords anpassen, aber niemals einen Erfahrungseintrag entfernen.\n"
             "- Alle Ausbildungseinträge aufführen, niemals überspringen.\n"
+            "- Skills Array: NUR technische/fachliche Kompetenzen. Sprachen separat behandelt, niemals hier einbeziehen.\n"
+            "- Skill-Level immer in Klammern angeben wenn bekannt (z.B. 'Python (Experte)', 'SQL (Fortgeschritten)').\n"
             "- pre_generation_match_context als Optimierungsleitplanken nutzen:\n"
             "  fehlende Keywords gezielt integrieren, vorhandene Treffer erhalten, ATS Probleme verbessern."
         )
@@ -598,4 +614,376 @@ async def refine_content(
         profile,
         job_ad_text,
         chat_history or [],
+    )
+
+
+def _monster_timeline_prompt(language: str, source_documents: List[str], doc_tags: List[str]) -> Tuple[str, Optional[str]]:
+    """Build prompt for comprehensive Monster CV timeline extraction."""
+    schema = {
+        "timeline": [
+            {
+                "start_date": "string (YYYY, YYYY-MM, or YYYY-MM-DD)",
+                "end_date": "string (empty if current/ongoing)",
+                "entry_type": "employment|education|achievement|certification",
+                "organization": "string",
+                "role_or_title": "string",
+                "responsibilities": ["string", "..."],
+                "achievements": ["string", "..."],
+                "skills_used": ["string", "..."],
+                "context": "string (team size, technologies, special projects)",
+                "source_doc_id": "string",
+                "confidence": "float",
+            }
+        ],
+        "all_skills": ["string", "..."],
+        "all_certifications": ["string", "..."],
+        "extraction_metadata": {},
+    }
+
+    # Prioritize Arbeitszeugnisse by reordering documents
+    prioritized_docs = []
+    other_docs = []
+    for i, (doc, tag) in enumerate(zip(source_documents, doc_tags)):
+        if tag == "arbeitszeugnis":
+            prioritized_docs.append(doc)
+        else:
+            other_docs.append(doc)
+    ordered_docs = prioritized_docs + other_docs
+
+    raw_blob = "\n\n--- DOCUMENT ---\n\n".join(ordered_docs)
+    limit = 80000
+    warning = None
+    if len(raw_blob) > limit:
+        raw_blob = raw_blob[:limit]
+        warning = "Source documents truncated to 80k chars for Monster CV extraction."
+
+    guard_en = (
+        "Extract a COMPREHENSIVE chronological timeline from all documents. "
+        "This is a 'Monster CV' - extract EVERY responsibility, task, achievement, and metric. NO SUMMARIZATION.\n\n"
+        "CRITICAL RULES:\n"
+        "- Extract ALL positions, roles, education, certifications mentioned\n"
+        "- Preserve ALL responsibilities verbatim (no bullet limits)\n"
+        "- Preserve ALL achievements with exact metrics and numbers\n"
+        "- Arbeitszeugnisse (work references) contain detailed performance evaluations - extract ALL content\n"
+        "- Include context: team size, technologies, budget, special projects\n"
+        "- Chronological order by start_date (most recent first)\n"
+        "- Preserve original date strings if unclear format\n"
+        "- Do NOT merge or summarize entries\n"
+        "- This is an archival document, completeness over brevity\n"
+    )
+
+    guard_de = (
+        "Extrahiere eine UMFASSENDE chronologische Zeitleiste aus allen Dokumenten. "
+        "Dies ist ein 'Monster CV' - extrahiere JEDE Verantwortlichkeit, Aufgabe, Erfolg und Metrik. KEINE ZUSAMMENFASSUNG.\n\n"
+        "KRITISCHE REGELN:\n"
+        "- Alle Positionen, Rollen, Ausbildungen, Zertifizierungen extrahieren\n"
+        "- Alle Verantwortlichkeiten wortwörtlich übernehmen (keine Limits)\n"
+        "- Alle Erfolge mit exakten Metriken und Zahlen\n"
+        "- Arbeitszeugnisse enthalten detaillierte Leistungsbeurteilungen - ALLE Inhalte extrahieren\n"
+        "- Kontext einbeziehen: Teamgröße, Technologien, Budget, Spezialprojekte\n"
+        "- Chronologische Ordnung nach start_date (neueste zuerst)\n"
+        "- Originale Datumsstrings beibehalten bei unklarem Format\n"
+        "- Einträge NICHT zusammenführen oder zusammenfassen\n"
+        "- Dies ist ein Archivdokument, Vollständigkeit vor Kürze\n"
+    )
+
+    guard = guard_de if language == "de" else guard_en
+
+    prompt = (
+        f"{guard}\n"
+        f"Output schema: {json.dumps(schema, ensure_ascii=True)}\n\n"
+        f"Input documents (Arbeitszeugnisse prioritized):\n<DOCUMENTS>\n{raw_blob}\n</DOCUMENTS>"
+    )
+    return prompt, warning
+
+
+def _coerce_timeline_entry(item: Any) -> Optional[ChronologicalEntry]:
+    """Coerce dict to ChronologicalEntry with validation."""
+    if not isinstance(item, dict):
+        return None
+
+    role_or_title = str(item.get("role_or_title", "")).strip()
+    if not role_or_title:
+        return None
+
+    entry_type = str(item.get("entry_type", "employment")).strip()
+    if entry_type not in ("employment", "education", "achievement", "certification"):
+        entry_type = "employment"
+
+    return ChronologicalEntry(
+        start_date=str(item.get("start_date", "")).strip(),
+        end_date=str(item.get("end_date", "")).strip(),
+        entry_type=entry_type,
+        organization=str(item.get("organization", "")).strip(),
+        role_or_title=role_or_title,
+        responsibilities=_safe_list(item.get("responsibilities", [])),
+        achievements=_safe_list(item.get("achievements", [])),
+        skills_used=_safe_list(item.get("skills_used", [])),
+        context=str(item.get("context", "")).strip(),
+        source_doc_id=str(item.get("source_doc_id", "")).strip(),
+        confidence=float(item.get("confidence", 0.0)),
+    )
+
+
+def _coerce_monster_payload(payload: Dict[str, Any]) -> MonsterCVProfile:
+    """Coerce raw JSON to MonsterCVProfile."""
+    from happyrav.services.parsing import parse_date_for_sort
+
+    timeline_raw = payload.get("timeline", [])
+    timeline_entries = []
+    for item in timeline_raw if isinstance(timeline_raw, list) else []:
+        entry = _coerce_timeline_entry(item)
+        if entry:
+            timeline_entries.append(entry)
+
+    # Sort chronologically (most recent first)
+    timeline_entries.sort(key=lambda e: parse_date_for_sort(e.start_date), reverse=True)
+
+    # Deduplicate by org+role+period
+    seen = set()
+    deduped = []
+    for entry in timeline_entries:
+        key = (entry.organization.lower(), entry.role_or_title.lower(), entry.start_date, entry.end_date)
+        if key not in seen:
+            seen.add(key)
+            deduped.append(entry)
+
+    return MonsterCVProfile(
+        timeline=deduped,
+        all_skills=_safe_list(payload.get("all_skills", [])),
+        all_certifications=_safe_list(payload.get("all_certifications", [])),
+        extraction_metadata=payload.get("extraction_metadata", {}),
+    )
+
+
+def _extract_monster_timeline_sync(
+    language: str,
+    source_documents: List[str],
+    doc_tags: List[str],
+) -> Tuple[Optional[MonsterCVProfile], Optional[str]]:
+    """Synchronous Monster CV timeline extraction."""
+    if not source_documents:
+        return None, "No source documents provided"
+
+    prompt, warning = _monster_timeline_prompt(language, source_documents, doc_tags)
+
+    try:
+        payload = _chat_json_openai(prompt=prompt, max_tokens=8000, model=CFG["extraction"])
+        timeline = _coerce_monster_payload(payload)
+        return timeline, warning
+    except Exception as exc:
+        err_msg = f"Monster CV extraction failed: {exc}"
+        if warning:
+            err_msg = f"{warning} | {err_msg}"
+        return None, err_msg
+
+
+async def extract_monster_timeline(
+    language: str,
+    source_documents: List[str],
+    doc_tags: List[str],
+) -> Tuple[Optional[MonsterCVProfile], Optional[str]]:
+    """Extract comprehensive Monster CV timeline (all responsibilities, no limits)."""
+    return await asyncio.to_thread(_extract_monster_timeline_sync, language, source_documents, doc_tags)
+
+
+def _strategic_analysis_prompt(
+    language: str,
+    match: Any,
+    profile: ExtractedProfile,
+    job_ad_text: str,
+) -> str:
+    """Build prompt for strategic analysis generation."""
+    lang_label = "English" if language == "en" else "German"
+
+    matched_kw = ", ".join(match.matched_keywords) if match.matched_keywords else "None"
+    missing_kw = ", ".join(match.missing_keywords) if match.missing_keywords else "None"
+
+    skills_list = ", ".join(profile.skills) if profile.skills else "Not specified"
+    experience_summary = ""
+    if profile.experience:
+        exp_items = [f"{e.title} at {e.company} ({e.duration or 'duration unknown'})" for e in profile.experience[:3]]
+        experience_summary = "; ".join(exp_items)
+    else:
+        experience_summary = "No experience listed"
+
+    return f"""You are a career strategist analyzing a candidate's fit for a role.
+
+INPUT:
+- Job ad: {job_ad_text}
+- Candidate profile: {profile.full_name or 'Unknown'}
+  Headline: {profile.headline or 'Not specified'}
+  Skills: {skills_list}
+  Experience: {experience_summary}
+- Match analysis:
+  Overall score: {match.overall_score:.1f}%
+  Matched keywords: {matched_kw}
+  Missing keywords: {missing_kw}
+
+TASK:
+Provide strategic advice on how to apply for this role in {lang_label}:
+
+1. STRENGTHS (2-3 points): Where candidate matches well
+   - Example: "Strong match on Python, SQL, and 5+ years experience"
+
+2. GAPS (2-3 points): What's missing and severity
+   - Example: "Missing Kubernetes experience (nice-to-have, not critical)"
+   - Distinguish must-have vs nice-to-have gaps
+
+3. RECOMMENDATIONS (3-5 specific actions):
+   - Cover letter: What to emphasize, what gaps to address directly
+   - Interview: Which strengths to highlight, which gaps to prepare for
+   - Application strategy: Any positioning advice
+
+4. SUMMARY (1-2 sentences): Overall recommendation
+
+CRITICAL:
+- Be specific (mention exact skills/experiences)
+- Distinguish must-have vs nice-to-have gaps
+- Provide actionable advice (not generic)
+- These are recommendations FOR THE USER, not changes to the CV
+- Score {match.overall_score:.1f}%: {"congratulatory tone, emphasize strengths" if match.overall_score >= 70 else "constructive tone, focus on gap mitigation"}
+
+Output: JSON with keys {{strengths, gaps, recommendations, summary}}
+Each list should contain 2-5 items."""
+
+
+def _generate_strategic_analysis_sync(
+    language: str,
+    match: Any,
+    profile: ExtractedProfile,
+    job_ad_text: str,
+) -> Dict[str, Any]:
+    """Synchronous strategic analysis generation."""
+    prompt = _strategic_analysis_prompt(language, match, profile, job_ad_text)
+    system = "You are an expert career strategist. Return valid JSON only."
+
+    try:
+        payload = _chat_json_anthropic(
+            model=CFG["generation"],
+            system=system,
+            user=prompt,
+            max_tokens=1500,
+        )
+        # Ensure all required keys exist
+        return {
+            "strengths": payload.get("strengths", []),
+            "gaps": payload.get("gaps", []),
+            "recommendations": payload.get("recommendations", []),
+            "summary": payload.get("summary", ""),
+        }
+    except Exception as exc:
+        # Graceful degradation if LLM fails
+        return {
+            "strengths": ["Unable to generate strategic analysis"],
+            "gaps": [],
+            "recommendations": [],
+            "summary": f"Analysis generation failed: {exc}",
+        }
+
+
+async def generate_strategic_analysis(
+    language: str,
+    match: Any,
+    profile: ExtractedProfile,
+    job_ad_text: str,
+) -> Dict[str, Any]:
+    """Generate strategic recommendations for job application."""
+    return await asyncio.to_thread(
+        _generate_strategic_analysis_sync,
+        language,
+        match,
+        profile,
+        job_ad_text
+    )
+
+
+def _answer_strategic_question_prompt(
+    language: str,
+    user_question: str,
+    strategic_context: Dict[str, Any],
+    match_context: Dict[str, Any],
+    profile: ExtractedProfile,
+    job_ad: str,
+) -> str:
+    """Build prompt for answering strategic questions."""
+    lang_label = "English" if language == "en" else "German"
+
+    strengths = "\n".join(f"- {s}" for s in strategic_context.get("strengths", []))
+    gaps = "\n".join(f"- {g}" for g in strategic_context.get("gaps", []))
+    recommendations = "\n".join(f"- {r}" for r in strategic_context.get("recommendations", []))
+
+    return f"""You are a career advisor helping a candidate understand their application strategy.
+
+CONTEXT:
+Job ad: {job_ad[:500]}...
+Candidate: {profile.full_name or 'Unknown'} - {profile.headline or 'Professional'}
+Match score: {match_context.get('overall_score', 0):.1f}%
+
+STRATEGIC ANALYSIS ALREADY PROVIDED:
+Strengths:
+{strengths}
+
+Gaps:
+{gaps}
+
+Recommendations:
+{recommendations}
+
+USER QUESTION:
+{user_question}
+
+TASK:
+Answer the user's question in {lang_label} with specific, actionable advice based on the context above.
+- Reference specific skills, gaps, or strengths from the analysis
+- Provide concrete examples or phrasing suggestions if asked
+- Keep response concise (2-4 sentences)
+- Stay focused on application strategy
+
+Do NOT return JSON. Return plain text answer only."""
+
+
+def _answer_strategic_question_sync(
+    language: str,
+    user_question: str,
+    strategic_context: Dict[str, Any],
+    match_context: Dict[str, Any],
+    profile: ExtractedProfile,
+    job_ad: str,
+) -> str:
+    """Synchronous strategic question answering."""
+    prompt = _answer_strategic_question_prompt(
+        language, user_question, strategic_context, match_context, profile, job_ad
+    )
+
+    client = _build_anthropic_client()
+    try:
+        resp = client.messages.create(
+            model=CFG["generation"],
+            max_tokens=500,
+            system="You are a helpful career advisor. Provide concise, actionable advice.",
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return (resp.content[0].text or "").strip()
+    except Exception as exc:
+        return f"Sorry, I couldn't generate a response. Error: {exc}"
+
+
+async def _answer_strategic_question(
+    language: str,
+    user_question: str,
+    strategic_context: Dict[str, Any],
+    match_context: Dict[str, Any],
+    profile: ExtractedProfile,
+    job_ad: str,
+) -> str:
+    """Answer user's strategic question with context-aware advice."""
+    return await asyncio.to_thread(
+        _answer_strategic_question_sync,
+        language,
+        user_question,
+        strategic_context,
+        match_context,
+        profile,
+        job_ad
     )

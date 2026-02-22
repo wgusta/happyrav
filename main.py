@@ -27,6 +27,7 @@ from happyrav.models import (
     DocTag,
     ExtractedProfile,
     GenerateRequest,
+    MonsterArtifactRecord,
     PreSeedRequest,
     SessionAnswerRequest,
     SessionIntakeRequest,
@@ -34,7 +35,7 @@ from happyrav.models import (
     SessionState,
     ThemeConfig,
 )
-from happyrav.services.cache import ArtifactCache, SessionCache, SessionRecord
+from happyrav.services.cache import ArtifactCache, MonsterCache, SessionCache, SessionRecord
 from happyrav.services.emailer import send_application_email
 from happyrav.services.extract_documents import (
     DOC_TAGS,
@@ -48,7 +49,14 @@ from happyrav.services.extract_documents import (
     is_supported_filename,
     merge_profiles,
 )
-from happyrav.services.llm_kimi import extract_profile_from_documents, generate_content, refine_content, has_api_key, QUALITY_MODE
+from happyrav.services.llm_kimi import (
+    extract_monster_timeline,
+    extract_profile_from_documents,
+    generate_content,
+    refine_content,
+    has_api_key,
+    QUALITY_MODE,
+)
 from happyrav.services.parsing import parse_hex_color, parse_language
 from happyrav.services.pdf_render import render_pdf
 from happyrav.services.question_engine import (
@@ -63,6 +71,7 @@ from happyrav.services.templating import (
     build_filenames,
     render_cover_html,
     render_cv_html,
+    render_monster_cv_html,
 )
 
 
@@ -80,6 +89,7 @@ PHOTO_MAX_BYTES = 5 * 1024 * 1024
 PHOTO_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp"}
 SIGNATURE_MAX_BYTES = 5 * 1024 * 1024
 SIGNATURE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp"}
+REVIEW_RECOMMEND_THRESHOLD = 70  # Match score threshold for "ready" vs "improve" recommendation
 
 DE_MONTHS = [
     "Januar", "Februar", "März", "April", "Mai", "Juni",
@@ -127,6 +137,7 @@ artifact_cache = ArtifactCache(ttl_seconds=int(os.getenv("HAPPYRAV_ARTIFACT_TTL"
 session_cache = SessionCache(ttl_seconds=int(os.getenv("HAPPYRAV_SESSION_TTL", "7200")))
 from happyrav.services.cache import DocumentCache
 document_cache = DocumentCache()
+monster_cache = MonsterCache(ttl_seconds=7200)
 
 
 def _require_session(session_id: str) -> SessionRecord:
@@ -781,6 +792,113 @@ def _build_comparison_sections(
     return sections
 
 
+@app.post("/api/session/{session_id}/preview-match")
+async def api_session_preview_match(session_id: str) -> Dict:
+    """Preview ATS match score before generating PDFs."""
+    record = _require_session(session_id)
+    state = record.state
+
+    if not state.job_ad_text.strip():
+        raise HTTPException(status_code=422, detail="Job ad text required for match preview.")
+
+    # Use extracted profile to build preview CV text
+    profile = state.extracted_profile
+    if not profile.full_name and not profile.experience:
+        raise HTTPException(status_code=422, detail="No profile data available. Upload documents first.")
+
+    basic_profile = _profile_to_basic(profile)
+
+    # Build draft CV text from extracted profile (without generation)
+    cv_lines = [basic_profile.full_name, basic_profile.headline, profile.summary]
+    cv_lines.extend(profile.skills[:30])
+    for item in profile.experience[:12]:
+        cv_lines.extend([item.role, item.company, item.period])
+        cv_lines.extend(item.achievements)
+    for item in profile.education[:8]:
+        cv_lines.extend([item.degree, item.school, item.period])
+
+    cv_text = "\n".join([line for line in cv_lines if line])
+
+    if state.telos_context:
+        telos_lines = [f"{k}: {v}" for k, v in state.telos_context.items() if v]
+        cv_text += "\n\n# Career Goals & Values\n" + "\n".join(telos_lines)
+
+    # Compute match
+    match = compute_match(cv_text=cv_text, job_ad_text=state.job_ad_text, language=state.language)
+
+    # Determine recommendation
+    recommend_generate = match.overall_score >= REVIEW_RECOMMEND_THRESHOLD
+    recommendation = "ready" if recommend_generate else "improve"
+    suggestion = ""
+
+    if not recommend_generate:
+        suggestions = []
+        if match.missing_keywords:
+            suggestions.append(f"Add missing keywords: {', '.join(match.missing_keywords[:5])}")
+        if match.ats_issues:
+            suggestions.append(f"Fix ATS issues: {match.ats_issues[0]}")
+        if match.category_scores.get("skills_match", 0) < 50:
+            suggestions.append("Add more relevant skills from job ad")
+        suggestion = " | ".join(suggestions[:2])
+
+    # Generate strategic analysis if score below threshold
+    strategic_analysis = None
+    if not recommend_generate:
+        from happyrav.services.llm_kimi import generate_strategic_analysis
+        strategic_analysis = await generate_strategic_analysis(
+            language=state.language,
+            match=match,
+            profile=profile,
+            job_ad_text=state.job_ad_text,
+        )
+
+    return {
+        "match": match.model_dump(),
+        "recommendation": recommendation,
+        "suggestion": suggestion,
+        "score": match.overall_score,
+        "strategic_analysis": strategic_analysis,
+    }
+
+
+@app.post("/api/session/{session_id}/ask-recommendation")
+async def api_session_ask_recommendation(session_id: str, payload: Dict[str, str]) -> Dict:
+    """Chat endpoint for strategic recommendation questions."""
+    record = _require_session(session_id)
+    state = record.state
+    message = payload.get("message", "").strip()
+
+    if not message:
+        raise HTTPException(status_code=422, detail="Message required")
+
+    # Build context from server state
+    strategic = state.server.get("strategic_analysis", {})
+    match_data = state.server.get("review_match", {})
+
+    # Import here to avoid circular dependency
+    from happyrav.services.llm_kimi import _answer_strategic_question
+
+    # Use Anthropic for conversational response
+    response_text = await _answer_strategic_question(
+        language=state.language,
+        user_question=message,
+        strategic_context=strategic,
+        match_context=match_data,
+        profile=state.extracted_profile,
+        job_ad=state.job_ad_text,
+    )
+
+    # Store in chat history
+    record.chat_history.append({"role": "user", "content": message})
+    record.chat_history.append({"role": "assistant", "content": response_text})
+    session_cache.set(record)
+
+    return {
+        "response": response_text,
+        "message": response_text,
+    }
+
+
 @app.post("/api/session/{session_id}/generate")
 async def api_session_generate(
     request: Request,
@@ -1076,6 +1194,110 @@ async def api_session_generate_cover(
             }
 
     raise HTTPException(status_code=404, detail="No CV artifact found. Generate CV first.")
+
+
+@app.post("/api/session/{session_id}/generate-monster")
+async def api_session_generate_monster(
+    request: Request,
+    session_id: str,
+) -> Dict:
+    """Generate Monster CV: comprehensive chronological timeline extraction."""
+    if not has_api_key():
+        raise HTTPException(
+            status_code=503,
+            detail="Required API keys not configured (OPENAI_API_KEY + ANTHROPIC_API_KEY).",
+        )
+
+    record = _require_session(session_id)
+    state = record.state
+
+    if not record.document_texts:
+        raise HTTPException(status_code=422, detail="No documents uploaded.")
+
+    # Extract comprehensive timeline
+    source_documents = list(record.document_texts.values())
+    doc_tags = [doc.tag for doc in state.documents]
+
+    timeline, warning = await extract_monster_timeline(
+        language=state.language,
+        source_documents=source_documents,
+        doc_tags=doc_tags,
+    )
+
+    if not timeline or not timeline.timeline:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Monster CV extraction failed. {warning or ''}"
+        )
+
+    # Render Monster CV PDF
+    profile_name = state.extracted_profile.full_name or "Career Timeline"
+    monster_html = render_monster_cv_html(
+        language=state.language,
+        profile_name=profile_name,
+        timeline=timeline,
+        theme=state.theme,
+    )
+
+    try:
+        monster_pdf = render_pdf(monster_html)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Monster PDF generation failed: {exc}") from exc
+
+    # Generate filename
+    safe_name = "".join(ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in profile_name.strip())
+    filename = f"MonsterCV_{safe_name}.pdf"
+
+    # Store in monster cache
+    token = monster_cache.create_token()
+    monster_artifact = MonsterArtifactRecord(
+        token=token,
+        filename=filename,
+        pdf_bytes=monster_pdf,
+        html=monster_html,
+        timeline=timeline,
+        expires_at=time.time() + monster_cache.ttl_seconds,
+    )
+    monster_cache.set(monster_artifact)
+
+    # Update session state
+    state.monster_cv_generated = True
+    session_cache.set(record)
+
+    # Compute stats
+    date_range = ""
+    if timeline.timeline:
+        from happyrav.services.parsing import parse_date_for_sort
+        dates = []
+        for entry in timeline.timeline:
+            if entry.start_date:
+                dates.append(parse_date_for_sort(entry.start_date))
+            if entry.end_date:
+                dates.append(parse_date_for_sort(entry.end_date))
+        valid_dates = [d for d in dates if d > 0]
+        if valid_dates:
+            min_year = min(valid_dates) // 10000
+            max_year = max(valid_dates) // 10000
+            date_range = f"{min_year}-{max_year}" if min_year != max_year else str(min_year)
+
+    return {
+        "token": token,
+        "filename": filename,
+        "entry_count": len(timeline.timeline),
+        "date_range": date_range,
+        "warning": warning,
+    }
+
+
+@app.get("/download/monster/{token}")
+async def download_monster(token: str) -> Response:
+    """Download Monster CV PDF."""
+    record = monster_cache.get(token)
+    if not record:
+        raise HTTPException(status_code=404, detail="Monster CV token expired or invalid.")
+
+    headers = {"Content-Disposition": f'attachment; filename="{record.filename}"'}
+    return Response(content=record.pdf_bytes, media_type="application/pdf", headers=headers)
 
 
 @app.get("/result/{token}", response_class=HTMLResponse, name="result_page")

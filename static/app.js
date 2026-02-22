@@ -70,6 +70,7 @@
       "action.refresh_session": "Refresh session state",
       "action.save_answers": "Save answers + refresh",
       "action.clear_session": "Clear session",
+      "action.preview_match": "Preview Match Score",
       "action.generate_cv": "Generate CV",
       "action.generate_cover": "Generate Cover Letter",
       "action.generate": "Generate CV + Cover Letter",
@@ -173,6 +174,25 @@
       "notify.signature_uploaded": "Signature uploaded.",
       "notify.cover_generated": "Cover letter generated.",
 
+      "monster.title": "Comprehensive Career Timeline",
+      "monster.description": "Extract ALL responsibilities, tasks, achievements from your documents. No summarization, no limits.",
+      "monster.warning": "⚠ Takes 30-45 seconds to analyze all documents",
+      "monster.button": "Generate Monster CV",
+      "monster.ready": "Monster CV ready",
+      "monster.stats": "{count} entries · {range}",
+      "monster.download": "Download Monster CV",
+      "monster.generating": "Generating Monster CV...",
+      "monster.step1": "Loading all uploaded documents...",
+      "monster.step2": "Prioritizing Arbeitszeugnisse for detailed extraction...",
+      "monster.step3": "Extracting every responsibility mentioned...",
+      "monster.step4": "Capturing all achievements with metrics...",
+      "monster.step5": "Building comprehensive timeline...",
+      "monster.step6": "Sorting chronologically (most recent first)...",
+      "monster.step7": "Preserving context and team details...",
+      "monster.step8": "Compiling all skills and certifications...",
+      "monster.step9": "Rendering archival PDF document...",
+      "monster.step10": "Finalizing Monster CV...",
+
       "chat.title": "Request Changes",
       "chat.placeholder": "e.g. Make my summary shorter...",
       "chat.send": "Send",
@@ -221,6 +241,15 @@
       "comparison.keyword_matched": "Matched",
       "comparison.keyword_missing": "Missing",
       "comparison.no_keywords": "No keyword data available.",
+
+      "strategic.title": "Application Strategy & Recommendations",
+      "strategic.summary_label": "Summary",
+      "strategic.strengths_label": "Your Strengths",
+      "strategic.gaps_label": "Gaps to Address",
+      "strategic.recommendations_label": "Specific Recommendations",
+      "strategic.chat_title": "Ask About Recommendations",
+      "strategic.chat_placeholder": "e.g., How should I address the Kubernetes gap?",
+      "strategic.send": "Ask",
 
       "fmt.title": "Hey, you've clicked generate 6 times!",
       "fmt.nudge": "Since I'm an AI that doesn't fully understand the context of your professional life, help me get that context. Go back and add these details manually if things are missing:",
@@ -346,6 +375,7 @@
       "action.generate_cv": "CV generieren",
       "action.generate_cover": "Anschreiben generieren",
       "action.generate": "CV + Anschreiben generieren",
+      "action.preview_match": "Match-Score Vorschau",
       "action.download_cv": "CV herunterladen",
       "action.continue_upload": "Weiter zum Upload",
       "action.continue_questions": "Weiter zu Fragen",
@@ -446,6 +476,25 @@
       "notify.signature_uploaded": "Unterschrift hochgeladen.",
       "notify.cover_generated": "Anschreiben generiert.",
 
+      "monster.title": "Umfassende Karrierechronologie",
+      "monster.description": "Extrahiere ALLE Verantwortlichkeiten, Aufgaben, Erfolge aus deinen Dokumenten. Keine Zusammenfassung, keine Limits.",
+      "monster.warning": "⚠ Dauert 30-45 Sekunden für Analyse aller Dokumente",
+      "monster.button": "Monster CV generieren",
+      "monster.ready": "Monster CV bereit",
+      "monster.stats": "{count} Einträge · {range}",
+      "monster.download": "Monster CV herunterladen",
+      "monster.generating": "Monster CV wird generiert...",
+      "monster.step1": "Alle hochgeladenen Dokumente werden geladen...",
+      "monster.step2": "Arbeitszeugnisse werden priorisiert für detaillierte Extraktion...",
+      "monster.step3": "Jede erwähnte Verantwortlichkeit wird extrahiert...",
+      "monster.step4": "Alle Erfolge mit Kennzahlen werden erfasst...",
+      "monster.step5": "Umfassende Zeitleiste wird aufgebaut...",
+      "monster.step6": "Chronologische Sortierung (neueste zuerst)...",
+      "monster.step7": "Kontext und Teamdetails werden bewahrt...",
+      "monster.step8": "Alle Skills und Zertifizierungen werden zusammengestellt...",
+      "monster.step9": "Archiv-PDF wird gerendert...",
+      "monster.step10": "Monster CV wird finalisiert...",
+
       "chat.title": "Änderungen anfragen",
       "chat.placeholder": "z.B. Zusammenfassung kürzen...",
       "chat.send": "Senden",
@@ -494,6 +543,15 @@
       "comparison.keyword_matched": "Treffer",
       "comparison.keyword_missing": "Fehlend",
       "comparison.no_keywords": "Keine Keyword Daten verfügbar.",
+
+      "strategic.title": "Bewerbungsstrategie & Empfehlungen",
+      "strategic.summary_label": "Zusammenfassung",
+      "strategic.strengths_label": "Ihre Stärken",
+      "strategic.gaps_label": "Lücken",
+      "strategic.recommendations_label": "Konkrete Empfehlungen",
+      "strategic.chat_title": "Fragen zu Empfehlungen",
+      "strategic.chat_placeholder": "z.B., Wie soll ich die Kubernetes-Lücke adressieren?",
+      "strategic.send": "Fragen",
 
       "fmt.title": "Hey, du hast 6 Mal auf Generieren geklickt!",
       "fmt.nudge": "Da ich eine KI bin, die den vollen Kontext deines Berufslebens nicht kennt, hilf mir dabei. Geh zurück und ergänze diese Details manuell, falls etwas fehlt:",
@@ -573,6 +631,8 @@
     server: null,
     uiLanguage: "de",
     artifactToken: "",
+    monsterToken: "",
+    monsterStats: null,
   };
 
   const statusBox = document.getElementById("global-status");
@@ -644,6 +704,7 @@
   const btnExtract = document.getElementById("extract-btn");
   const btnAnswers = document.getElementById("save-answers-btn");
   const btnGenerate = document.getElementById("generate-btn");
+  const btnPreviewMatch = document.getElementById("preview-match-btn");
   const btnClear = document.getElementById("clear-session-btn");
   const btnToReview = document.getElementById("to-review-btn");
   let ensureSessionPromise = null;
@@ -749,6 +810,7 @@
     if (btnUploadPhoto && photoFile) btnUploadPhoto.disabled = !hasSession || !photoFile.files.length;
     if (btnExtract) btnExtract.disabled = !hasSession;
     if (btnAnswers) btnAnswers.disabled = !hasSession || !hasQuestions;
+    if (btnPreviewMatch) btnPreviewMatch.disabled = !hasSession || !hasDocs || !state.server?.job_ad_text;
     if (btnGenerate) btnGenerate.disabled = !hasSession || !state.server?.ready_to_generate;
     if (btnClear) btnClear.disabled = !hasSession;
     if (btnToReview) btnToReview.disabled = !hasSession || unresolved > 0 || !state.server?.ready_to_generate;
@@ -1327,6 +1389,14 @@
     return [t("upload.step1"), t("upload.step2"), t("upload.step3")];
   }
 
+  function getMonsterSteps() {
+    return [
+      t("monster.step1"), t("monster.step2"), t("monster.step3"), t("monster.step4"),
+      t("monster.step5"), t("monster.step6"), t("monster.step7"), t("monster.step8"),
+      t("monster.step9"), t("monster.step10"),
+    ];
+  }
+
   function createGenOverlay() {
     if (genOverlayEl) return;
     genOverlayEl = document.createElement("div");
@@ -1414,6 +1484,59 @@
     }
   }
 
+  async function generateMonsterCV() {
+    if (!state.sessionId) throw new Error(t("error.start_session_first"));
+    showGeneratingOverlay(getMonsterSteps());
+    try {
+      const response = await fetch(endpoint(`/api/session/${state.sessionId}/generate-monster`), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await parseJsonResponse(response);
+      state.monsterToken = data.token || "";
+      state.monsterStats = {
+        entry_count: data.entry_count || 0,
+        date_range: data.date_range || "",
+        filename: data.filename || "MonsterCV.pdf",
+      };
+      saveLocal();
+      notify("success", t("monster.ready"));
+      renderCurrentPage();
+    } catch (err) {
+      notify("error", err.message || t("error.action_failed"));
+    } finally {
+      hideGeneratingOverlay();
+    }
+  }
+
+  async function previewMatch() {
+    if (!state.sessionId) throw new Error(t("error.start_session_first"));
+    try {
+      const response = await fetch(endpoint(`/api/session/${state.sessionId}/preview-match`), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await parseJsonResponse(response);
+
+      // Update state with preview match data
+      if (!state.server) state.server = {};
+      state.server.review_match = data.match;
+      state.server.strategic_analysis = data.strategic_analysis;
+
+      saveLocal();
+      renderReview();
+      renderStrategicAnalysis();
+
+      if (data.recommendation === "improve") {
+        notify("warn", data.suggestion || t("text.review_recommend_low").replace("{threshold}", "70"));
+      } else {
+        notify("success", t("text.review_recommend_high").replace("{threshold}", "70"));
+      }
+    } catch (err) {
+      notify("error", err.message || t("error.action_failed"));
+    }
+  }
+
   async function sendChatCorrection() {
     const input = document.getElementById("chat-input");
     const messagesDiv = document.getElementById("chat-messages");
@@ -1452,6 +1575,68 @@
       messagesDiv.appendChild(errBubble);
     } finally {
       hideGeneratingOverlay();
+    }
+  }
+
+  function renderStrategicAnalysis() {
+    const accordion = document.getElementById("strategic-accordion");
+    const content = document.getElementById("strategic-content");
+    if (!accordion || !content) return;
+
+    const strategic = state.server?.strategic_analysis;
+    if (!strategic) {
+      accordion.style.display = "none";
+      return;
+    }
+
+    accordion.style.display = "";
+    content.innerHTML = [
+      `<div class="alert info" style="margin-bottom: 12px;">`,
+      `<strong>${t("strategic.summary_label")}:</strong> ${escHtml(strategic.summary)}`,
+      `</div>`,
+      `<div class="row-card">`,
+      `<strong>${t("strategic.strengths_label")}</strong>`,
+      `<ul>${strategic.strengths.map(s => `<li>${escHtml(s)}</li>`).join("")}</ul>`,
+      `</div>`,
+      `<div class="row-card">`,
+      `<strong>${t("strategic.gaps_label")}</strong>`,
+      `<ul>${strategic.gaps.map(g => `<li>${escHtml(g)}</li>`).join("")}</ul>`,
+      `</div>`,
+      `<div class="row-card">`,
+      `<strong>${t("strategic.recommendations_label")}</strong>`,
+      `<ul>${strategic.recommendations.map(r => `<li>${escHtml(r)}</li>`).join("")}</ul>`,
+      `</div>`,
+    ].join("");
+  }
+
+  async function sendStrategicQuestion() {
+    const input = document.getElementById("strategic-input");
+    const messagesDiv = document.getElementById("strategic-messages");
+    const message = (input?.value || "").trim();
+    if (!message || !state.sessionId) return;
+
+    const userBubble = document.createElement("div");
+    userBubble.className = "chat-msg user";
+    userBubble.textContent = message;
+    messagesDiv.appendChild(userBubble);
+    input.value = "";
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+    try {
+      const resp = await fetch(endpoint(`/api/session/${state.sessionId}/ask-recommendation`), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message }),
+      });
+      const data = await parseJsonResponse(resp);
+
+      const botBubble = document.createElement("div");
+      botBubble.className = "chat-msg assistant";
+      botBubble.textContent = data.response || "";
+      messagesDiv.appendChild(botBubble);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    } catch (err) {
+      notify("error", err.message || t("error.action_failed"));
     }
   }
 
@@ -2049,6 +2234,40 @@
     }
   }
 
+  function renderMonsterCVSection() {
+    const monsterSection = document.getElementById("monster-cv-section");
+    if (!monsterSection) return;
+
+    if (state.monsterToken && state.monsterStats) {
+      const stats = t("monster.stats")
+        .replace("{count}", state.monsterStats.entry_count)
+        .replace("{range}", state.monsterStats.date_range);
+      monsterSection.innerHTML = [
+        '<div class="card" style="background: var(--success-bg, #f0fdf4); border-color: var(--success, #10b981);">',
+        `<h3>${t("monster.ready")}</h3>`,
+        `<p>${t("monster.description")}</p>`,
+        `<p style="font-size: 0.9em; color: #666; margin: 0.5rem 0;">${stats}</p>`,
+        `<a class="btn" href="${rootPath}/download/monster/${state.monsterToken}">${t("monster.download")}</a>`,
+        '</div>',
+      ].join("");
+    } else if (state.sessionId && state.artifactToken) {
+      monsterSection.innerHTML = [
+        '<div class="card" style="border: 2px dashed #ccc;">',
+        `<h3>${t("monster.title")}</h3>`,
+        `<p>${t("monster.description")}</p>`,
+        `<p style="font-size: 0.9em; color: #666;">${t("monster.warning")}</p>`,
+        `<button id="btn-generate-monster" class="btn-primary">${t("monster.button")}</button>`,
+        '</div>',
+      ].join("");
+      const btnGenerateMonster = document.getElementById("btn-generate-monster");
+      if (btnGenerateMonster) {
+        btnGenerateMonster.addEventListener("click", () => run(generateMonsterCV));
+      }
+    } else {
+      monsterSection.innerHTML = "";
+    }
+  }
+
   function renderAll() {
     translateStaticUi();
     renderProgress();
@@ -2058,6 +2277,7 @@
     renderQuestions();
     renderReview();
     renderResultKeywordComparison();
+    renderMonsterCVSection();
     renderUploadFileLabel();
     renderPhotoFileLabel();
     setButtonStates();
@@ -2187,12 +2407,19 @@
     }
     if (btnUploadContinue) btnUploadContinue.addEventListener("click", gotoQuestions);
     if (btnAnswers) btnAnswers.addEventListener("click", () => run(saveAnswers));
+    if (btnPreviewMatch) btnPreviewMatch.addEventListener("click", () => run(previewMatch));
     if (btnGenerate) btnGenerate.addEventListener("click", () => run(generate));
     if (btnGenerateCover) btnGenerateCover.addEventListener("click", () => run(generateCoverLetter));
     const chatSendBtn = document.getElementById("chat-send-btn");
     const chatInput = document.getElementById("chat-input");
     if (chatSendBtn) chatSendBtn.addEventListener("click", () => run(sendChatCorrection));
     if (chatInput) chatInput.addEventListener("keydown", (e) => { if (e.key === "Enter") run(sendChatCorrection); });
+
+    const strategicSendBtn = document.getElementById("strategic-send-btn");
+    const strategicInput = document.getElementById("strategic-input");
+    if (strategicSendBtn) strategicSendBtn.addEventListener("click", () => run(sendStrategicQuestion));
+    if (strategicInput) strategicInput.addEventListener("keydown", (e) => { if (e.key === "Enter") run(sendStrategicQuestion); });
+
     if (btnToReview) btnToReview.addEventListener("click", gotoReview);
   }
 
