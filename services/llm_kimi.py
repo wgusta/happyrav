@@ -398,6 +398,25 @@ def _generate_prompt(
         "profile_confirmed": profile.model_dump(),
         "pre_generation_match_context": match_context or {},
     }
+    # Build skill prioritization instruction
+    skill_instruction = ""
+    if match_context and "skill_rankings" in match_context:
+        top_skills = [s.get("skill", "") for s in match_context["skill_rankings"].get("top_skills", [])[:5]]
+        if top_skills:
+            skill_instruction = f"\n- SKILL PRIORITIZATION: List these high-relevance skills first: {', '.join(top_skills)}"
+
+    # Build achievement optimization instruction
+    achievement_instruction = ""
+    if match_context and "achievement_hints" in match_context:
+        hints = match_context["achievement_hints"]
+        high_rel = hints.get("high_relevance", [])
+        rewrites = hints.get("rewrite_suggestions", {})
+        if high_rel or rewrites:
+            achievement_instruction = "\n- ACHIEVEMENT OPTIMIZATION: Prioritize high-relevance achievements. Add metrics (numbers, %, duration, team size) where missing."
+            if rewrites:
+                rewrite_examples = "; ".join([f"'{k[:40]}' → '{v[:40]}'" for k, v in list(rewrites.items())[:2]])
+                achievement_instruction += f" Example rewrites: {rewrite_examples}"
+
     guard = (
         "You are a CV and cover-letter assistant. Use only factual inputs. "
         "Never invent employers, degrees, periods, or certifications. "
@@ -411,9 +430,24 @@ def _generate_prompt(
         "- Skills array: ONLY technical/domain skills. Languages are handled separately, never include them.\n"
         "- Always include skill levels in parentheses when known (e.g., 'Python (Expert)', 'SQL (Advanced)').\n"
         "- Treat pre_generation_match_context as optimization guidance:\n"
-        "  prioritize missing keywords, keep matched keywords present, and fix ATS issues where possible."
+        f"  prioritize missing keywords, keep matched keywords present, and fix ATS issues where possible.{skill_instruction}{achievement_instruction}"
     )
     if language == "de":
+        # Build German skill/achievement instructions
+        skill_instruction_de = ""
+        if match_context and "skill_rankings" in match_context:
+            top_skills = [s.get("skill", "") for s in match_context["skill_rankings"].get("top_skills", [])[:5]]
+            if top_skills:
+                skill_instruction_de = f"\n- SKILL PRIORISIERUNG: Diese hochrelevanten Skills zuerst auflisten: {', '.join(top_skills)}"
+
+        achievement_instruction_de = ""
+        if match_context and "achievement_hints" in match_context:
+            hints = match_context["achievement_hints"]
+            high_rel = hints.get("high_relevance", [])
+            rewrites = hints.get("rewrite_suggestions", {})
+            if high_rel or rewrites:
+                achievement_instruction_de = "\n- ERFOLGS-OPTIMIERUNG: Hochrelevante Erfolge priorisieren. Metriken ergänzen (Zahlen, %, Dauer, Teamgrösse) wo fehlend."
+
         guard = (
             "Du bist ein CV/Anschreiben-Assistent. Nutze nur vorhandene Fakten. "
             "Erfinde niemals Arbeitgeber, Abschlüsse, Zeiträume oder Zertifikate. "
@@ -427,7 +461,7 @@ def _generate_prompt(
             "- Skills Array: NUR technische/fachliche Kompetenzen. Sprachen separat behandelt, niemals hier einbeziehen.\n"
             "- Skill-Level immer in Klammern angeben wenn bekannt (z.B. 'Python (Experte)', 'SQL (Fortgeschritten)').\n"
             "- pre_generation_match_context als Optimierungsleitplanken nutzen:\n"
-            "  fehlende Keywords gezielt integrieren, vorhandene Treffer erhalten, ATS Probleme verbessern."
+            f"  fehlende Keywords gezielt integrieren, vorhandene Treffer erhalten, ATS Probleme verbessern.{skill_instruction_de}{achievement_instruction_de}"
         )
     prompt = (
         f"{guard}\n"
@@ -588,13 +622,55 @@ async def generate_content(
     source_documents: Optional[List[str]] = None,
     match_context: Optional[Dict[str, Any]] = None,
 ) -> Tuple[GeneratedContent, Optional[str]]:
+    # Enhance match_context with skill ranking and achievement scoring
+    from happyrav.services.llm_matching import rank_skills_by_relevance, score_achievement_relevance
+
+    enhanced_context = match_context.copy() if match_context else {}
+
+    try:
+        # 1. Rank skills by relevance
+        if profile.skills:
+            ranked_skills = await rank_skills_by_relevance(
+                cv_skills=profile.skills,
+                job_ad_text=job_ad_text,
+                language=language
+            )
+            enhanced_context["skill_rankings"] = {
+                "top_skills": [s for s in ranked_skills if s.get("relevance", 0) > 0.7][:10],
+                "deprioritize": [s["skill"] for s in ranked_skills if s.get("relevance", 0) < 0.3]
+            }
+
+        # 2. Score achievements
+        all_achievements = []
+        for exp in profile.experience:
+            all_achievements.extend(exp.achievements)
+
+        if all_achievements:
+            scored_achievements = await score_achievement_relevance(
+                achievements=all_achievements,
+                job_ad_text=job_ad_text,
+                language=language
+            )
+            enhanced_context["achievement_hints"] = {
+                "high_relevance": [a for a in scored_achievements if a.get("relevance", 0) > 0.7][:5],
+                "needs_metrics": [a for a in scored_achievements if a.get("add_metrics")][:3],
+                "rewrite_suggestions": {
+                    a["original"]: a.get("rewrite_suggestion", "")
+                    for a in scored_achievements
+                    if a.get("rewrite_suggestion")
+                }
+            }
+    except Exception as e:
+        # Don't fail generation if enhancement fails
+        print(f"LLM enhancement failed: {e}")
+
     return await asyncio.to_thread(
         _generate_sync,
         language,
         job_ad_text,
         profile,
         source_documents,
-        match_context,
+        enhanced_context,
     )
 
 
@@ -802,15 +878,37 @@ def _strategic_analysis_prompt(
     skills_list = ", ".join(profile.skills) if profile.skills else "Not specified"
     experience_summary = ""
     if profile.experience:
-        exp_items = [f"{e.title} at {e.company} ({e.duration or 'duration unknown'})" for e in profile.experience[:3]]
+        exp_items = [f"{e.role} at {e.company} ({e.period or 'duration unknown'})" for e in profile.experience[:3]]
         experience_summary = "; ".join(exp_items)
     else:
         experience_summary = "No experience listed"
 
+    # Add contextual gaps if available
+    gaps_context = ""
+    if hasattr(match, 'contextual_gaps') and match.contextual_gaps:
+        critical_gaps = [g for g in match.contextual_gaps if g.severity == "critical"]
+        important_gaps = [g for g in match.contextual_gaps if g.severity == "important"]
+        substitutable_gaps = [g for g in match.contextual_gaps if g.substitutable]
+
+        gaps_context = f"""
+- Contextual gap analysis:
+  Critical gaps (deal-breakers): {', '.join([g.missing for g in critical_gaps]) if critical_gaps else 'None'}
+  Important gaps: {', '.join([g.missing for g in important_gaps]) if important_gaps else 'None'}
+  Substitutable: {', '.join([f"{g.missing} (suggest: {g.suggestions[:40]})" for g in substitutable_gaps[:2]]) if substitutable_gaps else 'None'}"""
+
+    # Add semantic match info if available
+    semantic_context = ""
+    if hasattr(match, 'semantic_match') and match.semantic_match:
+        sem = match.semantic_match
+        transferable = sem.transferable_matches[:3] if sem.transferable_matches else []
+        if transferable:
+            semantic_context = f"""
+- Transferable skills: {', '.join([f"{m.get('cv_has', '')} → {m.get('job_needs', '')}" for m in transferable])}"""
+
     return f"""You are a career strategist analyzing a candidate's fit for a role.
 
 INPUT:
-- Job ad: {job_ad_text}
+- Job ad: {job_ad_text[:1500]}
 - Candidate profile: {profile.full_name or 'Unknown'}
   Headline: {profile.headline or 'Not specified'}
   Skills: {skills_list}
@@ -818,17 +916,19 @@ INPUT:
 - Match analysis:
   Overall score: {match.overall_score:.1f}%
   Matched keywords: {matched_kw}
-  Missing keywords: {missing_kw}
+  Missing keywords: {missing_kw}{gaps_context}{semantic_context}
 
 TASK:
 Provide strategic advice on how to apply for this role in {lang_label}:
 
 1. STRENGTHS (2-3 points): Where candidate matches well
    - Example: "Strong match on Python, SQL, and 5+ years experience"
+   - Include transferable skills if detected
 
 2. GAPS (2-3 points): What's missing and severity
    - Example: "Missing Kubernetes experience (nice-to-have, not critical)"
    - Distinguish must-have vs nice-to-have gaps
+   - Note which gaps can be compensated
 
 3. RECOMMENDATIONS (3-5 specific actions):
    - Cover letter: What to emphasize, what gaps to address directly
