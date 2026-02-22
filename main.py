@@ -836,8 +836,32 @@ async def api_session_preview_match(session_id: str) -> Dict:
         telos_lines = [f"{k}: {v}" for k, v in state.telos_context.items() if v]
         cv_text += "\n\n# Career Goals & Values\n" + "\n".join(telos_lines)
 
-    # Compute match
-    match = compute_match(cv_text=cv_text, job_ad_text=state.job_ad_text, language=state.language)
+    # Compute match with hybrid approach
+    from happyrav.services.llm_matching import (
+        extract_semantic_keywords,
+        match_skills_semantic,
+        detect_contextual_gaps,
+        merge_match_scores,
+    )
+
+    # 1. Fast baseline (existing parser)
+    baseline_match = compute_match(cv_text=cv_text, job_ad_text=state.job_ad_text, language=state.language)
+
+    # 2. Semantic enhancement (LLM) - with error handling
+    try:
+        semantic_keywords = await extract_semantic_keywords(state.job_ad_text, state.language)
+        semantic_match = await match_skills_semantic(
+            cv_skills=profile.skills,
+            cv_experience=[exp.model_dump() for exp in profile.experience],
+            semantic_keywords=semantic_keywords
+        )
+        # 3. Merge scores (weighted average: 40% baseline, 60% semantic)
+        match = merge_match_scores(baseline_match, semantic_match, weights={"baseline": 0.4, "semantic": 0.6})
+    except Exception as e:
+        # Fallback to baseline if LLM fails
+        print(f"Semantic matching failed: {e}, falling back to baseline")
+        match = baseline_match
+        match.matching_strategy = "baseline"
 
     # Determine recommendation
     recommend_generate = match.overall_score >= REVIEW_RECOMMEND_THRESHOLD
@@ -854,10 +878,24 @@ async def api_session_preview_match(session_id: str) -> Dict:
             suggestions.append("Add more relevant skills from job ad")
         suggestion = " | ".join(suggestions[:2])
 
-    # Generate strategic analysis if score below threshold
+    # Generate strategic analysis with contextual gaps if score below threshold
     strategic_analysis = None
     if not recommend_generate:
         from happyrav.services.llm_kimi import generate_strategic_analysis
+
+        # Detect contextual gaps
+        contextual_gaps = []
+        try:
+            contextual_gaps = await detect_contextual_gaps(
+                profile=profile,
+                job_ad_text=state.job_ad_text,
+                language=state.language
+            )
+            # Add gaps to match payload
+            match.contextual_gaps = contextual_gaps
+        except Exception as e:
+            print(f"Gap detection failed: {e}")
+
         strategic_analysis = await generate_strategic_analysis(
             language=state.language,
             match=match,
