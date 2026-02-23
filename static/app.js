@@ -2665,6 +2665,13 @@
 
     if (!guardCurrentPage()) return;
     renderAll();
+
+    // Auto-load match score on review page
+    if (pageKey === "review" && state.sessionId && !state.server?.review_match) {
+      try {
+        await previewMatch();
+      } catch (_) {}
+    }
   }
 
   init();
