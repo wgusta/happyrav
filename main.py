@@ -682,12 +682,6 @@ async def api_session_language(session_id: str, payload: Dict[str, str] = Body(.
     }
 
 
-@app.delete("/api/session/{session_id}")
-async def api_session_clear(session_id: str) -> Dict[str, str]:
-    session_cache.delete(session_id)
-    return {"status": "cleared"}
-
-
 @app.post("/api/session/{session_id}/preseed")
 async def api_preseed(session_id: str, req: PreSeedRequest) -> Dict:
     record = _require_session(session_id)

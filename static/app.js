@@ -69,7 +69,6 @@
       "action.start_session": "Start happyRAV session",
       "action.refresh_session": "Refresh session state",
       "action.save_answers": "Save answers + refresh",
-      "action.clear_session": "Clear session",
       "action.preview_match": "Preview Match Score",
       "action.generate_cv": "Generate CV",
       "action.generate_cover": "Generate Cover Letter",
@@ -205,7 +204,6 @@
       "notify.extraction_refreshed": "Extraction refreshed.",
       "notify.answers_saved": "Answers saved.",
       "notify.files_generated": "Files generated.",
-      "notify.session_cleared": "Session cleared.",
       "notify.language_updated": "Language updated.",
 
       "error.request_failed": "Request failed.",
@@ -398,7 +396,6 @@
       "action.start_session": "happyRAV Sitzung starten",
       "action.refresh_session": "Sitzung aktualisieren",
       "action.save_answers": "Antworten speichern + aktualisieren",
-      "action.clear_session": "Sitzung löschen",
       "action.generate_cv": "CV generieren",
       "action.generate_cover": "Anschreiben generieren",
       "action.generate": "CV + Anschreiben generieren",
@@ -534,7 +531,6 @@
       "notify.extraction_refreshed": "Extraktion aktualisiert.",
       "notify.answers_saved": "Antworten gespeichert.",
       "notify.files_generated": "Dateien generiert.",
-      "notify.session_cleared": "Sitzung gelöscht.",
       "notify.language_updated": "Sprache aktualisiert.",
 
       "error.request_failed": "Anfrage fehlgeschlagen.",
@@ -759,7 +755,6 @@
   const btnAnswers = document.getElementById("save-answers-btn");
   const btnGenerate = document.getElementById("generate-btn");
   const btnPreviewMatch = document.getElementById("preview-match-btn");
-  const btnClear = document.getElementById("clear-session-btn");
   const btnToReview = document.getElementById("to-review-btn");
   let ensureSessionPromise = null;
   let intakeSyncTimer = null;
@@ -1926,23 +1921,6 @@
     }
   }
 
-  async function clearSession() {
-    if (intakeSyncTimer) {
-      clearTimeout(intakeSyncTimer);
-      intakeSyncTimer = null;
-    }
-    if (state.sessionId) {
-      try {
-        await fetch(endpoint(`/api/session/${state.sessionId}`), { method: "DELETE" });
-      } catch (_) {}
-    }
-    state.sessionId = "";
-    state.server = null;
-    clearLocal();
-    renderAll();
-    notify("success", t("notify.session_cleared"));
-  }
-
   // ============================================================
   // FORMAT GUIDE POPUP
   // ============================================================
@@ -2603,7 +2581,6 @@
     if (btnPasteSubmit) btnPasteSubmit.addEventListener("click", () => run(submitPastedText));
     if (pasteText) pasteText.addEventListener("input", setButtonStates);
     if (btnExtract) btnExtract.addEventListener("click", () => run(extract));
-    if (btnClear) btnClear.addEventListener("click", () => run(clearSession));
 
     if (coverAnredeKnown) {
       coverAnredeKnown.addEventListener("change", () => {
