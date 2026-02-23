@@ -79,10 +79,16 @@ BUZZWORDS = {
 
 def validate_cv_quality(
     cv_text: str,
-    generated: GeneratedContent,
-    language: str
+    generated: GeneratedContent = None,
+    language: str = "en"
 ) -> QualityMetrics:
-    """Main orchestrator. Runs all checks and returns comprehensive metrics."""
+    """Main orchestrator. Runs all checks and returns comprehensive metrics.
+
+    Args:
+        cv_text: The CV text to analyze
+        generated: Generated content (optional, for post-generation validation)
+        language: Language code (en/de)
+    """
 
     warnings = []
     recommendations = []
@@ -94,10 +100,11 @@ def validate_cv_quality(
     if fog > 16:
         warnings.append(f"Text complexity high (Fog Index {fog:.1f}). Simplify language.")
 
-    # Action verbs
+    # Action verbs (only if we have generated content)
     all_achievements = []
-    for exp in generated.experience:
-        all_achievements.extend(exp.achievements)
+    if generated and generated.experience:
+        for exp in generated.experience:
+            all_achievements.extend(exp.achievements)
 
     action_ratio, weak_list = analyze_action_verbs(all_achievements, language)
     if action_ratio < 0.6:
