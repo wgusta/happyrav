@@ -39,14 +39,35 @@ happyRAV is a high-performance CV/Cover Letter wizard. Your goal is to maintain 
     - **Context:** Strategic chat uses `state.server.strategic_analysis` and `state.server.review_match` for context.
     - **Testing:** Use TDD approach. Tests in `tests/test_strategic_recommendations.py`.
 
+7.  **Swiss German Generation:**
+    - **System Prompts:** Language-specific via `_build_generation_system_prompt(language)` in `llm_kimi.py`.
+    - **German (914 chars):** Schweizer Standarddeutsch, Swiss date formats, Swiss terminology, cultural calibration.
+    - **English (573 chars):** Swiss job market context, professional tone.
+    - **Model:** Claude Sonnet 4.6 (`claude-sonnet-4-6` balanced, `claude-opus-4-5` max).
+    - **Applied:** Both `_generate_sync()` and `_refine_sync()` use language-specific prompts.
+    - **Action:** Do NOT revert to generic system prompt. Maintain DE/EN separation.
+
+8.  **Smoke Testing:**
+    - **Purpose:** Automated visual tests for start page intake flows.
+    - **File:** `tests/test_smoke_start_page.py` (2 tests).
+    - **Basic Flow:** Minimal intake fields, verifies phase="upload", empty profile.
+    - **Advanced Flow:** Full preseed (profile + telos), verifies all 8 telos fields via session_cache.
+    - **Fixtures:** `test_client` with cache reinitialization (fixes temp directory issues between tests).
+    - **Run:** `pytest tests/test_smoke_start_page.py -v -s` for visual output.
+    - **Action:** Run smoke tests before deploy to verify intake flows work correctly.
+
 ## Key Files
 - `main.py`: The API orchestration layer. Handles MD5 hashing, persistent cache interaction, hybrid matching integration, strategic endpoints.
 - `services/cache.py`: The persistence engine. Uses `pickle` and file locks.
-- `services/llm_kimi.py`: The LLM integration layer. Handles prompts, token optimization, strategic analysis generation, skill ranking integration.
+- `services/llm_kimi.py`: The LLM integration layer. Handles prompts (including Swiss German system prompts), token optimization, strategic analysis generation, skill ranking integration. Claude Sonnet 4.6.
 - `services/llm_matching.py`: Semantic matching engine. Keyword extraction, skill ranking, achievement scoring, gap detection (OpenAI GPT-4.1-mini).
 - `services/scoring.py`: Baseline ATS matching (regex-based via parser_scanner). Used in hybrid approach.
 - `static/app.js`: Frontend state management, i18n, strategic UI + chat rendering.
-- `tests/`: TDD integration tests for persistence, caching, semantic matching, strategic features.
+- `tests/conftest.py`: Test fixtures with cache reinitialization for proper test isolation.
+- `tests/test_smoke_start_page.py`: Smoke tests for start page flows (basic + advanced intake).
+- `tests/test_integration.py`: Integration tests for persistence, caching, truncation warnings.
+- `tests/test_semantic_matching_unit.py`: TDD tests for semantic matching (mocked LLM).
+- `tests/test_strategic_recommendations.py`: TDD tests for strategic features.
 
 ## Workflow
 1.  **Read:** Check `README.md` and `CLAUDE.md` for architectural context.

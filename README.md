@@ -39,7 +39,7 @@ Document-first ATS CV + cover letter app for `gusty.ch/happyrav`.
 - **Data Integrity:** Explicit truncation warnings if input exceeds 64k chars (extraction) or 48k chars (generation).
 - **Semantic Matching:** Multi-provider LLM approach:
   - OpenAI GPT-4.1-mini for semantic keyword extraction, skill ranking, achievement scoring (~$0.008/match)
-  - Anthropic Claude Sonnet for strategic analysis (~$0.07, only if score <70%)
+  - Anthropic Claude Sonnet 4.6 for CV/cover letter generation (Swiss German calibrated) and strategic analysis (~$0.07, only if score <70%)
   - Hybrid scoring: 40% baseline (regex) + 60% semantic (LLM) with graceful fallback
 
 ## API (v2)
@@ -81,11 +81,21 @@ pytest tests/test_integration.py::TestOCRCache::test_same_file_uploaded_twice_us
 ```
 
 Test coverage:
+- **Smoke Tests:** Start page intake flows (basic + advanced profile with telos)
 - **OCR Cache:** Duplicate file uploads use cached extraction
 - **Disk Persistence:** Sessions/artifacts survive restarts
 - **Truncation Warnings:** >64k (extraction), >48k (generation)
 - **Strategic Recommendations:** Analysis generation, chat endpoint, score thresholds
 - **Semantic Matching:** Keyword extraction, transferable skills, gap severity, hybrid scoring, skill ranking, achievement optimization (unit tests with mocked LLM)
+
+Run tests:
+```bash
+# Smoke tests (visual output)
+pytest tests/test_smoke_start_page.py -v -s
+
+# All tests
+pytest tests/ -v
+```
 
 ## Run locally
 

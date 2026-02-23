@@ -1,7 +1,7 @@
 # GEMINI.md -- happyRAV Context
 
 ## Project Overview
-happyRAV is a document-first CV/Cover Letter wizard. It emphasizes high-quality extraction from PDF/Images (using GPT-5 Vision) and structured rewriting (using Claude Sonnet).
+happyRAV is a document-first CV/Cover Letter wizard. It emphasizes high-quality extraction from PDF/Images (using GPT-5 Vision) and structured rewriting (using Claude Sonnet 4.6 with Swiss German calibration).
 
 ## Forensic Audit Status (Feb 2026)
 **BRIAN ROEMMELE DEEP TRUTH MODE (v37.9001)** Audit Completed.
@@ -53,6 +53,24 @@ Result: **Hardened Chassis**.
     *   **Frontend:** Accordion UI in Review page + chat interface for follow-up questions.
     *   **Action:** Do NOT generate strategic analysis for high scores (>= 70). Threshold: `REVIEW_RECOMMEND_THRESHOLD = 70`.
 
+7.  **Swiss German Generation Pillar (Feb 2026):**
+    *   **Old:** Generic JSON-only system prompt for all languages.
+    *   **New:** Language-specific system prompts via `_build_generation_system_prompt(language)` in `llm_kimi.py`.
+    *   **German:** Schweizer Standarddeutsch, Swiss date formats (DD.MM.YYYY), Swiss terminology, cultural calibration (precision, multilingual context, direct communication).
+    *   **English:** Swiss job market context, professional yet warm tone.
+    *   **Model:** Claude Sonnet 4.6 (`claude-sonnet-4-6` balanced, `claude-opus-4-5` max).
+    *   **Action:** Maintain separate system prompts for DE/EN. Do NOT merge into generic prompt.
+
+8.  **Smoke Testing Pillar (Feb 2026):**
+    *   **Old:** Manual testing, no automated intake flow validation.
+    *   **New:** `tests/test_smoke_start_page.py` with 2 comprehensive smoke tests.
+    *   **Tests:**
+        - **Basic Flow:** Minimal intake (company, position, job_ad, consent), verifies phase advancement, empty profile.
+        - **Advanced Flow:** Full preseed profile (5 contact, 2 experience, 2 education, 5 skills, 3 languages) + 8 telos fields.
+    *   **Visual Output:** Detailed summaries for manual inspection (session_id, profile, telos).
+    *   **Fixtures:** `test_client` with cache reinitialization fix (prevents FileNotFoundError), `temp_data_dir`, mocks.
+    *   **Action:** Run `pytest tests/test_smoke_start_page.py -v -s` for visual verification before deploy.
+
 ## Operational Mandates
 1.  **Do Not regress to volatile storage.** The `data/` directory is the source of truth.
 2.  **Respect the `.gitignore`.** `data/` must not be committed.
@@ -61,11 +79,14 @@ Result: **Hardened Chassis**.
 ## Key Files
 - `main.py`: Orchestration, endpoints, MD5 hashing, Hybrid matching integration, Strategic recommendations endpoint.
 - `services/cache.py`: The persistence layer.
-- `services/llm_kimi.py`: The "brain" (Prompts, API calls, XML injection, Strategic analysis generation, Skill ranking integration).
+- `services/llm_kimi.py`: The "brain" (Prompts, API calls, XML injection, Swiss German system prompts, Strategic analysis, Skill ranking integration).
 - `services/llm_matching.py`: Semantic matching (keyword extraction, skill ranking, achievement scoring, gap detection).
 - `services/scoring.py`: Baseline ATS matching (regex-based, used in hybrid approach).
 - `services/extract_documents.py`: Parsing logic (PDF/DOCX/OCR).
 - `static/app.js`: Frontend logic, i18n, Strategic UI rendering + chat.
+- `tests/conftest.py`: Test fixtures (test_client with cache reinitialization, temp_data_dir, mocks).
+- `tests/test_smoke_start_page.py`: Smoke tests for start page intake flows (2 tests: basic + advanced).
+- `tests/test_integration.py`: Integration tests (OCR cache, disk persistence, truncation warnings).
 - `tests/test_semantic_matching_unit.py`: TDD test suite for semantic matching (6 tests, mocked LLM).
 - `tests/test_strategic_recommendations.py`: TDD test suite for strategic features.
 

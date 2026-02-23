@@ -46,6 +46,12 @@ def test_client(temp_data_dir: Path) -> TestClient:
 
     # Import app AFTER patching DATA_DIR
     from happyrav import main
+    from happyrav.services.cache import SessionCache, ArtifactCache, DocumentCache
+
+    # Reinitialize caches with new temp directory
+    main.session_cache = SessionCache(ttl_seconds=3600)
+    main.artifact_cache = ArtifactCache()
+    main.document_cache = DocumentCache()
 
     return TestClient(main.app)
 

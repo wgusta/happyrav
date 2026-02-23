@@ -523,7 +523,7 @@ def _refine_sync(
     try:
         payload = _chat_json_anthropic(
             model=CFG["generation"],
-            system="Return valid JSON only. No markdown.",
+            system=_build_generation_system_prompt(language),
             user=prompt,
             max_tokens=2600,
         )
@@ -574,6 +574,51 @@ def _extract_profile_sync(
         }
 
 
+def _build_generation_system_prompt(language: str) -> str:
+    """Build language-specific system prompt for CV/cover letter generation."""
+    if language == "de":
+        return """Du bist ein Experte für Lebensläufe und Bewerbungsschreiben für den Schweizer Arbeitsmarkt.
+
+Kultureller Kontext Schweiz:
+- Professioneller, aber herzlicher Ton
+- Präzision und Detailgenauigkeit geschätzt
+- Mehrsprachiger Kontext (Deutsch, Französisch, Italienisch, Englisch)
+- Direkte Kommunikation bevorzugt, keine Floskeln
+- Betonung auf Zertifikaten, Qualifikationen, konkreten Erfolgen
+
+Sprachrichtlinien Schweizer Hochdeutsch:
+- Schweizer Standarddeutsch verwenden (nicht Bundesdeutsch, nicht Schweizerdeutsch)
+- Schweizer Begriffe: "Arbeitgeber" (employer), "Arbeitnehmende" (employee)
+- Schweizer Datumsformat: DD.MM.YYYY
+- Keine deutschen Anglizismen (z.B. "Lebenslauf", nicht "CV")
+
+Format-Anforderungen:
+- Klare Abschnittsüberschriften
+- Umgekehrt chronologische Reihenfolge (neueste zuerst)
+- Quantifizierte Erfolge mit Metriken
+- Keine Füllwörter oder Buzzwords
+
+Rückgabe: Valides JSON, kein Markdown."""
+
+    # English (default)
+    return """You are an expert CV and cover letter writer for the Swiss job market.
+
+Cultural context for Switzerland:
+- Professional yet warm tone
+- Precision and attention to detail valued
+- Multilingual environment (German, French, Italian, English)
+- Direct communication preferred over flowery language
+- Emphasis on certifications, qualifications, and concrete achievements
+
+Format requirements:
+- Clear section headers
+- Reverse chronological order (most recent first)
+- Quantified achievements with metrics
+- No buzzwords or filler language
+
+Return valid JSON only. No markdown."""
+
+
 def _generate_sync(
     language: str,
     job_ad_text: str,
@@ -591,7 +636,7 @@ def _generate_sync(
     try:
         payload = _chat_json_anthropic(
             model=CFG["generation"],
-            system="Return valid JSON only. No markdown.",
+            system=_build_generation_system_prompt(language),
             user=prompt,
             max_tokens=2600,
         )

@@ -12,7 +12,7 @@ Document-first ATS-optimized CV + cover letter generation wizard. Five-step flow
 - **Persistence:** Disk-backed pickle storage (`data/sessions`, `data/artifacts`, `data/documents`).
 - **PDF:** WeasyPrint (needs system libs: pango, harfbuzz, freetype)
 - **OCR:** GPT-5 Mini vision, PyMuPDF, pdfplumber
-- **LLM:** Multi-provider: OpenAI (extraction/OCR/semantic matching), Anthropic Claude (generation), Google Gemini (crosscheck, max mode only). Quality via `HAPPYRAV_QUALITY` env (balanced/max)
+- **LLM:** Multi-provider: OpenAI (extraction/OCR/semantic matching), Anthropic Claude Sonnet 4.6 (generation with Swiss German calibration), Google Gemini (crosscheck, max mode only). Quality via `HAPPYRAV_QUALITY` env (balanced/max)
 - **Semantic Matching:** LLM-based contextual CV-job alignment (GPT-4.1-mini). Hybrid scoring: 40% baseline regex + 60% semantic understanding. Detects transferable skills, contextual gaps, ranks skills by relevance.
 - **Token Optimization:** Source documents injected via raw XML `<DOCUMENTS>` tags (no JSON escaping).
 - **Frontend:** Vanilla JS, single `app.js` with inline i18n (EN/DE), no framework
@@ -27,7 +27,7 @@ main.py                    # FastAPI app, all routes, OCR Caching, Strategic rec
 models.py                  # Pydantic models (SessionState, ThemeConfig, etc.)
 services/
   cache.py                 # File-based persistent caches (Session/Artifact/Document)
-  llm_kimi.py              # Multi-provider LLM: OpenAI extraction, Anthropic generation, Gemini crosscheck, Strategic analysis
+  llm_kimi.py              # Multi-provider LLM: OpenAI extraction, Anthropic generation (Sonnet 4.6 + Swiss German system prompt), Gemini crosscheck, Strategic analysis
   llm_matching.py          # Semantic matching: keyword extraction, skill ranking, achievement scoring, gap detection (OpenAI GPT-4.1-mini)
   extract_documents.py     # File parsing (PDF, DOCX, images via vision OCR)
   scoring.py               # ATS match scoring via parser_scanner (baseline)
@@ -42,7 +42,12 @@ static/
   app.js                   # All frontend logic, i18n, state management, Strategic chat
   style.css                # App styles
 data/                      # Persistent storage (sessions, artifacts, doc text cache)
-tests/                     # Integration tests, TDD test suites
+tests/
+  conftest.py              # Fixtures: test_client with cache reinitialization, temp_data_dir, mocks
+  test_smoke_start_page.py # Smoke tests: Basic + Advanced profile intake flows
+  test_integration.py      # Integration tests: OCR cache, disk persistence, truncation warnings
+  test_semantic_matching_unit.py  # TDD tests: semantic matching with mocked LLM
+  test_strategic_recommendations.py  # TDD tests: strategic analysis
 ```
 
 ## Key Patterns
@@ -67,7 +72,7 @@ All UI text lives in `I18N` object inside `app.js` with `en` and `de` keys. HTML
 - **Context Limits:** 64k chars (Extraction), 48k chars (Generation). Explicit `llm_warning` returned if truncated.
 - **OCR Cache:** `main.py` checks `document_cache` (MD5 of bytes) before calling `extract_text_from_bytes`.
 
-### Semantic Matching (NEW)
+### Semantic Matching
 LLM-based contextual CV-job alignment replaces rigid regex matching:
 - **Module:** `services/llm_matching.py` (OpenAI GPT-4.1-mini)
 - **Functions:**
@@ -88,6 +93,22 @@ LLM-based contextual CV-job alignment replaces rigid regex matching:
   - Achievement optimization: Flags vague achievements, suggests adding metrics
 - **Cost:** ~$0.008 per match (GPT-4.1-mini)
 - **Tests:** 6 unit tests with mocked LLM responses (`tests/test_semantic_matching_unit.py`)
+
+### Swiss German Generation
+CV/cover letter generation calibrated for Swiss job market:
+- **System Prompt:** Language-specific via `_build_generation_system_prompt(language)` in `llm_kimi.py`
+- **German (914 chars):** Schweizer Standarddeutsch, Swiss date formats (DD.MM.YYYY), Swiss terminology ("Arbeitgeber", "Arbeitnehmende"), cultural context (precision, multilingual, direct communication)
+- **English (573 chars):** Swiss job market context, professional yet warm tone
+- **Model:** Claude Sonnet 4.6 (`claude-sonnet-4-6` in balanced mode, `claude-opus-4-5` in max mode)
+- **Applied:** Both initial generation (`_generate_sync`) and refinement (`_refine_sync`)
+
+### Smoke Tests
+Automated visual tests for start page intake flows:
+- **Basic Flow (`test_basic_intake_flow`):** Minimal required fields (company, position, job_ad, consent), verifies phase advancement to "upload", confirms empty profile
+- **Advanced Flow (`test_advanced_profile_and_telos`):** Full profile via preseed (5 contact fields, 2 experience, 2 education, 5 skills, 3 languages) + 8 telos career goal fields
+- **Visual Output:** Both tests print detailed summaries for manual inspection (session_id, profile data, telos context)
+- **Fixtures:** `test_client` with cache reinitialization (fixes FileNotFoundError between tests), `temp_data_dir`, `mock_llm_extract`
+- **File:** `tests/test_smoke_start_page.py` (7 tests pass: 2 smoke + 5 integration)
 
 ### Strategic Recommendations
 LLM-generated application advice when match score < 70:
