@@ -347,14 +347,14 @@ def assess_visual_balance(content: GeneratedContent) -> Dict[str, float]:
     sections = {
         "summary": len(content.summary.split()) if content.summary else 0,
         "experience": sum(
-            len(exp.title.split()) +
+            len(exp.role.split()) +
             len(exp.company.split()) +
             sum(len(ach.split()) for ach in exp.achievements)
             for exp in content.experience
         ),
         "education": sum(
             len(edu.degree.split()) +
-            len(edu.institution.split())
+            len(edu.school.split())
             for edu in content.education
         ),
         "skills": len(" ".join(content.skills).split()),

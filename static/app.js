@@ -51,6 +51,10 @@
       "upload.page_title": "Upload your documents",
       "upload.title": "Upload Documents",
       "upload.supported": "Supported: PDF, DOCX, PNG, JPG, JPEG, WEBP. Max 20 files/session, 12MB/file, 25MB/session.",
+      "upload.photo_heading": "📷 Profile Photo",
+      "upload.photo_sub": "Optional: Add a professional headshot for your CV",
+      "upload.documents_heading": "📄 CV & Documents",
+      "upload.documents_sub": "Upload your CV, cover letters, certificates, or work references",
       "upload.photo": "Profile photo (optional)",
       "upload.documents": "Documents",
       "upload.quick_tag": "Quick tag default",
@@ -378,6 +382,10 @@
       "upload.page_title": "Dokumente hochladen",
       "upload.title": "Dokumente hochladen",
       "upload.supported": "Unterstützt: PDF, DOCX, PNG, JPG, JPEG, WEBP. Max 20 Dateien/Sitzung, 12MB/Datei, 25MB/Sitzung.",
+      "upload.photo_heading": "📷 Profilfoto",
+      "upload.photo_sub": "Optional: Füge ein professionelles Foto für deinen CV hinzu",
+      "upload.documents_heading": "📄 CV & Dokumente",
+      "upload.documents_sub": "Lade deinen CV, Anschreiben, Zertifikate oder Arbeitszeugnisse hoch",
       "upload.photo": "Profilfoto (optional)",
       "upload.documents": "Dokumente",
       "upload.quick_tag": "Standard-Kategorie",
@@ -1554,6 +1562,8 @@
     state.server = data.state;
     applyServerState();
     notify("success", t("notify.extraction_refreshed"));
+    // Auto-advance to questions page after extraction
+    setTimeout(() => gotoQuestions(), 800);
   }
 
   async function saveAnswers() {
