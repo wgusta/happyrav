@@ -48,6 +48,33 @@ Result: **Hardened Chassis**.
     *   **Feature:** LLM-generated application advice when match score < 70.
     *   **Backend:** `generate_strategic_analysis()` in `llm_kimi.py` generates strengths, gaps, actionable recommendations.
     *   **Chat:** `ask-recommendation` endpoint allows interactive Q&A about application strategy.
+
+7.  **Quality in Preview Pillar (Feb 2026):**
+    *   **Old:** Quality metrics (Inhaltsoptimierung, Qualitätsanalyse) only available after generation.
+    *   **New:** Preview-match endpoint computes quality_metrics + preview_comparison_sections.
+    *   **Fix:** `cv_quality.py` now accepts `generated=None` for preview mode validation.
+    *   **Action:** Frontend displays quality accordions in preview with show/hide logic based on data.
+
+8.  **Data Model Cleanup (Feb 2026):**
+    *   **Removed:** Obsolete `ats_issues` field from MatchPayload model.
+    *   **Replaced:** All references now use `quality_warnings` instead.
+    *   **Impact:** Cleaner UI, better UX with actionable quality feedback.
+    *   **Test Coverage:** `test_no_ats_issues.py` validates complete removal.
+
+9.  **Keyword Matching Sync Fix (Feb 2026):**
+    *   **Bug:** Preview-match was comparing CV against itself (CV self-comparison).
+    *   **Root Cause:** Frontend didn't sync job_ad_text to server before calling preview API.
+    *   **Fix:** Added `await syncIntake()` in `app.js` previewMatch() function.
+    *   **Test Coverage:** `test_keyword_matching_fix.py` validates correct job_ad_text parameter passing.
+
+### Test Suite (Feb 2026)
+**Comprehensive TDD coverage** for production fixes:
+- `test_keyword_matching_fix.py` - Job ad text sync validation
+- `test_quality_preview.py` - Quality metrics in preview endpoint
+- `test_no_ats_issues.py` - ATS-Probleme removal (3 tests)
+- `test_api_key_errors.py` - API key validation + error messaging (3 tests)
+
+**Total:** 8 tests, all passing. Integration-style tests through public APIs with minimal mocking.
     *   **Enhanced:** Now includes contextual gaps and transferable skills from semantic matching.
     *   **Cost Control:** Only triggered for low-scoring profiles (< 70%). High scores skip to save tokens.
     *   **Frontend:** Accordion UI in Review page + chat interface for follow-up questions.
@@ -82,13 +109,18 @@ Result: **Hardened Chassis**.
 - `services/llm_kimi.py`: The "brain" (Prompts, API calls, XML injection, Swiss German system prompts, Strategic analysis, Skill ranking integration).
 - `services/llm_matching.py`: Semantic matching (keyword extraction, skill ranking, achievement scoring, gap detection).
 - `services/scoring.py`: Baseline ATS matching (regex-based, used in hybrid approach).
+- `services/cv_quality.py`: Quality validation (readability, action verbs, quantification, buzzwords). Now supports preview mode (generated=None).
 - `services/extract_documents.py`: Parsing logic (PDF/DOCX/OCR).
-- `static/app.js`: Frontend logic, i18n, Strategic UI rendering + chat.
+- `static/app.js`: Frontend logic, i18n, Strategic UI rendering + chat, intake syncing.
 - `tests/conftest.py`: Test fixtures (test_client with cache reinitialization, temp_data_dir, mocks).
 - `tests/test_smoke_start_page.py`: Smoke tests for start page intake flows (2 tests: basic + advanced).
 - `tests/test_integration.py`: Integration tests (OCR cache, disk persistence, truncation warnings).
 - `tests/test_semantic_matching_unit.py`: TDD test suite for semantic matching (6 tests, mocked LLM).
 - `tests/test_strategic_recommendations.py`: TDD test suite for strategic features.
+- `tests/test_keyword_matching_fix.py`: TDD test for job ad text sync fix.
+- `tests/test_quality_preview.py`: TDD test for quality metrics in preview endpoint.
+- `tests/test_no_ats_issues.py`: TDD tests for ATS-Probleme removal (3 tests).
+- `tests/test_api_key_errors.py`: TDD tests for API key validation (3 tests).
 
 ## User Persona
 The user ("Gusty") prefers direct, high-energy ("NetworkChuck style") interaction. Uses "Deep Truth" / "Forensic" framing for audits.

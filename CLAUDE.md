@@ -48,6 +48,10 @@ tests/
   test_integration.py      # Integration tests: OCR cache, disk persistence, truncation warnings
   test_semantic_matching_unit.py  # TDD tests: semantic matching with mocked LLM
   test_strategic_recommendations.py  # TDD tests: strategic analysis
+  test_keyword_matching_fix.py     # TDD tests: job ad text sync to compute_match
+  test_quality_preview.py           # TDD tests: quality metrics in preview endpoint
+  test_no_ats_issues.py             # TDD tests: ATS-Probleme removal, quality_warnings replacement
+  test_api_key_errors.py            # TDD tests: API key validation + error messaging
 ```
 
 ## Key Patterns
@@ -165,6 +169,34 @@ node --check static/app.js
 | `HAPPYRAV_PREFIX` | URL prefix for reverse proxy |
 | `HAPPYRAV_CACHE_TTL` | Session TTL seconds (default: 600) |
 | `SMTP_HOST/PORT/USER/PASS/FROM` | Email sending |
+
+## Recent Fixes (Feb 2026)
+
+### Keyword Matching Fix
+**Problem:** Preview-match was comparing CV against itself instead of job ad keywords.
+**Fix:** Added `await syncIntake()` in `app.js` before preview API call to ensure job_ad_text syncs to server.
+**Test:** `test_keyword_matching_fix.py` validates compute_match receives correct job_ad_text parameter.
+
+### Quality Display in Preview
+**Problem:** Quality metrics (Inhaltsoptimierung, Qualitätsanalyse) were empty in preview, only populated after generation.
+**Fix:**
+- Backend: Added quality_metrics computation + preview_comparison_sections to preview-match endpoint
+- Frontend: Display quality accordions with show/hide logic based on data availability
+- `cv_quality.py`: Made `generated` parameter optional to support preview mode
+**Test:** `test_quality_preview.py` validates quality_metrics in preview response.
+
+### ATS-Probleme Removal
+**Problem:** Obsolete `ats_issues` field cluttering UI, not providing value.
+**Fix:**
+- Removed `ats_issues` from MatchPayload model
+- Replaced with `quality_warnings` in suggestions, frontend display, result template
+- Updated all references (main.py, scoring.py, app.js, _result.html)
+**Test:** `test_no_ats_issues.py` (3 tests) validates complete removal + quality_warnings replacement.
+
+### API Key Error Messaging
+**Problem:** Unclear 503 errors when API keys missing.
+**Fix:** Updated error message to mention environment variables + administrator contact.
+**Test:** `test_api_key_errors.py` (3 tests) validates 503 status + helpful error messaging.
 
 ## Gotchas
 
