@@ -259,7 +259,6 @@ def _generation_match_context(state: SessionState) -> Optional[Dict]:
         "overall_score": payload.get("overall_score", 0.0),
         "matched_keywords": list(payload.get("matched_keywords", []))[:40],
         "missing_keywords": list(payload.get("missing_keywords", []))[:40],
-        "ats_issues": list(payload.get("ats_issues", []))[:20],
     }
 
 
@@ -863,6 +862,21 @@ async def api_session_preview_match(session_id: str) -> Dict:
         match = baseline_match
         match.matching_strategy = "baseline"
 
+    # Compute quality metrics for preview
+    from happyrav.services.cv_quality import validate_cv_quality
+
+    try:
+        quality_metrics_data = validate_cv_quality(
+            cv_text=cv_text,
+            generated=None,
+            language=state.language
+        )
+        quality_metrics = QualityMetrics(**quality_metrics_data.__dict__)
+        match.quality_metrics = quality_metrics
+        match.quality_warnings = quality_metrics.warnings[:5]
+    except Exception as e:
+        print(f"Quality validation in preview failed: {e}")
+
     # Determine recommendation
     recommend_generate = match.overall_score >= REVIEW_RECOMMEND_THRESHOLD
     recommendation = "ready" if recommend_generate else "improve"
@@ -872,8 +886,8 @@ async def api_session_preview_match(session_id: str) -> Dict:
         suggestions = []
         if match.missing_keywords:
             suggestions.append(f"Add missing keywords: {', '.join(match.missing_keywords[:5])}")
-        if match.ats_issues:
-            suggestions.append(f"Fix ATS issues: {match.ats_issues[0]}")
+        if match.quality_warnings:
+            suggestions.append(f"Quality: {match.quality_warnings[0]}")
         if match.category_scores.get("skills_match", 0) < 50:
             suggestions.append("Add more relevant skills from job ad")
         suggestion = " | ".join(suggestions[:2])
@@ -909,6 +923,20 @@ async def api_session_preview_match(session_id: str) -> Dict:
         "suggestion": suggestion,
         "score": match.overall_score,
         "strategic_analysis": strategic_analysis,
+        "preview_comparison_sections": [
+            {
+                "label_en": "Skills Overview",
+                "label_de": "Kompetenz-Übersicht",
+                "original": ", ".join(profile.skills[:10]) if profile.skills else "No skills listed",
+                "optimized": "(Will be tailored to job requirements during generation)"
+            },
+            {
+                "label_en": "Experience Summary",
+                "label_de": "Berufserfahrung-Zusammenfassung",
+                "original": f"{len(profile.experience)} positions" if profile.experience else "No experience listed",
+                "optimized": "(Will be optimized with quantified achievements during generation)"
+            }
+        ],
     }
 
 
@@ -959,7 +987,7 @@ async def api_session_generate(
     if not has_api_key():
         raise HTTPException(
             status_code=503,
-            detail="Required API keys not configured (OPENAI_API_KEY + ANTHROPIC_API_KEY). Cannot generate documents.",
+            detail="API keys not configured on server. Contact administrator to set OPENAI_API_KEY and ANTHROPIC_API_KEY environment variables.",
         )
     record = _require_session(session_id)
     state = record.state
@@ -1188,7 +1216,7 @@ async def api_session_generate_cover(
     if not has_api_key():
         raise HTTPException(
             status_code=503,
-            detail="Required API keys not configured (OPENAI_API_KEY + ANTHROPIC_API_KEY). Cannot generate documents.",
+            detail="API keys not configured on server. Contact administrator to set OPENAI_API_KEY and ANTHROPIC_API_KEY environment variables.",
         )
     record = _require_session(session_id)
     state = record.state

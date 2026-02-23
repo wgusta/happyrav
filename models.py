@@ -229,7 +229,6 @@ class MatchPayload(BaseModel):
     category_scores: Dict[str, float] = Field(default_factory=dict)
     matched_keywords: List[str] = Field(default_factory=list)
     missing_keywords: List[str] = Field(default_factory=list)
-    ats_issues: List[str] = Field(default_factory=list)
     quality_metrics: Optional[QualityMetrics] = None
     quality_warnings: List[str] = Field(default_factory=list)
 

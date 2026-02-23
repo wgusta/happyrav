@@ -22,6 +22,5 @@ def compute_match(cv_text: str, job_ad_text: str, language: str) -> MatchPayload
         category_scores=category_scores,
         matched_keywords=parser_result.matched_keywords,
         missing_keywords=parser_result.missing_keywords,
-        ats_issues=parser_result.ats_issues,
     )
 

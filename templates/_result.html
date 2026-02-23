@@ -25,11 +25,11 @@
     <p>{{ ", ".join(record.match.missing_keywords[:20]) }}</p>
   {% endif %}
 
-  {% if record.match.ats_issues %}
-    <h3>{{ "ATS-Probleme" if is_de else "ATS issues" }}</h3>
+  {% if record.match.quality_warnings %}
+    <h3>{{ "Qualitätswarnungen" if is_de else "Quality Warnings" }}</h3>
     <ul>
-      {% for issue in record.match.ats_issues %}
-        <li>{{ issue }}</li>
+      {% for warning in record.match.quality_warnings %}
+        <li>{{ warning }}</li>
       {% endfor %}
     </ul>
   {% endif %}

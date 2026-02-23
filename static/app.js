@@ -128,6 +128,7 @@
       "text.skills": "Skills",
       "text.missing_keywords": "Missing keywords",
       "text.ats_issues": "ATS issues",
+      "text.quality_warnings": "Quality Warnings",
       "text.none": "None",
       "text.no_files_selected": "No files selected",
       "text.no_photo_selected": "No photo selected",
@@ -275,6 +276,7 @@
       "optimization.keywords_added": "Keywords added",
       "optimization.sections_enhanced": "Sections enhanced",
       "optimization.view_details": "View detailed comparison",
+      "optimization.no_data": "No data available",
 
       "fmt.title": "Hey, you've clicked generate 6 times!",
       "fmt.nudge": "Since I'm an AI that doesn't fully understand the context of your professional life, help me get that context. Go back and add these details manually if things are missing:",
@@ -455,6 +457,7 @@
       "text.skills": "Skills",
       "text.missing_keywords": "Fehlende Keywords",
       "text.ats_issues": "ATS-Probleme",
+      "text.quality_warnings": "Qualitätswarnungen",
       "text.none": "Keine",
       "text.no_files_selected": "Keine Dateien ausgewählt",
       "text.no_photo_selected": "Kein Foto ausgewählt",
@@ -602,6 +605,7 @@
       "optimization.keywords_added": "Keywords hinzugefügt",
       "optimization.sections_enhanced": "Abschnitte verbessert",
       "optimization.view_details": "Detailvergleich anzeigen",
+      "optimization.no_data": "Keine Daten verfügbar",
 
       "fmt.title": "Hey, du hast 6 Mal auf Generieren geklickt!",
       "fmt.nudge": "Da ich eine KI bin, die den vollen Kontext deines Berufslebens nicht kennt, hilf mir dabei. Geh zurück und ergänze diese Details manuell, falls etwas fehlt:",
@@ -1045,7 +1049,7 @@
       <p>${t("text.ats")}: ${(payload.category_scores?.ats_compatibility || 0).toFixed(1)} · ${t("text.skills")}: ${(payload.category_scores?.skills_match || 0).toFixed(1)}</p>
     `;
     const missing = payload.missing_keywords || [];
-    const issues = payload.ats_issues || [];
+    const qualityWarnings = payload.quality_warnings || [];
     const lowScore = payload.overall_score < REVIEW_RECOMMEND_THRESHOLD;
     if (reviewRecommendation) {
       const recommendation = lowScore ? t("text.review_recommend_low") : t("text.review_recommend_high");
@@ -1058,26 +1062,37 @@
         <strong>${t("text.missing_keywords")}</strong>
         <p>${missing.length ? missing.slice(0, 20).join(", ") : t("text.none")}</p>
       </div>
-      <div class="row-card">
-        <strong>${t("text.ats_issues")}</strong>
-        <p>${issues.length ? issues.join(" · ") : t("text.none")}</p>
-      </div>
+      ${qualityWarnings.length ? `<div class="row-card">
+        <strong>${t("text.quality_warnings")}</strong>
+        <p>${qualityWarnings.join(" · ")}</p>
+      </div>` : ''}
     `;
     renderKeywordComparisonTable(reviewKeywordComparison, payload);
     displayQualityMetrics();
     displayOptimizationComparison();
+
+    // Show/hide quality accordions based on data availability
+    const qualityAccordion = document.getElementById("quality-accordion");
+    const optimizationAccordion = document.getElementById("optimization-accordion");
+
+    if (qualityAccordion) {
+      qualityAccordion.style.display = state.server?.review_match?.quality_metrics ? "" : "none";
+    }
+    if (optimizationAccordion) {
+      const hasData = state.server?.result_artifact?.comparison_sections || state.server?.preview_comparison_sections;
+      optimizationAccordion.style.display = hasData?.length ? "" : "none";
+    }
   }
 
   function renderKeywordComparisonTable(container, payload) {
     if (!container) return;
     const matched = payload?.matched_keywords || [];
     const missing = payload?.missing_keywords || [];
-    const issues = payload?.ats_issues || [];
     const combined = [
       ...matched.map((kw) => ({ keyword: kw, matched: true })),
       ...missing.map((kw) => ({ keyword: kw, matched: false })),
     ];
-    if (!combined.length && !issues.length) {
+    if (!combined.length) {
       container.innerHTML = `<p>${t("comparison.no_keywords")}</p>`;
       return;
     }
@@ -1088,7 +1103,6 @@
     const combinedChips = combined.length
       ? combined.map((item) => `<span class="kw-chip ${item.matched ? "kw-chip-match" : "kw-chip-missing"}">${escHtml(item.keyword)}</span>`).join(" ")
       : `<span class="kw-empty">${t("text.none")}</span>`;
-    const atsText = issues.length ? escHtml(issues.join(" · ")) : t("text.none");
     container.innerHTML = `
       <table class="comparison-table comparison-table-keywords">
         <thead>
@@ -1104,10 +1118,6 @@
               <div class="kw-group"><strong>${t("comparison.keyword_matched")}</strong><div class="kw-chip-wrap">${chips(matched, true)}</div></div>
               <div class="kw-group"><strong>${t("comparison.keyword_missing")}</strong><div class="kw-chip-wrap">${chips(missing, false)}</div></div>
             </td>
-          </tr>
-          <tr>
-            <td><strong>${t("text.ats_issues")}</strong></td>
-            <td>${atsText}</td>
           </tr>
         </tbody>
       </table>
@@ -1208,13 +1218,17 @@
 
   function displayOptimizationComparison() {
     const artifact = state.server?.result_artifact;
-    if (!artifact) return;
-
-    const comparison = artifact.comparison_sections;
-    const metadata = artifact.meta?.comparison_metadata;
     const container = document.getElementById("optimization-content");
+    if (!container) return;
 
-    if (!container || !comparison) return;
+    // Fallback to preview sections if generation artifact not available
+    const comparison = artifact?.comparison_sections || state.server?.preview_comparison_sections;
+    if (!comparison?.length) {
+      container.innerHTML = `<p class="text-muted">${t("optimization.no_data")}</p>`;
+      return;
+    }
+
+    const metadata = artifact?.meta?.comparison_metadata;
 
     let statsHtml = '<div class="optimization-stats">';
     if (metadata) {
@@ -1720,6 +1734,10 @@
 
   async function previewMatch() {
     if (!state.sessionId) throw new Error(t("error.start_session_first"));
+
+    // CRITICAL FIX: Sync job ad text to server before preview
+    await syncIntake();
+
     showGeneratingOverlay();
     try {
       const response = await fetch(endpoint(`/api/session/${state.sessionId}/preview-match`), {
@@ -1732,6 +1750,7 @@
       if (!state.server) state.server = {};
       state.server.review_match = data.match;
       state.server.strategic_analysis = data.strategic_analysis;
+      state.server.preview_comparison_sections = data.preview_comparison_sections || [];
 
       saveLocal();
       renderReview();
@@ -2438,9 +2457,11 @@
     if (state.server && state.server.api_key_configured === false) {
       const banner = document.createElement("div");
       banner.id = "api-key-warning";
-      banner.className = "alert warn";
+      banner.className = "alert error";
       banner.style.margin = "0.5rem 1rem";
-      banner.textContent = t("warn.no_api_key");
+      banner.style.fontWeight = "bold";
+      banner.innerHTML = `<strong>⚠️ ${t("warn.no_api_key")}</strong><br>
+        <small>CV generation is unavailable without API keys. Contact support.</small>`;
       const container = document.querySelector(".wizard-content") || document.body;
       container.prepend(banner);
     }
