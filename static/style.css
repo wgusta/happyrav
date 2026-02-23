@@ -341,6 +341,37 @@ a:focus-visible {
   margin-bottom: 10px;
 }
 
+.upload-section {
+  border: 2px solid rgba(26, 26, 26, 0.15);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+  background: #fff;
+}
+
+.upload-section.photo-section {
+  border-color: #9b87f5;
+  background: #faf8ff;
+}
+
+.upload-section.documents-section {
+  border-color: #0EA5E9;
+  background: #f0f9ff;
+}
+
+.section-heading {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.section-sub {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: rgba(26, 26, 26, 0.7);
+}
+
 .check-inline input {
   width: 16px;
   height: 16px;
