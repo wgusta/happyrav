@@ -965,7 +965,6 @@
     if (btnAnswers) btnAnswers.disabled = !hasSession || !hasQuestions;
     if (btnPreviewMatch) btnPreviewMatch.disabled = !hasSession || !hasDocs || !state.server?.job_ad_text;
     if (btnGenerate) btnGenerate.disabled = !hasSession || !state.server?.ready_to_generate;
-    if (btnClear) btnClear.disabled = !hasSession;
     if (btnToReview) btnToReview.disabled = !hasSession || unresolved > 0 || !state.server?.ready_to_generate;
     if (btnStartContinue) {
       const hasJobAd = Boolean(inputJobAd?.value?.trim());
