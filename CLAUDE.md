@@ -2,7 +2,7 @@
 
 ## What is this
 
-Document-first ATS-optimized CV + cover letter generation wizard. Five-step flow: Start, Upload, Questions, Review, Result. FastAPI backend, Jinja2 templates, WeasyPrint PDF rendering, multi-provider LLM (OpenAI + Anthropic + Google).
+Document-first ATS-optimized CV + cover letter generation wizard. Five-step flow: Start, Upload, Questions, Review, Result. Plus a stateless **CV Builder** (`/builder`) for direct-input CV creation without LLM. FastAPI backend, Jinja2 templates, WeasyPrint PDF rendering, multi-provider LLM (OpenAI + Anthropic + Google).
 
 **Domain:** `happyrav.gusty.ch`
 
@@ -36,10 +36,11 @@ services/
   pdf_render.py            # WeasyPrint HTML to PDF
   emailer.py               # SMTP sending
   parsing.py               # Color/language helpers
-doc_templates/             # Jinja2 PDF templates (3 CV + 3 cover letter variants)
+doc_templates/             # Jinja2 PDF templates (3 CV + 3 cover letter variants + 4 builder CV templates)
 templates/                 # Page fragments, wizard layout
+  _page_builder.html       # CV Builder form page (direct-input, no LLM)
 static/
-  app.js                   # All frontend logic, i18n, state management, Strategic chat
+  app.js                   # All frontend logic, i18n, state management, Strategic chat, CV Builder
   style.css                # App styles
 data/                      # Persistent storage (sessions, artifacts, doc text cache)
 tests/
@@ -52,6 +53,8 @@ tests/
   test_quality_preview.py           # TDD tests: quality metrics in preview endpoint
   test_no_ats_issues.py             # TDD tests: ATS-Probleme removal, quality_warnings replacement
   test_api_key_errors.py            # TDD tests: API key validation + error messaging
+  test_builder_render.py            # TDD tests: builder render endpoint + markdown export (20 tests)
+  test_builder_templates.py         # TDD tests: 4 builder templates rendering (20 tests)
 ```
 
 ## Key Patterns
@@ -69,7 +72,7 @@ All UI text lives in `I18N` object inside `app.js` with `en` and `de` keys. HTML
 `ThemeConfig` model with: `primary_hex`, `accent_hex`, `border_style`, `box_shadow`, `card_bg`, `page_bg`, `font_family`. All passed to Jinja2 doc templates as CSS custom properties (`--primary`, `--accent`, `--radius`, `--shadow`, `--panel`, `--page-bg`).
 
 ### Doc Templates
-6 active templates (simple/sophisticated/friendly x CV/cover letter). Each has inline CSS with `@page` rules for A4. Font selection via Jinja2 dict lookup (`font_css_map`, `font_import_map`). Skill levels parsed from "skill (level)" format.
+6 active wizard templates (simple/sophisticated/friendly x CV/cover letter) + 4 builder CV templates (green/cutset/business/freundlich). Each has inline CSS with `@page` rules for A4. Font selection via Jinja2 dict lookup (`font_css_map`, `font_import_map`). Skill levels parsed from "skill (level)" format.
 
 ### Token Economy
 - **Source Injection:** Documents are concatenated with `\n\n` and wrapped in `<DOCUMENTS>...</DOCUMENTS>`. No `json.dumps()` of source text.
@@ -113,6 +116,21 @@ Automated visual tests for start page intake flows:
 - **Visual Output:** Both tests print detailed summaries for manual inspection (session_id, profile data, telos context)
 - **Fixtures:** `test_client` with cache reinitialization (fixes FileNotFoundError between tests), `temp_data_dir`, `mock_llm_extract`
 - **File:** `tests/test_smoke_start_page.py` (7 tests pass: 2 smoke + 5 integration)
+
+### CV Builder (Stateless)
+Direct-input CV creation at `/builder`. No upload, no LLM, no sessions.
+- **Route:** `GET /builder` serves form page, `POST /api/builder/render` returns HTML, `POST /api/builder/markdown` returns LLM-friendly Markdown
+- **Data Model:** `CVData` in `models.py` with sub-models: `KPIItem`, `SkillItem`, `LanguageItem`, `ExperienceEntry`, `EducationEntry`, `CertificationItem`, `MilitaryItem`, `ProjectItem`, `ReferenceItem`
+- **Templates:** 4 variants in `doc_templates/cv-builder-*.html.j2`:
+  - `green`: Compact 11px, single-column cards, green #6B8E4E, Inter+Manrope
+  - `cutset`: Dark red #9A2A2A, dark body bg, KPIs, visual skill tags, 2-col sidebar
+  - `business`: Dark red, categorized skill grid, right-column education+certs+military
+  - `freundlich`: Warm, ThemeConfig CSS vars, adapted from existing friendly
+- **Frontend:** `_page_builder.html` with `<details>` sections, template selector, dynamic add/remove lists
+- **JS:** `collectBuilderData()`, `saveBuilderLocal()`/`restoreBuilderLocal()` (localStorage key `happyrav_builder_v1`), preview (iframe srcdoc), download HTML, export/import JSON, export Markdown
+- **Markdown Export:** Structured `.md` output with `# Name`, `## Section` headers, skill metadata `(level) [category]: description`, experience with `### Role | Company | Location`. Designed for LLM consumption to generate CVs.
+- **PDF-ready:** All templates include `@page`, `@media print`, `break-inside: avoid`. Future `POST /api/builder/pdf` can pipe same HTML through WeasyPrint.
+- **Tests:** 40 tests in `test_builder_render.py` (20) + `test_builder_templates.py` (20)
 
 ### Strategic Recommendations
 LLM-generated application advice when match score < 70:
@@ -200,7 +218,7 @@ node --check static/app.js
 
 ## Gotchas
 
-- `app.js` is large (~1900 lines). Both agents can edit it concurrently but watch for conflicts in shared sections.
+- `app.js` is large (~3200 lines). Both agents can edit it concurrently but watch for conflicts in shared sections. Builder code starts after `// ===== CV BUILDER =====` comment.
 - **Persistence:** Deleting `data/` wipes all active sessions.
 - **OCR Costs:** Testing image uploads consumes tokens unless the file is already in `data/documents`.
 - **Truncation:** If a user uploads >64k chars, the `extraction_warning` field in `SessionState` will be populated. The UI should display this.

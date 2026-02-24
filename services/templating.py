@@ -7,7 +7,7 @@ from typing import Dict
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from happyrav.models import BasicProfile, GeneratedContent, MatchPayload, MonsterCVProfile, ThemeConfig
+from happyrav.models import BasicProfile, CVData, GeneratedContent, MatchPayload, MonsterCVProfile, ThemeConfig
 from happyrav.services.parsing import parse_date_for_sort
 
 
@@ -17,6 +17,23 @@ env = Environment(
     loader=FileSystemLoader(str(TEMPLATE_DIR)),
     autoescape=select_autoescape(default_for_string=True, enabled_extensions=("html",)),
 )
+
+
+BUILDER_TEMPLATE_MAP = {
+    "green": "cv-builder-green.html.j2",
+    "cutset": "cv-builder-cutset.html.j2",
+    "business": "cv-builder-business.html.j2",
+    "freundlich": "cv-builder-freundlich.html.j2",
+}
+
+DEFAULT_THEME = ThemeConfig()
+
+
+def render_builder_cv_html(cv_data: CVData) -> str:
+    """Render a builder CV template from CVData. Returns self-contained HTML."""
+    template_name = BUILDER_TEMPLATE_MAP.get(cv_data.template_id, BUILDER_TEMPLATE_MAP["green"])
+    template = env.get_template(template_name)
+    return template.render(cv=cv_data, default_theme=DEFAULT_THEME)
 
 
 def build_cv_text(profile: BasicProfile, content: GeneratedContent) -> str:

@@ -25,6 +25,7 @@
       "hero.description": "Generate a CV and cover letter from a job ad that keeps the RAV* happy and maybe even lands you a job.",
       "hero.sub": "*RAV naturally stands for Resume Altering Vessel",
       "footer.tagline": "Developed with love for you and hate for creating documents by Gusty aka Gueney Usta aka you know who I am.",
+      "nav.builder": "CV Builder",
 
       "progress.start": "Start",
       "progress.upload": "Upload",
@@ -197,12 +198,6 @@
       "monster.step9": "Rendering archival PDF document...",
       "monster.step10": "Finalizing Monster CV...",
 
-      "chat.title": "Request Changes",
-      "chat.placeholder": "e.g. Make my summary shorter...",
-      "chat.send": "Send",
-      "chat.sending": "Applying changes...",
-      "chat.error": "Could not apply changes.",
-
       "notify.session_started": "Session started.",
       "notify.documents_uploaded": "Documents uploaded.",
       "notify.extraction_refreshed": "Extraction refreshed.",
@@ -257,6 +252,16 @@
       "strategic.chat_title": "Ask About Recommendations",
       "strategic.chat_placeholder": "e.g., How should I address the Kubernetes gap?",
       "strategic.send": "Ask",
+
+      "gap.strengths_title": "Your Strengths",
+      "gap.strong_technical": "Strong technical skills match",
+      "gap.strong_soft": "Good soft skills alignment",
+      "gap.transferable_skills": "Transferable skills identified",
+      "gap.areas_to_address": "Areas to Address",
+      "gap.critical": "Critical gaps",
+      "gap.important": "Important gaps",
+      "gap.nice_to_have": "Nice to have",
+      "gap.no_specific_gaps": "Overall good match. Consider emphasizing relevant keywords in your CV.",
 
       "quality.title": "Quality Analysis",
       "quality.readability": "Readability (Flesch)",
@@ -350,12 +355,57 @@
       "telos.ph_success_vision": "Own a feature end-to-end and see user adoption grow...",
       "telos.ph_work_style": "Deep work mornings, collaborative afternoons...",
       "telos.ph_impact": "Help the product reach and serve 100k users...",
+
+      "builder.title": "CV Builder",
+      "builder.subtitle": "Build your CV directly. No upload, no AI. Type your data, pick a template, download.",
+      "builder.template_label": "Template",
+      "builder.language_label": "CV Language",
+      "builder.personal_info": "Personal Information",
+      "builder.full_name": "Full Name",
+      "builder.headline": "Headline / Job Title",
+      "builder.address": "Address",
+      "builder.email": "Email",
+      "builder.phone": "Phone",
+      "builder.portfolio": "Portfolio / Website",
+      "builder.birthdate": "Birthdate",
+      "builder.photo": "Photo",
+      "builder.photo_warn": "Photo exceeds 500KB, may increase file size.",
+      "builder.summary": "Summary / Profile",
+      "builder.kpis": "KPIs (Cut Set / Business only)",
+      "builder.skills": "Skills",
+      "builder.languages": "Languages",
+      "builder.language_item": "Language",
+      "builder.experience": "Experience",
+      "builder.experience_hint": "Tip: Use bullet points from reference letters (Arbeitszeugnisse) for accurate, verifiable descriptions.",
+      "builder.experience_item": "Position",
+      "builder.education": "Education",
+      "builder.education_item": "Degree",
+      "builder.certifications": "Certifications",
+      "builder.certification_item": "Certification",
+      "builder.military": "Military",
+      "builder.military_item": "Entry",
+      "builder.projects": "Projects",
+      "builder.project_item": "Project",
+      "builder.references": "References",
+      "builder.reference_item": "Reference",
+      "builder.refs_on_request": "References available on request",
+      "builder.preview": "Preview",
+      "builder.download": "Download HTML",
+      "builder.export_md": "Export Markdown",
+      "builder.export_json": "Export JSON",
+      "builder.import_json": "Import JSON",
+      "builder.preview_title": "Preview",
+      "builder.ph_full_name": "Max Muster",
+      "builder.ph_headline": "Software Engineer",
+      "builder.ph_address": "Bahnhofstr. 1, 8001 Zurich",
+      "builder.ph_summary": "Brief professional summary...",
     },
     de: {
       "page.title": "happyRAV · Bewerbungs-Wizard",
       "hero.description": "Aus Inserattext einen CV und Anschreiben generieren mit dem das RAV* glücklich ist und du vielleicht sogar eine Stelle findest.",
       "hero.sub": "*RAV steht natürlich für Richtig Angenehmer Verein",
       "footer.tagline": "Mit viel Liebe für dich und Hass für das Erstellen von Dokumenten entwickelt von Gusty aka Güney Usta aka du weisch wär.",
+      "nav.builder": "CV Builder",
 
       "progress.start": "Start",
       "progress.upload": "Upload",
@@ -528,12 +578,6 @@
       "monster.step9": "Archiv-PDF wird gerendert...",
       "monster.step10": "Monster CV wird finalisiert...",
 
-      "chat.title": "Änderungen anfragen",
-      "chat.placeholder": "z.B. Zusammenfassung kürzen...",
-      "chat.send": "Senden",
-      "chat.sending": "Änderungen werden angewendet...",
-      "chat.error": "Änderungen konnten nicht angewendet werden.",
-
       "notify.session_started": "Sitzung gestartet.",
       "notify.documents_uploaded": "Dokumente hochgeladen.",
       "notify.extraction_refreshed": "Extraktion aktualisiert.",
@@ -588,6 +632,16 @@
       "strategic.chat_title": "Fragen zu Empfehlungen",
       "strategic.chat_placeholder": "z.B., Wie soll ich die Kubernetes-Lücke adressieren?",
       "strategic.send": "Fragen",
+
+      "gap.strengths_title": "Ihre Stärken",
+      "gap.strong_technical": "Starke fachliche Übereinstimmung",
+      "gap.strong_soft": "Gute Soft-Skills-Übereinstimmung",
+      "gap.transferable_skills": "Übertragbare Kompetenzen identifiziert",
+      "gap.areas_to_address": "Zu adressierende Bereiche",
+      "gap.critical": "Kritische Lücken",
+      "gap.important": "Wichtige Lücken",
+      "gap.nice_to_have": "Wünschenswert",
+      "gap.no_specific_gaps": "Insgesamt gute Übereinstimmung. Relevante Keywords im CV betonen.",
 
       "quality.title": "Qualitätsanalyse",
       "quality.readability": "Lesbarkeit (Flesch)",
@@ -681,6 +735,50 @@
       "telos.ph_success_vision": "Ein Feature von Anfang bis Ende besitzen und Nutzerakzeptanz wachsen sehen...",
       "telos.ph_work_style": "Tiefe Arbeitseinheiten morgens, kollaborative Nachmittage...",
       "telos.ph_impact": "Das Produkt dabei helfen, 100.000 Nutzer zu erreichen...",
+
+      "builder.title": "CV Builder",
+      "builder.subtitle": "CV direkt erstellen. Kein Upload, keine KI. Daten eingeben, Vorlage wählen, herunterladen.",
+      "builder.template_label": "Vorlage",
+      "builder.language_label": "CV Sprache",
+      "builder.personal_info": "Persönliche Daten",
+      "builder.full_name": "Vollständiger Name",
+      "builder.headline": "Titel / Position",
+      "builder.address": "Adresse",
+      "builder.email": "E-Mail",
+      "builder.phone": "Telefon",
+      "builder.portfolio": "Portfolio / Website",
+      "builder.birthdate": "Geburtsdatum",
+      "builder.photo": "Foto",
+      "builder.photo_warn": "Foto über 500KB, kann Dateigrösse erhöhen.",
+      "builder.summary": "Kurzprofil",
+      "builder.kpis": "KPIs (nur Cut Set / Business)",
+      "builder.skills": "Fähigkeiten",
+      "builder.languages": "Sprachen",
+      "builder.language_item": "Sprache",
+      "builder.experience": "Berufserfahrung",
+      "builder.experience_hint": "Tipp: Verwenden Sie Formulierungen aus Arbeitszeugnissen für genaue, belegbare Beschreibungen.",
+      "builder.experience_item": "Position",
+      "builder.education": "Ausbildung",
+      "builder.education_item": "Abschluss",
+      "builder.certifications": "Zertifikate",
+      "builder.certification_item": "Zertifikat",
+      "builder.military": "Militär",
+      "builder.military_item": "Eintrag",
+      "builder.projects": "Projekte",
+      "builder.project_item": "Projekt",
+      "builder.references": "Referenzen",
+      "builder.reference_item": "Referenz",
+      "builder.refs_on_request": "Referenzen auf Anfrage verfügbar",
+      "builder.preview": "Vorschau",
+      "builder.download": "HTML herunterladen",
+      "builder.export_md": "Markdown exportieren",
+      "builder.export_json": "JSON exportieren",
+      "builder.import_json": "JSON importieren",
+      "builder.preview_title": "Vorschau",
+      "builder.ph_full_name": "Max Muster",
+      "builder.ph_headline": "Software Engineer",
+      "builder.ph_address": "Bahnhofstr. 1, 8001 Zürich",
+      "builder.ph_summary": "Kurze professionelle Zusammenfassung...",
     },
   };
 
@@ -749,8 +847,6 @@
   const btnUploadSignature = document.getElementById("upload-signature-btn");
   const btnGenerateCover = document.getElementById("generate-cover-btn");
   const coverLetterSection = document.getElementById("cover-letter-section");
-  const cvGeneratedInfo = document.getElementById("cv-generated-info");
-  const cvDownloadLink = document.getElementById("cv-download-link");
 
   const pasteText = document.getElementById("paste-text");
   const btnPasteSubmit = document.getElementById("paste-submit-btn");
@@ -1074,6 +1170,19 @@
     displayQualityMetrics();
     displayOptimizationComparison();
 
+    // Update keyword accordion title with score
+    const keywordAccordion = document.getElementById("review-keyword-accordion");
+    if (keywordAccordion && payload) {
+      const summary = keywordAccordion.querySelector("summary");
+      if (summary) {
+        const baseText = t("comparison.keywords_title");
+        const scoreText = payload.overall_score
+          ? ` · ${payload.overall_score.toFixed(1)}/100`
+          : "";
+        summary.innerHTML = `${baseText}<strong class="score-inline">${scoreText}</strong>`;
+      }
+    }
+
     // Show/hide quality accordions based on data availability
     const qualityAccordion = document.getElementById("quality-accordion");
     const optimizationAccordion = document.getElementById("optimization-accordion");
@@ -1085,6 +1194,69 @@
       const hasData = state.server?.result_artifact?.comparison_sections || state.server?.preview_comparison_sections;
       optimizationAccordion.style.display = hasData?.length ? "" : "none";
     }
+  }
+
+  function renderGapExplanation(payload) {
+    const score = payload?.overall_score || 0;
+    const gaps = payload?.contextual_gaps || [];
+    const semanticMatch = payload?.semantic_match;
+
+    if (score >= 70) {
+      // High score: brief affirmation with strengths
+      const strengths = [];
+      if (semanticMatch?.matched_hard_skills?.length > 5) strengths.push(t("gap.strong_technical"));
+      if (semanticMatch?.matched_soft_skills?.length > 3) strengths.push(t("gap.strong_soft"));
+      if (semanticMatch?.transferable_matches?.length > 0) strengths.push(t("gap.transferable_skills"));
+
+      if (strengths.length === 0) return "";
+      return `<div class="gap-explanation gap-positive">
+        <h4>${t("gap.strengths_title")}</h4>
+        <p>${strengths.join(" · ")}</p>
+      </div>`;
+    }
+
+    // Low score: detailed gap breakdown with severity
+    if (gaps.length === 0) {
+      return `<div class="gap-explanation gap-neutral">
+        <p>${t("gap.no_specific_gaps")}</p>
+      </div>`;
+    }
+
+    const critical = gaps.filter(g => g.severity === "critical");
+    const important = gaps.filter(g => g.severity === "important");
+    const nice = gaps.filter(g => g.severity === "nice-to-have");
+
+    let html = `<div class="gap-explanation gap-warning"><h4>${t("gap.areas_to_address")}</h4>`;
+
+    if (critical.length > 0) {
+      html += `<div class="gap-section"><strong class="gap-severity gap-critical">⚠️ ${t("gap.critical")}</strong><ul>`;
+      critical.forEach(gap => {
+        const subIcon = gap.substitutable ? "🔄" : "";
+        html += `<li>${subIcon} <strong>${escHtml(gap.missing)}</strong>`;
+        if (gap.suggestions) html += ` – <em>${escHtml(gap.suggestions)}</em>`;
+        html += `</li>`;
+      });
+      html += `</ul></div>`;
+    }
+
+    if (important.length > 0) {
+      html += `<div class="gap-section"><strong class="gap-severity gap-important">📌 ${t("gap.important")}</strong><ul>`;
+      important.slice(0, 3).forEach(gap => {
+        const subIcon = gap.substitutable ? "🔄" : "";
+        html += `<li>${subIcon} ${escHtml(gap.missing)}`;
+        if (gap.suggestions) html += ` – <em>${escHtml(gap.suggestions)}</em>`;
+        html += `</li>`;
+      });
+      html += `</ul></div>`;
+    }
+
+    if (nice.length > 0 && critical.length === 0 && important.length < 3) {
+      html += `<div class="gap-section"><strong class="gap-severity gap-nice">💡 ${t("gap.nice_to_have")}</strong>`;
+      html += `<p>${nice.slice(0, 3).map(g => g.missing).join(", ")}</p></div>`;
+    }
+
+    html += `</div>`;
+    return html;
   }
 
   function renderKeywordComparisonTable(container, payload) {
@@ -1125,6 +1297,10 @@
         </tbody>
       </table>
     `;
+
+    // Add gap explanation
+    const gapExplanation = renderGapExplanation(payload);
+    if (gapExplanation) container.innerHTML += gapExplanation;
   }
 
   function displayQualityMetrics() {
@@ -1697,16 +1873,17 @@
       const data = await parseJsonResponse(response);
       state.artifactToken = data.token || "";
       notify("success", t("notify.cv_generated"));
-      if (cvGeneratedInfo) cvGeneratedInfo.style.display = "";
-      if (cvDownloadLink && data.download_cv_url) {
-        cvDownloadLink.href = data.download_cv_url;
-        // Auto-open PDF in new tab
+      state.artifactToken = data.token || "";
+      notify("success", t("notify.cv_generated"));
+
+      // Auto-open PDF in new tab (already works)
+      if (data.download_cv_url) {
         window.open(data.download_cv_url, '_blank');
       }
+
+      // Enable cover letter generation
       if (coverLetterSection) coverLetterSection.style.display = "";
       if (btnGenerateCover) btnGenerateCover.disabled = false;
-      const chatSection = document.getElementById("chat-corrections");
-      if (chatSection) chatSection.style.display = "";
     } finally {
       hideGeneratingOverlay();
     }
@@ -1737,14 +1914,23 @@
     }
   }
 
+  let previewInProgress = false;
+
   async function previewMatch() {
     if (!state.sessionId) throw new Error(t("error.start_session_first"));
 
-    // CRITICAL FIX: Sync job ad text to server before preview
-    await syncIntake();
+    if (previewInProgress) {
+      console.warn("Preview already in progress, skipping...");
+      return;
+    }
 
-    showGeneratingOverlay();
+    previewInProgress = true;
+
     try {
+      // CRITICAL FIX: Sync job ad text to server before preview
+      await syncIntake();
+
+      showGeneratingOverlay();
       const response = await fetch(endpoint(`/api/session/${state.sessionId}/preview-match`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1769,47 +1955,7 @@
     } catch (err) {
       notify("error", err.message || t("error.action_failed"));
     } finally {
-      hideGeneratingOverlay();
-    }
-  }
-
-  async function sendChatCorrection() {
-    const input = document.getElementById("chat-input");
-    const messagesDiv = document.getElementById("chat-messages");
-    const message = (input?.value || "").trim();
-    if (!message || !state.artifactToken || !state.sessionId) return;
-
-    const userBubble = document.createElement("div");
-    userBubble.className = "chat-msg user";
-    userBubble.textContent = message;
-    messagesDiv.appendChild(userBubble);
-    input.value = "";
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-
-    showGeneratingOverlay();
-    try {
-      const resp = await fetch(endpoint(`/api/session/${state.sessionId}/chat`), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, token: state.artifactToken }),
-      });
-      const data = await parseJsonResponse(resp);
-
-      const botBubble = document.createElement("div");
-      botBubble.className = "chat-msg assistant";
-      botBubble.textContent = data.message || t("chat.sending");
-      messagesDiv.appendChild(botBubble);
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
-
-      state.artifactToken = data.token;
-      if (cvDownloadLink && data.download_cv_url) cvDownloadLink.href = data.download_cv_url;
-      notify("success", t("notify.cv_generated"));
-    } catch (err) {
-      const errBubble = document.createElement("div");
-      errBubble.className = "chat-msg assistant";
-      errBubble.textContent = t("chat.error");
-      messagesDiv.appendChild(errBubble);
-    } finally {
+      previewInProgress = false;
       hideGeneratingOverlay();
     }
   }
@@ -2630,10 +2776,6 @@
     if (btnPreviewMatch) btnPreviewMatch.addEventListener("click", () => run(previewMatch));
     if (btnGenerate) btnGenerate.addEventListener("click", () => run(generate));
     if (btnGenerateCover) btnGenerateCover.addEventListener("click", () => run(generateCoverLetter));
-    const chatSendBtn = document.getElementById("chat-send-btn");
-    const chatInput = document.getElementById("chat-input");
-    if (chatSendBtn) chatSendBtn.addEventListener("click", () => run(sendChatCorrection));
-    if (chatInput) chatInput.addEventListener("keydown", (e) => { if (e.key === "Enter") run(sendChatCorrection); });
 
     const strategicSendBtn = document.getElementById("strategic-send-btn");
     const strategicInput = document.getElementById("strategic-input");
@@ -2674,5 +2816,439 @@
     }
   }
 
+  // ===== CV BUILDER =====
+  const BUILDER_STORAGE_KEY = "happyrav_builder_v1";
+  let builderDebounceTimer = null;
+
+  function builderEl(id) { return document.getElementById(id); }
+
+  function builderScheduleSave() {
+    clearTimeout(builderDebounceTimer);
+    builderDebounceTimer = setTimeout(saveBuilderLocal, 400);
+  }
+
+  function collectBuilderData() {
+    const data = {
+      language: (builderEl("builder-lang") || {}).value || "de",
+      template_id: document.querySelector(".template-card.active")?.dataset.template || "green",
+      full_name: (builderEl("builder-full-name") || {}).value || "",
+      headline: (builderEl("builder-headline") || {}).value || "",
+      address: (builderEl("builder-address") || {}).value || "",
+      email: (builderEl("builder-email") || {}).value || "",
+      phone: (builderEl("builder-phone") || {}).value || "",
+      linkedin: (builderEl("builder-linkedin") || {}).value || "",
+      portfolio: (builderEl("builder-portfolio") || {}).value || "",
+      github: (builderEl("builder-github") || {}).value || "",
+      birthdate: (builderEl("builder-birthdate") || {}).value || "",
+      photo_data_url: builderEl("builder-photo")?.dataset.dataUrl || "",
+      summary: (builderEl("builder-summary") || {}).value || "",
+      references_on_request: (builderEl("builder-refs-on-request") || {}).checked || false,
+      kpis: collectDynamicItems("builder-kpis-list", ["value", "label"]),
+      skills: collectDynamicItems("builder-skills-list", ["name", "level", "description", "category"]),
+      languages: collectDynamicItems("builder-languages-list", ["language", "proficiency"]),
+      experience: collectExperienceItems(),
+      education: collectDynamicItems("builder-education-list", ["degree", "school", "period", "description"]),
+      certifications: collectDynamicItems("builder-certifications-list", ["name", "issuer", "date"]),
+      military: collectDynamicItems("builder-military-list", ["rank", "period", "description"]),
+      projects: collectDynamicItems("builder-projects-list", ["name", "description", "url"]),
+      references: collectDynamicItems("builder-references-list", ["quote", "name", "title", "contact"]),
+    };
+    return data;
+  }
+
+  function collectDynamicItems(listId, fields) {
+    const list = builderEl(listId);
+    if (!list) return [];
+    const items = [];
+    list.querySelectorAll(".dynamic-item").forEach(el => {
+      const item = {};
+      fields.forEach(f => { item[f] = (el.querySelector(`[data-field="${f}"]`) || {}).value || ""; });
+      if (Object.values(item).some(v => v.trim())) items.push(item);
+    });
+    return items;
+  }
+
+  function collectExperienceItems() {
+    const list = builderEl("builder-experience-list");
+    if (!list) return [];
+    const items = [];
+    list.querySelectorAll(".dynamic-item").forEach(el => {
+      const item = {
+        role: (el.querySelector('[data-field="role"]') || {}).value || "",
+        company: (el.querySelector('[data-field="company"]') || {}).value || "",
+        location: (el.querySelector('[data-field="location"]') || {}).value || "",
+        period: (el.querySelector('[data-field="period"]') || {}).value || "",
+        achievements: (el.querySelector('[data-field="achievements"]') || {}).value?.split("\n").filter(l => l.trim()) || [],
+      };
+      if (item.role || item.company) items.push(item);
+    });
+    return items;
+  }
+
+  function saveBuilderLocal() {
+    try { localStorage.setItem(BUILDER_STORAGE_KEY, JSON.stringify(collectBuilderData())); } catch (_) {}
+  }
+
+  function restoreBuilderLocal() {
+    try {
+      const raw = localStorage.getItem(BUILDER_STORAGE_KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (data.template_id) {
+        document.querySelectorAll(".template-card").forEach(c => c.classList.toggle("active", c.dataset.template === data.template_id));
+      }
+      if (builderEl("builder-lang")) builderEl("builder-lang").value = data.language || "de";
+      const simpleFields = ["full-name", "headline", "address", "email", "phone", "linkedin", "portfolio", "github", "birthdate", "summary"];
+      simpleFields.forEach(f => {
+        const el = builderEl("builder-" + f);
+        const key = f.replace(/-/g, "_");
+        if (el && data[key] != null) el.value = data[key];
+      });
+      if (data.photo_data_url) {
+        const photoEl = builderEl("builder-photo");
+        if (photoEl) photoEl.dataset.dataUrl = data.photo_data_url;
+      }
+      if (builderEl("builder-refs-on-request")) builderEl("builder-refs-on-request").checked = !!data.references_on_request;
+
+      // Restore dynamic lists
+      restoreDynamicList("builder-kpis-list", data.kpis || [], builderAddKPI);
+      restoreDynamicList("builder-skills-list", data.skills || [], builderAddSkill);
+      restoreDynamicList("builder-languages-list", data.languages || [], builderAddLanguage);
+      restoreExperienceList(data.experience || []);
+      restoreDynamicList("builder-education-list", data.education || [], builderAddEducation);
+      restoreDynamicList("builder-certifications-list", data.certifications || [], builderAddCertification);
+      restoreDynamicList("builder-military-list", data.military || [], builderAddMilitary);
+      restoreDynamicList("builder-projects-list", data.projects || [], builderAddProject);
+      restoreDynamicList("builder-references-list", data.references || [], builderAddReference);
+    } catch (_) {}
+  }
+
+  function restoreDynamicList(listId, items, addFn) {
+    const list = builderEl(listId);
+    if (!list || !items.length) return;
+    list.innerHTML = "";
+    items.forEach(item => {
+      addFn();
+      const el = list.lastElementChild;
+      if (!el) return;
+      Object.entries(item).forEach(([k, v]) => {
+        const field = el.querySelector(`[data-field="${k}"]`);
+        if (field) field.value = v;
+      });
+    });
+  }
+
+  function restoreExperienceList(items) {
+    const list = builderEl("builder-experience-list");
+    if (!list || !items.length) return;
+    list.innerHTML = "";
+    items.forEach(item => {
+      builderAddExperience();
+      const el = list.lastElementChild;
+      if (!el) return;
+      ["role", "company", "location", "period"].forEach(k => {
+        const field = el.querySelector(`[data-field="${k}"]`);
+        if (field && item[k]) field.value = item[k];
+      });
+      const achField = el.querySelector('[data-field="achievements"]');
+      if (achField && item.achievements) achField.value = item.achievements.join("\n");
+    });
+  }
+
+  // Dynamic item creation helpers
+  function makeDynamicItem(fields, removeLabel) {
+    const div = document.createElement("div");
+    div.className = "dynamic-item";
+    let html = "";
+    if (fields.length <= 2) {
+      html += '<div class="item-row">';
+      fields.forEach(f => { html += `<div class="item-full"><span class="item-label">${f.label}</span><input data-field="${f.key}" placeholder="${f.ph || ""}"></div>`; });
+      html += "</div>";
+    } else if (fields.length === 3) {
+      html += '<div class="item-row-3">';
+      fields.forEach(f => {
+        if (f.type === "textarea") {
+          html += `</div><div class="item-full"><span class="item-label">${f.label}</span><textarea data-field="${f.key}" placeholder="${f.ph || ""}" rows="2"></textarea></div><div class="item-row-3" style="display:none;">`;
+        } else {
+          html += `<div class="item-full"><span class="item-label">${f.label}</span><input data-field="${f.key}" placeholder="${f.ph || ""}"></div>`;
+        }
+      });
+      html += "</div>";
+    } else {
+      html += '<div class="item-row">';
+      fields.forEach((f, i) => {
+        if (f.type === "textarea") {
+          html += `</div><div class="item-full"><span class="item-label">${f.label}</span><textarea data-field="${f.key}" placeholder="${f.ph || ""}" rows="2"></textarea></div><div class="item-row" style="display:none;">`;
+        } else {
+          html += `<div class="item-full"><span class="item-label">${f.label}</span><input data-field="${f.key}" placeholder="${f.ph || ""}"></div>`;
+          if (i % 2 === 1 && i < fields.length - 1 && fields[i+1]?.type !== "textarea") html += '</div><div class="item-row">';
+        }
+      });
+      html += "</div>";
+    }
+    html += `<button type="button" class="btn-remove" onclick="this.closest('.dynamic-item').remove(); builderScheduleSave();">${removeLabel || "Remove"}</button>`;
+    div.innerHTML = html;
+    div.querySelectorAll("input, textarea, select").forEach(el => el.addEventListener("input", builderScheduleSave));
+    return div;
+  }
+
+  // Expose builder functions to global scope for onclick handlers
+  window.builderAddKPI = function() {
+    const list = builderEl("builder-kpis-list");
+    if (!list) return;
+    list.appendChild(makeDynamicItem([
+      {key: "value", label: "Value", ph: "10+"},
+      {key: "label", label: "Label", ph: "Years Experience"},
+    ], "×"));
+  };
+
+  window.builderAddSkill = function() {
+    const list = builderEl("builder-skills-list");
+    if (!list) return;
+    list.appendChild(makeDynamicItem([
+      {key: "name", label: "Skill", ph: "Python"},
+      {key: "level", label: "Level", ph: "Expert"},
+      {key: "category", label: "Category", ph: "Backend"},
+      {key: "description", label: "Description", ph: "FastAPI, Django"},
+    ], "×"));
+  };
+
+  window.builderAddLanguage = function() {
+    const list = builderEl("builder-languages-list");
+    if (!list) return;
+    list.appendChild(makeDynamicItem([
+      {key: "language", label: "Language", ph: "Deutsch"},
+      {key: "proficiency", label: "Proficiency", ph: "Muttersprache"},
+    ], "×"));
+  };
+
+  window.builderAddExperience = function() {
+    const list = builderEl("builder-experience-list");
+    if (!list) return;
+    const div = document.createElement("div");
+    div.className = "dynamic-item";
+    div.innerHTML = `
+      <div class="item-row"><div class="item-full"><span class="item-label">Role</span><input data-field="role" placeholder="Senior Developer"></div><div class="item-full"><span class="item-label">Company</span><input data-field="company" placeholder="Tech AG"></div></div>
+      <div class="item-row"><div class="item-full"><span class="item-label">Location</span><input data-field="location" placeholder="Zürich"></div><div class="item-full"><span class="item-label">Period</span><input data-field="period" placeholder="2020 – Heute"></div></div>
+      <div class="item-full"><span class="item-label">Achievements (one per line)</span><textarea data-field="achievements" placeholder="Led team of 5\nShipped 3 products" rows="3"></textarea></div>
+      <button type="button" class="btn-remove" onclick="this.closest('.dynamic-item').remove(); builderScheduleSave();">×</button>`;
+    div.querySelectorAll("input, textarea").forEach(el => el.addEventListener("input", builderScheduleSave));
+    list.appendChild(div);
+  };
+
+  window.builderAddEducation = function() {
+    const list = builderEl("builder-education-list");
+    if (!list) return;
+    list.appendChild(makeDynamicItem([
+      {key: "degree", label: "Degree", ph: "MSc Computer Science"},
+      {key: "school", label: "School", ph: "ETH Zürich"},
+      {key: "period", label: "Period", ph: "2016 – 2018"},
+      {key: "description", label: "Description (optional)", ph: "", type: "textarea"},
+    ], "×"));
+  };
+
+  window.builderAddCertification = function() {
+    const list = builderEl("builder-certifications-list");
+    if (!list) return;
+    list.appendChild(makeDynamicItem([
+      {key: "name", label: "Name", ph: "AWS Solutions Architect"},
+      {key: "issuer", label: "Issuer", ph: "Amazon"},
+      {key: "date", label: "Date", ph: "2023"},
+    ], "×"));
+  };
+
+  window.builderAddMilitary = function() {
+    const list = builderEl("builder-military-list");
+    if (!list) return;
+    list.appendChild(makeDynamicItem([
+      {key: "rank", label: "Rank", ph: "Leutnant"},
+      {key: "period", label: "Period", ph: "2016 – 2020"},
+      {key: "description", label: "Description", ph: "Zugführer Infanterie", type: "textarea"},
+    ], "×"));
+  };
+
+  window.builderAddProject = function() {
+    const list = builderEl("builder-projects-list");
+    if (!list) return;
+    list.appendChild(makeDynamicItem([
+      {key: "name", label: "Name", ph: "Open Source Tool"},
+      {key: "url", label: "URL", ph: "https://github.com/..."},
+      {key: "description", label: "Description", ph: "CLI for data processing", type: "textarea"},
+    ], "×"));
+  };
+
+  window.builderAddReference = function() {
+    const list = builderEl("builder-references-list");
+    if (!list) return;
+    list.appendChild(makeDynamicItem([
+      {key: "name", label: "Name", ph: "Jane Doe"},
+      {key: "title", label: "Title", ph: "CTO, Tech AG"},
+      {key: "contact", label: "Contact", ph: "079 123 45 67"},
+      {key: "quote", label: "Quote", ph: "Excellent engineer...", type: "textarea"},
+    ], "×"));
+  };
+
+  window.builderScheduleSave = builderScheduleSave;
+
+  async function builderPreview() {
+    const data = collectBuilderData();
+    try {
+      const resp = await fetch(rootPath + "/api/builder/render", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!resp.ok) throw new Error("Render failed");
+      const result = await resp.json();
+      const wrap = builderEl("builder-preview-wrap");
+      const frame = builderEl("builder-preview-frame");
+      if (wrap && frame) {
+        wrap.style.display = "block";
+        frame.srcdoc = result.html;
+        wrap.scrollIntoView({ behavior: "smooth" });
+      }
+    } catch (err) {
+      console.error("Builder preview error:", err);
+    }
+  }
+
+  async function builderDownload() {
+    const data = collectBuilderData();
+    try {
+      const resp = await fetch(rootPath + "/api/builder/render", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!resp.ok) throw new Error("Render failed");
+      const result = await resp.json();
+      const blob = new Blob([result.html], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = result.filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Builder download error:", err);
+    }
+  }
+
+  function builderExportJSON() {
+    const data = collectBuilderData();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `cv_data_${(data.full_name || "export").replace(/\s+/g, "_")}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  async function builderExportMarkdown() {
+    const data = collectBuilderData();
+    try {
+      const resp = await fetch(rootPath + "/api/builder/markdown", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!resp.ok) throw new Error("Markdown export failed");
+      const result = await resp.json();
+      const blob = new Blob([result.markdown], { type: "text/markdown" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = result.filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Markdown export error:", err);
+    }
+  }
+
+  function builderImportJSON(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = JSON.parse(e.target.result);
+        localStorage.setItem(BUILDER_STORAGE_KEY, JSON.stringify(data));
+        restoreBuilderLocal();
+      } catch (err) {
+        console.error("Import error:", err);
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function initBuilder() {
+    if (pageKey !== "builder") return;
+
+    restoreBuilderLocal();
+
+    // Template selection
+    document.querySelectorAll(".template-card").forEach(card => {
+      card.addEventListener("click", () => {
+        document.querySelectorAll(".template-card").forEach(c => c.classList.remove("active"));
+        card.classList.add("active");
+        builderScheduleSave();
+      });
+    });
+
+    // Photo upload
+    const photoInput = builderEl("builder-photo");
+    if (photoInput) {
+      photoInput.addEventListener("change", () => {
+        const file = photoInput.files[0];
+        if (!file) return;
+        const warn = builderEl("builder-photo-warn");
+        if (warn) warn.style.display = file.size > 500 * 1024 ? "block" : "none";
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          photoInput.dataset.dataUrl = e.target.result;
+          builderScheduleSave();
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Auto-save on all inputs
+    document.querySelectorAll("#builder-page input, #builder-page textarea, #builder-page select").forEach(el => {
+      el.addEventListener("input", builderScheduleSave);
+      el.addEventListener("change", builderScheduleSave);
+    });
+
+    // Action buttons
+    const previewBtn = builderEl("builder-preview-btn");
+    if (previewBtn) previewBtn.addEventListener("click", builderPreview);
+
+    const downloadBtn = builderEl("builder-download-btn");
+    if (downloadBtn) downloadBtn.addEventListener("click", builderDownload);
+
+    const exportBtn = builderEl("builder-export-btn");
+    if (exportBtn) exportBtn.addEventListener("click", builderExportJSON);
+
+    const exportMdBtn = builderEl("builder-export-md-btn");
+    if (exportMdBtn) exportMdBtn.addEventListener("click", builderExportMarkdown);
+
+    const importInput = builderEl("builder-import-btn");
+    if (importInput) {
+      importInput.addEventListener("change", () => {
+        if (importInput.files[0]) builderImportJSON(importInput.files[0]);
+      });
+    }
+
+    // Language selector also triggers i18n update
+    const langSelect = builderEl("builder-lang");
+    if (langSelect) langSelect.addEventListener("change", builderScheduleSave);
+  }
+
   init();
+  initBuilder();
 })();

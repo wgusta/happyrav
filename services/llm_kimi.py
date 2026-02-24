@@ -428,7 +428,11 @@ def _generate_prompt(
         "- Rewrite achievements to match job ad keywords, but never remove an experience entry.\n"
         "- Include ALL education entries, never skip any.\n"
         "- Skills array: ONLY technical/domain skills. Languages are handled separately, never include them.\n"
-        "- Always include skill levels in parentheses when known (e.g., 'Python (Expert)', 'SQL (Advanced)').\n"
+        "- Format skills as 'Skill Name: contextual details, tools, certifications, experience'.\n"
+        "  Examples:\n"
+        "  * 'Requirements Engineering: IREB-certified, structured workshops, User Stories'\n"
+        "  * 'Python: FastAPI REST APIs, async programming, PostgreSQL integration, 5+ years'\n"
+        "  Use job ad keywords and CV achievements to build rich context for each skill.\n"
         "- Treat pre_generation_match_context as optimization guidance:\n"
         f"  prioritize missing keywords, keep matched keywords present, and fix ATS issues where possible.{skill_instruction}{achievement_instruction}"
     )
@@ -459,7 +463,11 @@ def _generate_prompt(
             "- Erfolge auf Stelleninserat-Keywords anpassen, aber niemals einen Erfahrungseintrag entfernen.\n"
             "- Alle Ausbildungseinträge aufführen, niemals überspringen.\n"
             "- Skills Array: NUR technische/fachliche Kompetenzen. Sprachen separat behandelt, niemals hier einbeziehen.\n"
-            "- Skill-Level immer in Klammern angeben wenn bekannt (z.B. 'Python (Experte)', 'SQL (Fortgeschritten)').\n"
+            "- Skills im Format 'Kompetenz: Kontext, Tools, Zertifikate, Erfahrung'.\n"
+            "  Beispiele:\n"
+            "  * 'Requirements Engineering: IREB-zertifiziert, strukturierte Workshops, User Stories'\n"
+            "  * 'Python: FastAPI APIs, async Programmierung, PostgreSQL, 5+ Jahre'\n"
+            "  Nutze Stelleninserat-Keywords und CV-Erfolge für reichhaltigen Kontext.\n"
             "- pre_generation_match_context als Optimierungsleitplanken nutzen:\n"
             f"  fehlende Keywords gezielt integrieren, vorhandene Treffer erhalten, ATS Probleme verbessern.{skill_instruction_de}{achievement_instruction_de}"
         )
@@ -470,6 +478,38 @@ def _generate_prompt(
         f"Source Documents Context:\n<DOCUMENTS>\n{raw_blob}\n</DOCUMENTS>"
     )
     return prompt, warning
+
+
+def _build_skill_contexts(
+    profile: ExtractedProfile,
+    match_context: Optional[Dict[str, Any]]
+) -> Dict[str, List[str]]:
+    """Extract contextual hints from achievements and match data for skill enrichment."""
+    contexts = {}
+
+    # Extract from skill rankings (semantic match top 15)
+    if match_context and "skill_rankings" in match_context:
+        for skill_data in match_context["skill_rankings"].get("top_skills", [])[:15]:
+            skill_name = skill_data.get("skill", "")
+            if skill_name:
+                contexts[skill_name] = []
+
+    # Find skill mentions in achievements
+    for exp in profile.experience:
+        for achievement in exp.achievements:
+            for skill in profile.skills[:20]:
+                skill_base = skill.lower().split('(')[0].strip()
+                if skill_base in achievement.lower():
+                    # Extract 5-word context window
+                    words = achievement.split()
+                    for i, word in enumerate(words):
+                        if skill_base in word.lower():
+                            context = ' '.join(words[max(0,i-3):min(len(words),i+4)])
+                            contexts.setdefault(skill, []).append(context[:50])
+                            break
+
+    # Limit to 3 context items per skill
+    return {k: list(set(v))[:3] for k, v in contexts.items()}
 
 
 def _refine_prompt(

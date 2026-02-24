@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="{{ 'de-CH' if cv.language == 'de' else 'en' }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CV - {{ cv.full_name }}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FFFFFF;
+    --card: #FFFFFF;
+    --ink: #2D3748;
+    --muted: #718096;
+    --rule: #E2E8F0;
+    --heading-green: #6B8E4E;
+    --terracotta: #C97A5F;
+    --terracotta-bg: #F5E6E0;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Inter, -apple-system, sans-serif;
+    font-size: 11px;
+    line-height: 1.3;
+    -webkit-font-smoothing: antialiased;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  h1, h2 { margin: 0 0 .3rem 0; line-height: 1.1; font-family: Manrope, Inter, sans-serif; color: var(--heading-green); }
+  h1 { font-size: 32px; font-weight: 800; margin-bottom: 0.4rem; }
+  h2 { font-size: 16px; font-weight: 800; margin-top: 0.8rem; margin-bottom: 0.4rem; }
+  h3 { margin: 0 0 .2rem 0; line-height: 1.1; font-family: Manrope, Inter, sans-serif; color: var(--ink); font-size: 12px; font-weight: 700; }
+  p { margin: .1rem 0 .3rem; color: var(--muted); }
+  ul { margin: .1rem 0 .3rem 0.8rem; padding: 0; }
+  li { margin: .2rem 0; color: var(--muted); line-height: 1.25; }
+  li strong { display: block; color: var(--ink); margin-bottom: 2px; }
+  strong { color: var(--ink); font-weight: 600; }
+  a { color: var(--ink); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .label { font-size: 9px; text-transform: uppercase; letter-spacing: .2px; color: var(--muted); font-weight: 600; }
+  .card > h2:first-of-type { margin-top: 0; }
+  .job-title {
+    font-size: 11px;
+    font-family: Manrope, Inter, sans-serif;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .3px;
+    margin-bottom: .2rem;
+  }
+  .page {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 2mm;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 6px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 10px;
+    overflow: hidden;
+    min-width: 0;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .hero {
+    grid-column: span 12;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    align-items: center;
+    background: var(--card);
+    padding: 10px;
+  }
+  .photo-wrap {
+    width: 130px; height: 173px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--bg);
+    margin-right: 3px;
+  }
+  .photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .contact { grid-column: span 4; padding: 6px 10px; align-self: stretch; }
+  .summary { grid-column: span 8; padding: 6px 10px; align-self: stretch; }
+  .experience { grid-column: span 12; }
+  .education { grid-column: span 12; }
+  .projects { grid-column: span 12; }
+  .skills-section { grid-column: span 12; }
+  .summary ul li, .contact ul li { margin: 0.05rem 0; }
+  .summary h2, .contact h2 { margin-bottom: 0.15rem; }
+  .experience article + article { margin-top: 18px; }
+  .experience article { margin-bottom: -0.4rem; }
+  .education article + article { margin-top: 8px; }
+  .education article { margin-bottom: -0.4rem; }
+  .education article .label { font-weight: 400; font-size: 9px; }
+  .skill-item {
+    padding: 3px 0;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    justify-content: space-between;
+  }
+  .skill-name { font-weight: 600; font-size: 10px; }
+  .skill-level { font-size: 9px; color: var(--muted); }
+  @page {
+    size: A4 portrait;
+    margin: 1.5mm 14mm 2mm 0.8mm;
+  }
+  @media print {
+    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: #fff !important; font-size: 10pt; }
+    .page { width: 210mm; max-width: 210mm; padding: 8mm; margin: 0; }
+    .card { page-break-inside: avoid; break-inside: avoid; }
+  }
+  @media (max-width: 980px) {
+    .contact, .summary, .skills-section, .experience, .education, .projects { grid-column: span 12; }
+  }
+</style>
+</head>
+<body>
+<main class="page">
+
+  <section class="card hero">
+    <div>
+      {% if cv.headline %}<div class="job-title">{{ cv.headline }}</div>{% endif %}
+      <h1>{{ cv.full_name }}</h1>
+      <p style="margin-top: 0.5rem; color: var(--muted); line-height: 1.6;">
+        {% if cv.address %}{{ cv.address }}<br>{% endif %}
+        {% if cv.email %}<a href="mailto:{{ cv.email }}">{{ cv.email }}</a><br>{% endif %}
+        {% if cv.phone %}<a href="tel:{{ cv.phone }}">{{ cv.phone }}</a><br>{% endif %}
+        {% if cv.linkedin %}<a href="https://{{ cv.linkedin }}" target="_blank" rel="noopener">{{ cv.linkedin }}</a><br>{% endif %}
+        {% if cv.birthdate %}{{ "Geboren am" if cv.language == "de" else "Born" }} {{ cv.birthdate }}{% endif %}
+      </p>
+    </div>
+    {% if cv.photo_data_url %}
+    <div class="photo-wrap">
+      <img class="photo" alt="{{ cv.full_name }}" src="{{ cv.photo_data_url }}">
+    </div>
+    {% endif %}
+  </section>
+
+  {% if cv.summary %}
+  <section class="card summary">
+    <h2>{{ "Kurzprofil" if cv.language == "de" else "Profile" }}</h2>
+    <p>{{ cv.summary }}</p>
+  </section>
+  {% endif %}
+
+  {% if cv.languages %}
+  <aside class="card contact">
+    <h2>{{ "Sprachen" if cv.language == "de" else "Languages" }}</h2>
+    <ul style="font-weight: 400; margin-bottom: 0;">
+      {% for lang in cv.languages %}
+        <li>{{ lang.language }}{% if lang.proficiency %} ({{ lang.proficiency }}){% endif %}</li>
+      {% endfor %}
+    </ul>
+  </aside>
+  {% endif %}
+
+  {% if cv.skills %}
+  <section class="card skills-section">
+    <h2>{{ "Kernkompetenzen" if cv.language == "de" else "Core Competencies" }}</h2>
+    <div style="display: flex; flex-direction: column; gap: 2px;">
+      {% for skill in cv.skills %}
+      <div class="skill-item">
+        <span class="skill-name">{{ skill.name }}{% if skill.description %}: {{ skill.description }}{% endif %}</span>
+        {% if skill.level %}<span class="skill-level">{{ skill.level }}</span>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if cv.experience %}
+  <section class="card experience">
+    <h2>{{ "Berufserfahrung" if cv.language == "de" else "Experience" }}</h2>
+    {% for item in cv.experience %}
+    <article>
+      <h3 style="font-size: 14px;">{{ item.role }}{% if item.company %} · {{ item.company }}{% endif %}</h3>
+      {% if item.period or item.location %}<p class="label">{% if item.location %}{{ item.location }} · {% endif %}{{ item.period }}</p>{% endif %}
+      {% if item.achievements %}
+      <ul>
+        {% for a in item.achievements %}<li>{{ a }}</li>{% endfor %}
+      </ul>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if cv.education %}
+  <section class="card education">
+    <h2>{{ "Ausbildung" if cv.language == "de" else "Education" }}</h2>
+    {% for item in cv.education %}
+    <article>
+      <h3{% if item.description %} style="font-size: 14px;"{% endif %}>{{ item.degree }}</h3>
+      <p class="label">{% if item.school %}{{ item.school }}{% endif %}{% if item.period %} · {{ item.period }}{% endif %}</p>
+      {% if item.description %}<p>{{ item.description }}</p>{% endif %}
+    </article>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if cv.certifications %}
+  <section class="card projects">
+    <h2>{{ "Zertifikate" if cv.language == "de" else "Certifications" }}</h2>
+    {% for cert in cv.certifications %}
+    <article>
+      <h3>{{ cert.name }}</h3>
+      <p class="label">{% if cert.issuer %}{{ cert.issuer }}{% endif %}{% if cert.date %} · {{ cert.date }}{% endif %}</p>
+    </article>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if cv.references or cv.references_on_request %}
+  <section class="card projects">
+    <h2>{{ "Referenzen" if cv.language == "de" else "References" }}</h2>
+    {% if cv.references_on_request and not cv.references %}
+      <p>{{ "Auf Anfrage" if cv.language == "de" else "On request" }}</p>
+    {% endif %}
+    {% for ref in cv.references %}
+    <article style="margin-bottom: 8px;">
+      {% if ref.quote %}<p style="font-style: italic;">"{{ ref.quote }}"</p>{% endif %}
+      <p class="label">{{ ref.name }}{% if ref.title %}, {{ ref.title }}{% endif %}{% if ref.contact %} · {{ ref.contact }}{% endif %}</p>
+    </article>
+    {% endfor %}
+    {% if cv.references_on_request and cv.references %}
+      <p style="margin-top: 4px;">{{ "Weitere Referenzen auf Anfrage" if cv.language == "de" else "Additional references on request" }}</p>
+    {% endif %}
+  </section>
+  {% endif %}
+
+</main>
+</body>
+</html>

@@ -1,0 +1,185 @@
+<div id="builder-page" class="builder-wrap">
+
+  <div class="builder-header">
+    <h2 data-i18n="builder.title">CV Builder</h2>
+    <p data-i18n="builder.subtitle">Build your CV directly. No upload, no AI. Type your data, pick a template, download.</p>
+  </div>
+
+  <!-- Template selector -->
+  <div class="builder-section">
+    <h3 data-i18n="builder.template_label">Template</h3>
+    <div class="template-grid" id="builder-template-grid">
+      <button class="template-card active" data-template="green" type="button">
+        <div class="template-preview" style="background: #6B8E4E;"></div>
+        <span>Green</span>
+      </button>
+      <button class="template-card" data-template="cutset" type="button">
+        <div class="template-preview" style="background: #9A2A2A;"></div>
+        <span>Cut Set</span>
+      </button>
+      <button class="template-card" data-template="business" type="button">
+        <div class="template-preview" style="background: #9A2A2A; opacity: 0.7;"></div>
+        <span>Business</span>
+      </button>
+      <button class="template-card" data-template="freundlich" type="button">
+        <div class="template-preview" style="background: linear-gradient(135deg, #1F5AA8, #173A73);"></div>
+        <span>Freundlich</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Language -->
+  <div class="builder-section builder-row">
+    <label data-i18n="builder.language_label">CV Language</label>
+    <select id="builder-lang">
+      <option value="de">Deutsch</option>
+      <option value="en">English</option>
+    </select>
+  </div>
+
+  <!-- Personal info -->
+  <details class="builder-section" open>
+    <summary data-i18n="builder.personal_info">Personal Information</summary>
+    <div class="builder-form-grid">
+      <div class="form-field span-6">
+        <label data-i18n="builder.full_name">Full Name</label>
+        <input type="text" id="builder-full-name" data-i18n-placeholder="builder.ph_full_name" placeholder="Max Muster">
+      </div>
+      <div class="form-field span-6">
+        <label data-i18n="builder.headline">Headline / Job Title</label>
+        <input type="text" id="builder-headline" data-i18n-placeholder="builder.ph_headline" placeholder="Software Engineer">
+      </div>
+      <div class="form-field span-6">
+        <label data-i18n="builder.address">Address</label>
+        <input type="text" id="builder-address" data-i18n-placeholder="builder.ph_address" placeholder="Bahnhofstr. 1, 8001 Zürich">
+      </div>
+      <div class="form-field span-6">
+        <label data-i18n="builder.email">Email</label>
+        <input type="email" id="builder-email" placeholder="max@example.com">
+      </div>
+      <div class="form-field span-4">
+        <label data-i18n="builder.phone">Phone</label>
+        <input type="tel" id="builder-phone" placeholder="+41 79 123 45 67">
+      </div>
+      <div class="form-field span-4">
+        <label>LinkedIn</label>
+        <input type="text" id="builder-linkedin" placeholder="linkedin.com/in/maxmuster">
+      </div>
+      <div class="form-field span-4">
+        <label data-i18n="builder.portfolio">Portfolio / Website</label>
+        <input type="text" id="builder-portfolio" placeholder="maxmuster.ch">
+      </div>
+      <div class="form-field span-4">
+        <label>GitHub</label>
+        <input type="text" id="builder-github" placeholder="github.com/maxmuster">
+      </div>
+      <div class="form-field span-4">
+        <label data-i18n="builder.birthdate">Birthdate</label>
+        <input type="text" id="builder-birthdate" placeholder="01.01.1990">
+      </div>
+      <div class="form-field span-4">
+        <label data-i18n="builder.photo">Photo</label>
+        <input type="file" id="builder-photo" accept="image/png,image/jpeg,image/webp">
+        <small id="builder-photo-warn" style="color: #c0392b; display: none;" data-i18n="builder.photo_warn">Photo exceeds 500KB, may increase file size.</small>
+      </div>
+    </div>
+  </details>
+
+  <!-- Summary -->
+  <details class="builder-section" open>
+    <summary data-i18n="builder.summary">Summary / Profile</summary>
+    <textarea id="builder-summary" rows="4" data-i18n-placeholder="builder.ph_summary" placeholder="Brief professional summary..."></textarea>
+  </details>
+
+  <!-- KPIs -->
+  <details class="builder-section">
+    <summary data-i18n="builder.kpis">KPIs (Cut Set / Business only)</summary>
+    <div id="builder-kpis-list" class="dynamic-list"></div>
+    <button type="button" class="btn-add" onclick="builderAddKPI()">+ KPI</button>
+  </details>
+
+  <!-- Skills -->
+  <details class="builder-section" open>
+    <summary data-i18n="builder.skills">Skills</summary>
+    <div id="builder-skills-list" class="dynamic-list"></div>
+    <button type="button" class="btn-add" onclick="builderAddSkill()">+ Skill</button>
+  </details>
+
+  <!-- Languages -->
+  <details class="builder-section" open>
+    <summary data-i18n="builder.languages">Languages</summary>
+    <div id="builder-languages-list" class="dynamic-list"></div>
+    <button type="button" class="btn-add" onclick="builderAddLanguage()">+ <span data-i18n="builder.language_item">Language</span></button>
+  </details>
+
+  <!-- Experience -->
+  <details class="builder-section" open>
+    <summary data-i18n="builder.experience">Experience</summary>
+    <p class="builder-hint" data-i18n="builder.experience_hint">Tip: Use bullet points from Arbeitszeugnisse for accurate, verifiable descriptions.</p>
+    <div id="builder-experience-list" class="dynamic-list"></div>
+    <button type="button" class="btn-add" onclick="builderAddExperience()">+ <span data-i18n="builder.experience_item">Position</span></button>
+  </details>
+
+  <!-- Education -->
+  <details class="builder-section" open>
+    <summary data-i18n="builder.education">Education</summary>
+    <div id="builder-education-list" class="dynamic-list"></div>
+    <button type="button" class="btn-add" onclick="builderAddEducation()">+ <span data-i18n="builder.education_item">Degree</span></button>
+  </details>
+
+  <!-- Certifications -->
+  <details class="builder-section">
+    <summary data-i18n="builder.certifications">Certifications</summary>
+    <div id="builder-certifications-list" class="dynamic-list"></div>
+    <button type="button" class="btn-add" onclick="builderAddCertification()">+ <span data-i18n="builder.certification_item">Certification</span></button>
+  </details>
+
+  <!-- Military -->
+  <details class="builder-section">
+    <summary data-i18n="builder.military">Military</summary>
+    <div id="builder-military-list" class="dynamic-list"></div>
+    <button type="button" class="btn-add" onclick="builderAddMilitary()">+ <span data-i18n="builder.military_item">Entry</span></button>
+  </details>
+
+  <!-- Projects -->
+  <details class="builder-section">
+    <summary data-i18n="builder.projects">Projects</summary>
+    <div id="builder-projects-list" class="dynamic-list"></div>
+    <button type="button" class="btn-add" onclick="builderAddProject()">+ <span data-i18n="builder.project_item">Project</span></button>
+  </details>
+
+  <!-- References -->
+  <details class="builder-section">
+    <summary data-i18n="builder.references">References</summary>
+    <div class="builder-row" style="margin-bottom: 8px;">
+      <label>
+        <input type="checkbox" id="builder-refs-on-request">
+        <span data-i18n="builder.refs_on_request">References available on request</span>
+      </label>
+    </div>
+    <div id="builder-references-list" class="dynamic-list"></div>
+    <button type="button" class="btn-add" onclick="builderAddReference()">+ <span data-i18n="builder.reference_item">Reference</span></button>
+  </details>
+
+  <!-- Actions -->
+  <div class="builder-actions">
+    <button type="button" class="btn-primary" id="builder-preview-btn" data-i18n="builder.preview">Preview</button>
+    <button type="button" class="btn-secondary" id="builder-download-btn" data-i18n="builder.download">Download HTML</button>
+    <button type="button" class="btn-ghost" id="builder-export-md-btn" data-i18n="builder.export_md">Export Markdown</button>
+    <button type="button" class="btn-ghost" id="builder-export-btn" data-i18n="builder.export_json">Export JSON</button>
+    <label class="btn-ghost" style="cursor: pointer;">
+      <span data-i18n="builder.import_json">Import JSON</span>
+      <input type="file" id="builder-import-btn" accept=".json" style="display: none;">
+    </label>
+  </div>
+
+  <!-- Preview iframe -->
+  <div id="builder-preview-wrap" class="builder-preview-wrap" style="display: none;">
+    <div class="builder-preview-header">
+      <h3 data-i18n="builder.preview_title">Preview</h3>
+      <button type="button" class="btn-ghost" onclick="document.getElementById('builder-preview-wrap').style.display='none'">&times;</button>
+    </div>
+    <iframe id="builder-preview-frame" class="builder-preview-frame"></iframe>
+  </div>
+
+</div>

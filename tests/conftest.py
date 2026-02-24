@@ -97,3 +97,87 @@ def mock_ocr():
     with patch("happyrav.main.extract_text_from_bytes") as mock:
         mock.return_value = ("Extracted CV text content", "pdf_text", 0.95)
         yield mock
+
+
+@pytest.fixture
+def sample_cv_data() -> dict:
+    """Full CVData dict for builder tests."""
+    return {
+        "language": "de",
+        "template_id": "green",
+        "full_name": "Max Muster",
+        "headline": "Software Engineer",
+        "address": "Bahnhofstrasse 1, 8001 Zürich",
+        "email": "max@example.com",
+        "phone": "+41 79 123 45 67",
+        "linkedin": "linkedin.com/in/maxmuster",
+        "portfolio": "maxmuster.ch",
+        "github": "github.com/maxmuster",
+        "birthdate": "01.01.1990",
+        "photo_data_url": "data:image/png;base64,iVBORw0KGgo=",
+        "kpis": [
+            {"value": "10+", "label": "Jahre Erfahrung"},
+            {"value": "5", "label": "Sprachen"},
+        ],
+        "summary": "Erfahrener Software Engineer mit Fokus auf Web-Applikationen.",
+        "skills": [
+            {"name": "Python", "level": "Expert", "description": "FastAPI, Django", "category": "Backend"},
+            {"name": "TypeScript", "level": "Advanced", "description": "React, Next.js", "category": "Frontend"},
+            {"name": "SQL", "level": "Advanced", "description": "PostgreSQL, MySQL", "category": "Data"},
+        ],
+        "languages": [
+            {"language": "Deutsch", "proficiency": "Muttersprache"},
+            {"language": "English", "proficiency": "C2"},
+        ],
+        "experience": [
+            {
+                "role": "Senior Developer",
+                "company": "Tech AG",
+                "location": "Zürich",
+                "period": "2020 – Heute",
+                "achievements": ["Led team of 5", "Shipped 3 products"],
+            },
+            {
+                "role": "Junior Developer",
+                "company": "Startup GmbH",
+                "location": "Baden",
+                "period": "2018 – 2020",
+                "achievements": ["Built REST APIs"],
+            },
+        ],
+        "education": [
+            {"degree": "MSc Computer Science", "school": "ETH Zürich", "period": "2016 – 2018"},
+            {"degree": "BSc Informatik", "school": "ZHAW", "period": "2013 – 2016"},
+        ],
+        "certifications": [
+            {"name": "AWS Solutions Architect", "issuer": "Amazon", "date": "2023"},
+        ],
+        "military": [
+            {"rank": "Leutnant", "period": "2016 – 2020", "description": "Zugführer Infanterie"},
+        ],
+        "projects": [
+            {"name": "Open Source Tool", "description": "CLI for data processing", "url": "https://github.com/example"},
+        ],
+        "references": [
+            {"quote": "Excellent engineer", "name": "Jane Doe", "title": "CTO, Tech AG", "contact": "079 123 45 67"},
+        ],
+        "references_on_request": False,
+    }
+
+
+@pytest.fixture
+def minimal_cv_data() -> dict:
+    """Minimal CVData dict for builder tests."""
+    return {
+        "language": "de",
+        "template_id": "green",
+        "full_name": "Test User",
+        "headline": "Developer",
+        "summary": "A developer.",
+        "experience": [
+            {"role": "Dev", "company": "Co", "period": "2020 – 2024", "achievements": ["Did stuff"]},
+        ],
+        "education": [
+            {"degree": "BSc", "school": "Uni", "period": "2016 – 2020"},
+        ],
+    }

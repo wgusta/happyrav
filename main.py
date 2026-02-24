@@ -24,6 +24,7 @@ from happyrav.models import (
     BasicProfile,
     ComparisonSection,
     CoverLetterRequest,
+    CVData,
     DocTag,
     ExtractedProfile,
     GenerateRequest,
@@ -71,9 +72,11 @@ from happyrav.services.cv_quality import validate_cv_quality
 from happyrav.services.templating import (
     build_cv_text,
     build_filenames,
+    render_builder_cv_html,
     render_cover_html,
     render_cv_html,
     render_monster_cv_html,
+    sanitize_filename,
 )
 
 
@@ -354,6 +357,204 @@ def _wizard_context(
 @app.get("/health")
 async def health() -> Dict[str, str]:
     return {"status": "ok", "service": "happyrav"}
+
+
+# ── CV Builder (stateless) ──
+
+
+@app.get("/builder", response_class=HTMLResponse)
+async def page_builder(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "asset_version": ASSET_VERSION,
+            "default_primary": "#1F5AA8",
+            "default_accent": "#173A73",
+            "page_key": "builder",
+            "page_title": "happyRAV · CV Builder",
+            "content_template": "_page_builder.html",
+            "progress_percent": 0,
+            "progress_step_index": 0,
+            "progress_total_steps": 0,
+            "record": None,
+        },
+    )
+
+
+@app.post("/api/builder/render")
+async def api_builder_render(cv_data: CVData) -> Dict:
+    html = render_builder_cv_html(cv_data)
+    safe_name = sanitize_filename(cv_data.full_name) or "CV"
+    filename = f"CV_{safe_name}.html"
+    return {"html": html, "filename": filename}
+
+
+@app.post("/api/builder/markdown")
+async def api_builder_markdown(cv_data: CVData) -> Dict:
+    md = _cv_data_to_markdown(cv_data)
+    safe_name = sanitize_filename(cv_data.full_name) or "CV"
+    filename = f"CV_{safe_name}.md"
+    return {"markdown": md, "filename": filename}
+
+
+def _cv_data_to_markdown(cv: CVData) -> str:
+    """Convert CVData to structured Markdown for LLM consumption."""
+    lines: List[str] = []
+    lines.append(f"# {cv.full_name}")
+    if cv.headline:
+        lines.append(f"**{cv.headline}**")
+    lines.append("")
+
+    # Contact
+    contact_parts: List[str] = []
+    if cv.address:
+        contact_parts.append(cv.address)
+    if cv.email:
+        contact_parts.append(cv.email)
+    if cv.phone:
+        contact_parts.append(cv.phone)
+    if cv.linkedin:
+        contact_parts.append(cv.linkedin)
+    if cv.portfolio:
+        contact_parts.append(cv.portfolio)
+    if cv.github:
+        contact_parts.append(cv.github)
+    if cv.birthdate:
+        contact_parts.append(f"Born: {cv.birthdate}")
+    if contact_parts:
+        lines.append("## Contact")
+        for part in contact_parts:
+            lines.append(f"- {part}")
+        lines.append("")
+
+    # Summary
+    if cv.summary:
+        lines.append("## Summary")
+        lines.append(cv.summary)
+        lines.append("")
+
+    # KPIs
+    if cv.kpis:
+        lines.append("## Key Figures")
+        for kpi in cv.kpis:
+            lines.append(f"- **{kpi.value}** {kpi.label}")
+        lines.append("")
+
+    # Skills
+    if cv.skills:
+        lines.append("## Skills")
+        for skill in cv.skills:
+            parts = [skill.name]
+            if skill.level:
+                parts.append(f"({skill.level})")
+            if skill.category:
+                parts.append(f"[{skill.category}]")
+            line = " ".join(parts)
+            if skill.description:
+                line += f": {skill.description}"
+            lines.append(f"- {line}")
+        lines.append("")
+
+    # Languages
+    if cv.languages:
+        lines.append("## Languages")
+        for lang in cv.languages:
+            line = lang.language
+            if lang.proficiency:
+                line += f" ({lang.proficiency})"
+            lines.append(f"- {line}")
+        lines.append("")
+
+    # Experience
+    if cv.experience:
+        lines.append("## Experience")
+        for exp in cv.experience:
+            title = exp.role
+            if exp.company:
+                title += f" | {exp.company}"
+            if exp.location:
+                title += f" | {exp.location}"
+            lines.append(f"### {title}")
+            if exp.period:
+                lines.append(f"*{exp.period}*")
+            if exp.achievements:
+                for a in exp.achievements:
+                    lines.append(f"- {a}")
+            lines.append("")
+
+    # Education
+    if cv.education:
+        lines.append("## Education")
+        for edu in cv.education:
+            title = edu.degree
+            if edu.school:
+                title += f" | {edu.school}"
+            lines.append(f"### {title}")
+            if edu.period:
+                lines.append(f"*{edu.period}*")
+            if edu.description:
+                lines.append(edu.description)
+            lines.append("")
+
+    # Certifications
+    if cv.certifications:
+        lines.append("## Certifications")
+        for cert in cv.certifications:
+            line = cert.name
+            if cert.issuer:
+                line += f", {cert.issuer}"
+            if cert.date:
+                line += f" ({cert.date})"
+            lines.append(f"- {line}")
+        lines.append("")
+
+    # Military
+    if cv.military:
+        lines.append("## Military")
+        for mil in cv.military:
+            line = mil.rank
+            if mil.period:
+                line += f" ({mil.period})"
+            lines.append(f"### {line}")
+            if mil.description:
+                lines.append(mil.description)
+            lines.append("")
+
+    # Projects
+    if cv.projects:
+        lines.append("## Projects")
+        for proj in cv.projects:
+            lines.append(f"### {proj.name}")
+            if proj.description:
+                lines.append(proj.description)
+            if proj.url:
+                lines.append(proj.url)
+            lines.append("")
+
+    # References
+    if cv.references:
+        lines.append("## References")
+        for ref in cv.references:
+            if ref.quote:
+                lines.append(f"> \"{ref.quote}\"")
+            parts = []
+            if ref.name:
+                parts.append(ref.name)
+            if ref.title:
+                parts.append(ref.title)
+            if ref.contact:
+                parts.append(ref.contact)
+            if parts:
+                lines.append(f"> — {', '.join(parts)}")
+            lines.append("")
+    if cv.references_on_request:
+        if not cv.references:
+            lines.append("## References")
+        lines.append("*Available on request*")
+        lines.append("")
+
+    return "\n".join(lines)
 
 
 @app.get("/", response_class=HTMLResponse)

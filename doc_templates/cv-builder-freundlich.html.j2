@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="{{ 'de-CH' if cv.language == 'de' else 'en' }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CV - {{ cv.full_name }}</title>
+{% set theme = cv.theme or default_theme %}
+{% set font_css_map = {"inter": '"Inter", "Segoe UI", Arial, sans-serif', "roboto": '"Roboto", "Segoe UI", Arial, sans-serif', "lato": '"Lato", "Segoe UI", Arial, sans-serif', "georgia": 'Georgia, "Times New Roman", serif', "source_sans": '"Source Sans 3", "Segoe UI", Arial, sans-serif'} %}
+{% set font_import_map = {"inter": "https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap", "roboto": "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap", "lato": "https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap", "source_sans": "https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap"} %}
+{% set chosen_font = font_css_map.get(theme.font_family, font_css_map["inter"]) %}
+{% set chosen_import = font_import_map.get(theme.font_family, "") %}
+<style>
+  {% if chosen_import %}@import url('{{ chosen_import }}');{% endif %}
+  @page { size: A4; margin: 12mm 13mm; }
+  :root {
+    --primary: {{ theme.primary_hex }};
+    --accent: {{ theme.accent_hex }};
+    --ink: #1a2029;
+    --muted: #586374;
+    --rule: {% if theme.border_style == 'none' %}transparent{% else %}#d7dfed{% endif %};
+    --panel: {{ theme.card_bg }};
+    --radius: {% if theme.border_style == 'rounded' %}10px{% elif theme.border_style == 'square' %}0{% else %}0{% endif %};
+    --shadow: {% if theme.box_shadow %}0 2px 8px rgba(0,0,0,0.07){% else %}none{% endif %};
+    --page-bg: {{ theme.page_bg }};
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: {{ chosen_font }}; color: var(--ink); font-size: 10.4px; line-height: 1.4; background: var(--page-bg); -webkit-font-smoothing: antialiased; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  h1, h2, h3, p { margin: 0; }
+  .card { background: var(--panel); border: {% if theme.border_style != 'none' %}1px solid var(--rule){% else %}none{% endif %}; border-radius: var(--radius); padding: 10px 12px; margin-bottom: 6px; break-inside: avoid; page-break-inside: avoid; box-shadow: var(--shadow); }
+  .hero { overflow: hidden; padding: 12px 14px; margin-bottom: 8px; }
+  .hero-text { float: left; max-width: 68%; }
+  .hero-photo { float: right; }
+  .hero h1 { font-size: 24px; color: var(--primary); line-height: 1.08; font-weight: 700; }
+  .hero .headline { margin-top: 4px; font-size: 11px; color: var(--accent); font-weight: 700; }
+  .hero .contact { margin-top: 8px; color: var(--muted); font-size: 9.4px; line-height: 1.6; }
+  .contact-sep { color: var(--rule); margin: 0 2px; }
+  .photo { width: 96px; height: 96px; border-radius: var(--radius); overflow: hidden; border: {% if theme.border_style != 'none' %}1.5px solid var(--rule){% else %}none{% endif %}; }
+  .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .card h2 { color: var(--primary); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px; }
+  .summary { font-size: 10.6px; line-height: 1.5; color: var(--ink); }
+  .skill-pill {
+    display: inline-block;
+    margin: 2px 3px 2px 0;
+    padding: 2.5px 7px;
+    border-radius: {% if theme.border_style == 'rounded' %}999px{% else %}2px{% endif %};
+    background: {{ theme.primary_hex }}0D;
+    border: 1px solid {{ theme.primary_hex }}26;
+    color: var(--primary);
+    font-size: 9.2px;
+    font-weight: 600;
+  }
+  .skill-level-text { font-size: 7.6px; color: var(--muted); display: block; margin-top: 1px; font-weight: 400; }
+  .entry { margin-bottom: 7px; break-inside: avoid; page-break-inside: avoid; }
+  .entry + .entry { padding-top: 6px; border-top: 1px solid var(--rule); }
+  .entry h3 { font-size: 10.8px; font-weight: 700; color: var(--ink); }
+  .entry-meta { color: var(--muted); font-size: 9.2px; margin-top: 1px; font-weight: 600; }
+  .entry ul { margin: 3px 0 0 13px; padding: 0; }
+  .entry li { margin: 2px 0; color: var(--muted); line-height: 1.38; }
+  .edu-entry { margin-bottom: 4px; }
+  .edu-entry h3 { font-size: 10.4px; font-weight: 700; }
+  .edu-meta { color: var(--muted); font-size: 9px; margin-top: 1px; }
+  @media print {
+    body { background: #fff !important; }
+  }
+</style>
+</head>
+<body>
+  <header class="card hero">
+    <div class="hero-text">
+      <h1>{{ cv.full_name }}</h1>
+      {% if cv.headline %}<p class="headline">{{ cv.headline }}</p>{% endif %}
+      <p class="contact">
+        {% if cv.address %}<span>{{ cv.address }}</span>{% endif %}
+        {% if cv.email %}<span class="contact-sep">&middot;</span><span>{{ cv.email }}</span>{% endif %}
+        {% if cv.phone %}<span class="contact-sep">&middot;</span><span>{{ cv.phone }}</span>{% endif %}
+        {% if cv.linkedin %}<br><span>{{ cv.linkedin }}</span>{% endif %}
+        {% if cv.portfolio %}<span class="contact-sep">&middot;</span><span>{{ cv.portfolio }}</span>{% endif %}
+        {% if cv.github %}<span class="contact-sep">&middot;</span><span>{{ cv.github }}</span>{% endif %}
+      </p>
+    </div>
+    {% if cv.photo_data_url %}
+    <div class="hero-photo">
+      <div class="photo"><img src="{{ cv.photo_data_url }}" alt="{{ cv.full_name }}"></div>
+    </div>
+    {% endif %}
+  </header>
+
+  {% if cv.summary %}
+  <section class="card">
+    <h2>{{ "Kurzprofil" if cv.language == "de" else "Profile" }}</h2>
+    <p class="summary">{{ cv.summary }}</p>
+  </section>
+  {% endif %}
+
+  {% if cv.languages %}
+  <section class="card" style="background: {{ theme.primary_hex }}08; border-color: {{ theme.primary_hex }}20;">
+    <h2>{{ "Sprachen" if cv.language == "de" else "Languages" }}</h2>
+    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+      {% for lang in cv.languages %}
+      <span style="padding: 3px 8px; background: var(--primary); color: white; border-radius: {% if theme.border_style == 'rounded' %}5px{% else %}2px{% endif %}; font-size: 9.4px; font-weight: 600;">{{ lang.language }}{% if lang.proficiency %} ({{ lang.proficiency }}){% endif %}</span>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if cv.skills %}
+  <section class="card">
+    <h2>{{ "Kernkompetenzen" if cv.language == "de" else "Core Competencies" }}</h2>
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      {% for skill in cv.skills %}
+      <div style="padding: 4px 0; border-bottom: 1px solid var(--rule);">
+        <div style="font-weight: 600; font-size: 10px; color: var(--ink); margin-bottom: 2px;">
+          {{ skill.name }}{% if skill.level %} <span style="font-size: 9px; color: var(--muted); font-weight: 400;">({{ skill.level }})</span>{% endif %}
+        </div>
+        {% if skill.description %}
+        <div style="font-size: 8.4px; color: var(--muted); line-height: 1.3; padding-left: 8px;">
+          {{ skill.description }}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if cv.experience %}
+  <section class="card">
+    <h2>{{ "Berufserfahrung" if cv.language == "de" else "Experience" }}</h2>
+    {% for item in cv.experience %}
+    <article class="entry">
+      <h3>{{ item.role }}{% if item.company %} · {{ item.company }}{% endif %}</h3>
+      {% if item.period or item.location %}<p class="entry-meta">{% if item.location %}{{ item.location }} · {% endif %}{{ item.period }}</p>{% endif %}
+      {% if item.achievements %}
+      <ul>
+        {% for a in item.achievements %}<li>{{ a }}</li>{% endfor %}
+      </ul>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if cv.education %}
+  <section class="card">
+    <h2>{{ "Ausbildung" if cv.language == "de" else "Education" }}</h2>
+    {% for item in cv.education %}
+    <article class="edu-entry">
+      <h3>{{ item.degree }}</h3>
+      <p class="edu-meta">{% if item.school %}{{ item.school }}{% endif %}{% if item.period %} · {{ item.period }}{% endif %}</p>
+      {% if item.description %}<p style="font-size: 9px; color: var(--muted); margin-top: 2px;">{{ item.description }}</p>{% endif %}
+    </article>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if cv.certifications %}
+  <section class="card">
+    <h2>{{ "Zertifikate" if cv.language == "de" else "Certifications" }}</h2>
+    {% for cert in cv.certifications %}
+    <article class="edu-entry">
+      <h3>{{ cert.name }}</h3>
+      <p class="edu-meta">{% if cert.issuer %}{{ cert.issuer }}{% endif %}{% if cert.date %} · {{ cert.date }}{% endif %}</p>
+    </article>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if cv.military %}
+  <section class="card">
+    <h2>{{ "Militär" if cv.language == "de" else "Military" }}</h2>
+    {% for item in cv.military %}
+    <article class="entry">
+      <h3>{{ item.rank }}</h3>
+      {% if item.period %}<p class="entry-meta">{{ item.period }}</p>{% endif %}
+      {% if item.description %}<p style="font-size: 9.4px; color: var(--muted); margin-top: 2px;">{{ item.description }}</p>{% endif %}
+    </article>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if cv.projects %}
+  <section class="card">
+    <h2>{{ "Projekte" if cv.language == "de" else "Projects" }}</h2>
+    {% for proj in cv.projects %}
+    <article class="entry">
+      <h3>{{ proj.name }}</h3>
+      {% if proj.description %}<p style="font-size: 9.4px; color: var(--muted); margin-top: 2px;">{{ proj.description }}</p>{% endif %}
+      {% if proj.url %}<p style="font-size: 9px; margin-top: 2px;"><a href="{{ proj.url }}" style="color: var(--primary);">{{ proj.url | replace("https://", "") }}</a></p>{% endif %}
+    </article>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if cv.references or cv.references_on_request %}
+  <section class="card">
+    <h2>{{ "Referenzen" if cv.language == "de" else "References" }}</h2>
+    {% if cv.references_on_request and not cv.references %}
+    <p style="font-size: 10px; color: var(--muted);">{{ "Auf Anfrage" if cv.language == "de" else "On request" }}</p>
+    {% endif %}
+    {% for ref in cv.references %}
+    <article class="entry">
+      {% if ref.quote %}<p style="font-style: italic; font-size: 9.4px; color: var(--muted);">"{{ ref.quote }}"</p>{% endif %}
+      <p style="font-size: 9px; color: var(--ink); margin-top: 2px;">{{ ref.name }}{% if ref.title %}, {{ ref.title }}{% endif %}{% if ref.contact %} · {{ ref.contact }}{% endif %}</p>
+    </article>
+    {% endfor %}
+    {% if cv.references_on_request and cv.references %}
+    <p style="font-size: 9px; color: var(--muted); margin-top: 4px;">{{ "Weitere Referenzen auf Anfrage" if cv.language == "de" else "Additional references on request" }}</p>
+    {% endif %}
+  </section>
+  {% endif %}
+</body>
+</html>

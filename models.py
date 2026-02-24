@@ -313,3 +313,93 @@ class MonsterArtifactRecord(BaseModel):
     html: str
     timeline: MonsterCVProfile
     expires_at: float
+
+
+# ── CV Builder models ──
+
+
+class KPIItem(BaseModel):
+    value: str
+    label: str
+
+
+class SkillItem(BaseModel):
+    name: str
+    level: str = ""
+    description: str = ""
+    category: str = ""
+
+
+class LanguageItem(BaseModel):
+    language: str
+    proficiency: str = ""
+
+
+class ExperienceEntry(BaseModel):
+    role: str
+    company: str = ""
+    location: str = ""
+    period: str = ""
+    achievements: List[str] = Field(default_factory=list)
+
+
+class EducationEntry(BaseModel):
+    degree: str
+    school: str = ""
+    period: str = ""
+    description: str = ""
+
+
+class CertificationItem(BaseModel):
+    name: str
+    issuer: str = ""
+    date: str = ""
+
+
+class MilitaryItem(BaseModel):
+    rank: str
+    period: str = ""
+    description: str = ""
+
+
+class ProjectItem(BaseModel):
+    name: str
+    description: str = ""
+    url: str = ""
+
+
+class ReferenceItem(BaseModel):
+    quote: str = ""
+    name: str = ""
+    title: str = ""
+    contact: str = ""
+
+
+BuilderTemplateId = Literal["green", "cutset", "business", "freundlich"]
+
+
+class CVData(BaseModel):
+    language: str = "de"
+    template_id: str = "green"
+    full_name: str = ""
+    headline: str = ""
+    address: str = ""
+    email: str = ""
+    phone: str = ""
+    linkedin: str = ""
+    portfolio: str = ""
+    github: str = ""
+    birthdate: str = ""
+    photo_data_url: str = ""
+    kpis: List[KPIItem] = Field(default_factory=list)
+    summary: str = ""
+    skills: List[SkillItem] = Field(default_factory=list)
+    languages: List[LanguageItem] = Field(default_factory=list)
+    experience: List[ExperienceEntry] = Field(default_factory=list)
+    education: List[EducationEntry] = Field(default_factory=list)
+    certifications: List[CertificationItem] = Field(default_factory=list)
+    military: List[MilitaryItem] = Field(default_factory=list)
+    projects: List[ProjectItem] = Field(default_factory=list)
+    references: List[ReferenceItem] = Field(default_factory=list)
+    references_on_request: bool = False
+    theme: Optional[ThemeConfig] = None
