@@ -111,9 +111,9 @@ def _format_cover_date(location: str, language: str) -> str:
 
 def _template_alias(value: str) -> str:
     template_id = (value or "").strip().lower()
-    if template_id in {"ats_clean", "ats_modern", "sophisticated"}:
+    if template_id in {"ats_clean", "ats_modern"}:
         return "simple"
-    if template_id in {"simple", "friendly"}:
+    if template_id in {"simple", "friendly", "sophisticated"}:
         return template_id
     return "simple"
 
@@ -228,7 +228,7 @@ def _refresh_state(record: SessionRecord) -> SessionRecord:
 
     if state.ready_to_generate:
         state.phase = "review"
-    elif state.documents:
+    elif state.documents or record.preseed_profile:
         state.phase = "questions"
     elif state.consent_confirmed and state.job_ad_text.strip():
         state.phase = "upload"
@@ -291,11 +291,18 @@ async def _enrich_profile_with_openai(record: SessionRecord) -> SessionRecord:
     return record
 
 
+def _has_profile_data(profile: ExtractedProfile) -> bool:
+    return bool(
+        profile.full_name or profile.experience or profile.education
+        or profile.skills or profile.summary
+    )
+
+
 def _recommended_step(state: SessionState) -> str:
     unresolved = unresolved_required_ids(state.questions)
     if state.ready_to_generate and not unresolved:
         return "review"
-    if state.documents:
+    if state.documents or _has_profile_data(state.extracted_profile):
         return "questions"
     if state.consent_confirmed and state.job_ad_text.strip():
         return "upload"
@@ -893,6 +900,7 @@ async def api_preseed(session_id: str, req: PreSeedRequest) -> Dict:
         record.state.extracted_profile = record.preseed_profile.model_copy(deep=True)
     if req.telos:
         record.state.telos_context.update(req.telos)
+    record = _refresh_state(record)
     session_cache.set(record)
     return {
         "session_id": session_id,
@@ -1221,6 +1229,7 @@ async def api_session_generate(
         profile=profile,
         source_documents=list(record.document_texts.values()),
         match_context=match_context,
+        tone=payload.tone,
     )
     generated = _validate_completeness(profile, generated)
 
