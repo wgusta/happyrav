@@ -77,11 +77,17 @@
       "upload.cv_add_language": "+ Add Language",
       "upload.cv_ph_language": "e.g. German",
       "upload.cv_ph_proficiency": "e.g. Native, C1, Fluent",
-      "upload.cv_ph_skill_level": "Level (optional)",
+      "upload.cv_ph_skill_level": "e.g. Expert, 5+ years",
       "upload.cv_ph_duties": "Tasks from Arbeitszeugnis or job description",
       "upload.cv_ph_successes": "e.g. Increased revenue by 30%, Reduced costs by CHF 50k",
       "upload.cv_ph_learned": "Key subjects, skills, or competencies gained",
       "upload.cv_ph_grade": "Grade / GPA",
+      "upload.cv_ph_start_month": "01/2020",
+      "upload.cv_ph_end_month": "12/2024 or present",
+      "upload.start_month": "Start (MM/YYYY)",
+      "upload.end_month": "End (MM/YYYY or present)",
+      "upload.stellenbeschrieb": "Job Description",
+      "upload.leistungen": "Achievements / Results",
       "upload.skill_level": "Level",
       "upload.duties": "Tasks / Duties",
       "upload.successes": "Achievements (quantified)",
@@ -92,6 +98,8 @@
       "tooltip.successes": "Quantify achievements: 'Increased sales by 25%', 'Reduced costs by CHF 50k'",
       "tooltip.learned": "Key subjects, skills, or competencies gained",
       "tooltip.grade": "Final grade, GPA, or distinction",
+      "tooltip.stellenbeschrieb": "Describe your role and responsibilities",
+      "tooltip.leistungen": "List achievements with measurable results",
       "upload.cv_experience": "Experience",
       "upload.cv_add_experience": "+ Add Experience",
       "upload.cv_education": "Education",
@@ -514,11 +522,17 @@
       "upload.cv_add_language": "+ Sprache hinzufügen",
       "upload.cv_ph_language": "z.B. Deutsch",
       "upload.cv_ph_proficiency": "z.B. Muttersprache, C1, Fliessend",
-      "upload.cv_ph_skill_level": "Niveau (optional)",
+      "upload.cv_ph_skill_level": "z.B. Experte, 5+ Jahre",
       "upload.cv_ph_duties": "Aufgaben gemäss Arbeitszeugnis oder Stellenbeschreibung",
       "upload.cv_ph_successes": "z.B. Umsatz um 30% gesteigert, Kosten um CHF 50k reduziert",
       "upload.cv_ph_learned": "Wichtige Fächer, Fähigkeiten oder Kompetenzen",
       "upload.cv_ph_grade": "Note / Durchschnitt",
+      "upload.cv_ph_start_month": "01/2020",
+      "upload.cv_ph_end_month": "12/2024 oder heute",
+      "upload.start_month": "Beginn (MM/JJJJ)",
+      "upload.end_month": "Ende (MM/JJJJ oder heute)",
+      "upload.stellenbeschrieb": "Stellenbeschrieb",
+      "upload.leistungen": "Leistungen / Erfolge",
       "upload.skill_level": "Niveau",
       "upload.duties": "Aufgaben / Tätigkeiten",
       "upload.successes": "Erfolge (quantifiziert)",
@@ -529,6 +543,8 @@
       "tooltip.successes": "Erfolge quantifizieren: 'Umsatz um 25% gesteigert', 'Kosten um CHF 50k reduziert'",
       "tooltip.learned": "Wichtige Fächer, Fähigkeiten oder Kompetenzen",
       "tooltip.grade": "Abschlussnote, Durchschnitt oder Auszeichnung",
+      "tooltip.stellenbeschrieb": "Rolle und Aufgaben beschreiben",
+      "tooltip.leistungen": "Erfolge mit messbaren Ergebnissen auflisten",
       "upload.cv_experience": "Berufserfahrung",
       "upload.cv_add_experience": "+ Erfahrung hinzufügen",
       "upload.cv_education": "Ausbildung",
@@ -2141,6 +2157,64 @@
   let advProfileDebounce = null;
   let advTelosDebounce = null;
 
+  function sanitizeEditorHtml(html) {
+    const tmp = document.createElement("div");
+    tmp.innerHTML = html || "";
+    tmp.querySelectorAll("script,style,iframe,object,embed,form").forEach(el => el.remove());
+    // Strip all attributes except basic ones
+    tmp.querySelectorAll("*").forEach(el => {
+      const tag = el.tagName.toLowerCase();
+      const allowed = ["b","i","u","strong","em","ul","ol","li","br","p","div","span"];
+      if (!allowed.includes(tag)) {
+        el.replaceWith(...el.childNodes);
+      }
+    });
+    return tmp.innerHTML;
+  }
+
+  function stripHtmlTags(html) {
+    const tmp = document.createElement("div");
+    tmp.innerHTML = html || "";
+    return tmp.textContent || "";
+  }
+
+  function createMiniEditor(container, initialHtml, placeholder, onInput) {
+    const wrap = document.createElement("div");
+    wrap.className = "mini-editor-wrap";
+    const toolbar = document.createElement("div");
+    toolbar.className = "mini-editor-toolbar";
+    const buttons = [
+      { cmd: "bold", label: "B", style: "font-weight:bold" },
+      { cmd: "italic", label: "I", style: "font-style:italic" },
+      { cmd: "underline", label: "U", style: "text-decoration:underline" },
+      { cmd: "insertUnorderedList", label: "\u2022" },
+      { cmd: "insertOrderedList", label: "1." },
+    ];
+    buttons.forEach(b => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.innerHTML = `<span style="${b.style || ''}">${b.label}</span>`;
+      btn.title = b.cmd;
+      btn.addEventListener("mousedown", e => {
+        e.preventDefault();
+        document.execCommand(b.cmd, false, null);
+        content.focus();
+        if (onInput) onInput();
+      });
+      toolbar.appendChild(btn);
+    });
+    const content = document.createElement("div");
+    content.className = "mini-editor-content";
+    content.contentEditable = "true";
+    content.setAttribute("data-placeholder", placeholder || "");
+    if (initialHtml) content.innerHTML = sanitizeEditorHtml(initialHtml);
+    content.addEventListener("input", () => { if (onInput) onInput(); });
+    wrap.appendChild(toolbar);
+    wrap.appendChild(content);
+    container.appendChild(wrap);
+    return { wrap, content, getHtml: () => sanitizeEditorHtml(content.innerHTML), setHtml: (h) => { content.innerHTML = sanitizeEditorHtml(h); } };
+  }
+
   function escHtml(str) {
     return String(str || "")
       .replace(/&/g, "&amp;")
@@ -2163,21 +2237,25 @@
         <label><span>${t("adv.company")}</span>
           <input type="text" name="company" value="${escHtml(data?.company || "")}" placeholder="${escHtml(t("adv.ph_company"))}">
         </label>
-        <label><span>${t("adv.period")}</span>
-          <input type="text" name="period" value="${escHtml(data?.period || "")}" placeholder="${escHtml(t("adv.ph_period"))}">
+      </div>
+      <div class="duration-row">
+        <label><span>${t("upload.start_month")}</span>
+          <input type="text" name="start_month" value="${escHtml(data?.start_month || "")}" placeholder="${escHtml(t("upload.cv_ph_start_month"))}">
+        </label>
+        <label><span>${t("upload.end_month")}</span>
+          <input type="text" name="end_month" value="${escHtml(data?.end_month || "")}" placeholder="${escHtml(t("upload.cv_ph_end_month"))}">
         </label>
       </div>
-      <label><span>${t("adv.achievements")}</span>
-        <textarea name="achievements" rows="3" placeholder="${escHtml(t("adv.ph_achievements"))}">${escHtml((data?.achievements || []).join("\n"))}</textarea>
-      </label>
-      <label><span>${t("upload.duties")} <span class="info-icon" title="${escHtml(t("tooltip.duties"))}">i</span></span>
-        <textarea name="duties" rows="2" placeholder="${escHtml(t("upload.cv_ph_duties"))}">${escHtml(data?.duties || "")}</textarea>
-      </label>
-      <label><span>${t("upload.successes")} <span class="info-icon" title="${escHtml(t("tooltip.successes"))}">i</span></span>
-        <textarea name="successes" rows="2" placeholder="${escHtml(t("upload.cv_ph_successes"))}">${escHtml(data?.successes || "")}</textarea>
-      </label>
+      <div class="item-full editor-stellenbeschrieb">
+        <span class="item-label">${t("upload.stellenbeschrieb")} <span class="info-icon" title="${escHtml(t("tooltip.stellenbeschrieb"))}">i</span></span>
+      </div>
+      <div class="item-full editor-leistungen">
+        <span class="item-label">${t("upload.leistungen")} <span class="info-icon" title="${escHtml(t("tooltip.leistungen"))}">i</span></span>
+      </div>
     `;
-    row.querySelectorAll("input, textarea").forEach((el) => el.addEventListener("input", scheduleAdvProfileSave));
+    row.querySelectorAll("input").forEach((el) => el.addEventListener("input", scheduleAdvProfileSave));
+    createMiniEditor(row.querySelector(".editor-stellenbeschrieb"), data?.description_html || data?.duties || "", t("upload.cv_ph_duties"), scheduleAdvProfileSave);
+    createMiniEditor(row.querySelector(".editor-leistungen"), data?.achievements_html || data?.successes || "", t("upload.cv_ph_successes"), scheduleAdvProfileSave);
     list.appendChild(row);
   }
 
@@ -2195,18 +2273,24 @@
         <label><span>${t("adv.school")}</span>
           <input type="text" name="school" value="${escHtml(data?.school || "")}" placeholder="${escHtml(t("adv.ph_school"))}">
         </label>
-        <label><span>${t("adv.period")}</span>
-          <input type="text" name="period" value="${escHtml(data?.period || "")}" placeholder="${escHtml(t("adv.ph_period"))}">
+      </div>
+      <div class="duration-row">
+        <label><span>${t("upload.start_month")}</span>
+          <input type="text" name="start_month" value="${escHtml(data?.start_month || "")}" placeholder="${escHtml(t("upload.cv_ph_start_month"))}">
         </label>
-        <label><span>${t("upload.grade")} <span class="info-icon" title="${escHtml(t("tooltip.grade"))}">i</span></span>
-          <input type="text" name="grade" value="${escHtml(data?.grade || "")}" placeholder="${escHtml(t("upload.cv_ph_grade"))}">
+        <label><span>${t("upload.end_month")}</span>
+          <input type="text" name="end_month" value="${escHtml(data?.end_month || "")}" placeholder="${escHtml(t("upload.cv_ph_end_month"))}">
         </label>
       </div>
-      <label><span>${t("upload.learned")} <span class="info-icon" title="${escHtml(t("tooltip.learned"))}">i</span></span>
-        <textarea name="learned" rows="2" placeholder="${escHtml(t("upload.cv_ph_learned"))}">${escHtml(data?.learned || "")}</textarea>
+      <label><span>${t("upload.grade")} <span class="info-icon" title="${escHtml(t("tooltip.grade"))}">i</span></span>
+        <input type="text" name="grade" value="${escHtml(data?.grade || "")}" placeholder="${escHtml(t("upload.cv_ph_grade"))}">
       </label>
+      <div class="item-full editor-learned">
+        <span class="item-label">${t("upload.learned")} <span class="info-icon" title="${escHtml(t("tooltip.learned"))}">i</span></span>
+      </div>
     `;
-    row.querySelectorAll("input, textarea").forEach((el) => el.addEventListener("input", scheduleAdvProfileSave));
+    row.querySelectorAll("input").forEach((el) => el.addEventListener("input", scheduleAdvProfileSave));
+    createMiniEditor(row.querySelector(".editor-learned"), data?.learned_html || data?.learned || "", t("upload.cv_ph_learned"), scheduleAdvProfileSave);
     list.appendChild(row);
   }
 
@@ -2230,21 +2314,29 @@
         linkedin: document.getElementById("adv-linkedin")?.value || "",
         portfolio: document.getElementById("adv-portfolio")?.value || "",
       },
-      experience: Array.from(document.querySelectorAll(".exp-row")).map((row) => ({
-        role: row.querySelector("[name='role']")?.value || "",
-        company: row.querySelector("[name='company']")?.value || "",
-        period: row.querySelector("[name='period']")?.value || "",
-        achievements: (row.querySelector("[name='achievements']")?.value || "").split("\n").filter(Boolean),
-        duties: row.querySelector("[name='duties']")?.value || "",
-        successes: row.querySelector("[name='successes']")?.value || "",
-      })),
-      education: Array.from(document.querySelectorAll(".edu-row")).map((row) => ({
-        degree: row.querySelector("[name='degree']")?.value || "",
-        school: row.querySelector("[name='school']")?.value || "",
-        period: row.querySelector("[name='period']")?.value || "",
-        learned: row.querySelector("[name='learned']")?.value || "",
-        grade: row.querySelector("[name='grade']")?.value || "",
-      })),
+      experience: Array.from(document.querySelectorAll(".exp-row")).map((row) => {
+        const descEditor = row.querySelector(".editor-stellenbeschrieb .mini-editor-content");
+        const achEditor = row.querySelector(".editor-leistungen .mini-editor-content");
+        return {
+          role: row.querySelector("[name='role']")?.value || "",
+          company: row.querySelector("[name='company']")?.value || "",
+          start_month: row.querySelector("[name='start_month']")?.value || "",
+          end_month: row.querySelector("[name='end_month']")?.value || "",
+          description_html: descEditor ? sanitizeEditorHtml(descEditor.innerHTML) : "",
+          achievements_html: achEditor ? sanitizeEditorHtml(achEditor.innerHTML) : "",
+        };
+      }),
+      education: Array.from(document.querySelectorAll(".edu-row")).map((row) => {
+        const learnEditor = row.querySelector(".editor-learned .mini-editor-content");
+        return {
+          degree: row.querySelector("[name='degree']")?.value || "",
+          school: row.querySelector("[name='school']")?.value || "",
+          start_month: row.querySelector("[name='start_month']")?.value || "",
+          end_month: row.querySelector("[name='end_month']")?.value || "",
+          learned_html: learnEditor ? sanitizeEditorHtml(learnEditor.innerHTML) : "",
+          grade: row.querySelector("[name='grade']")?.value || "",
+        };
+      }),
       references: document.getElementById("adv-references")?.value || "",
     };
   }
@@ -2529,18 +2621,18 @@
     row.innerHTML = `
       <div class="item-row">
         <input type="text" name="skill" value="${escHtml(name)}" placeholder="${escHtml(t("upload.cv_ph_skill"))}">
-        <select name="skill_level">
-          <option value="">${escHtml(t("upload.cv_ph_skill_level"))}</option>
-          <option value="Expert" ${level === "Expert" ? "selected" : ""}>Expert</option>
-          <option value="Advanced" ${level === "Advanced" ? "selected" : ""}>Advanced</option>
-          <option value="Intermediate" ${level === "Intermediate" ? "selected" : ""}>Intermediate</option>
-          <option value="Beginner" ${level === "Beginner" ? "selected" : ""}>Beginner</option>
-        </select>
+        <input type="text" name="skill_level" value="${escHtml(level)}" list="skill-level-suggestions" placeholder="${escHtml(t("upload.cv_ph_skill_level"))}">
         <button type="button" class="btn-remove">${t("adv.remove")}</button>
       </div>
     `;
-    row.querySelectorAll("input, select").forEach(el => el.addEventListener("input", scheduleUploadSave));
-    row.querySelectorAll("input, select").forEach(el => el.addEventListener("change", scheduleUploadSave));
+    // Ensure datalist exists once
+    if (!document.getElementById("skill-level-suggestions")) {
+      const dl = document.createElement("datalist");
+      dl.id = "skill-level-suggestions";
+      dl.innerHTML = '<option value="Expert"><option value="Advanced"><option value="Intermediate"><option value="Beginner">';
+      document.body.appendChild(dl);
+    }
+    row.querySelectorAll("input").forEach(el => el.addEventListener("input", scheduleUploadSave));
     list.appendChild(row);
   }
 
@@ -2574,29 +2666,25 @@
           <input type="text" name="company" value="${escHtml(data?.company || "")}" placeholder="${escHtml(t("adv.ph_company"))}">
         </label>
       </div>
-      <div class="item-row">
-        <label><span class="item-label">${t("adv.period")}</span>
-          <input type="text" name="period" value="${escHtml(data?.period || "")}" placeholder="${escHtml(t("adv.ph_period"))}">
+      <div class="duration-row">
+        <label><span class="item-label">${t("upload.start_month")}</span>
+          <input type="text" name="start_month" value="${escHtml(data?.start_month || "")}" placeholder="${escHtml(t("upload.cv_ph_start_month"))}">
+        </label>
+        <label><span class="item-label">${t("upload.end_month")}</span>
+          <input type="text" name="end_month" value="${escHtml(data?.end_month || "")}" placeholder="${escHtml(t("upload.cv_ph_end_month"))}">
         </label>
       </div>
-      <div class="item-full">
-        <label><span class="item-label">${t("adv.achievements")}</span>
-          <textarea name="achievements" rows="3" placeholder="${escHtml(t("adv.ph_achievements"))}">${escHtml((data?.achievements || []).join("\n"))}</textarea>
-        </label>
+      <div class="item-full editor-stellenbeschrieb">
+        <span class="item-label">${t("upload.stellenbeschrieb")} <span class="info-icon" title="${escHtml(t("tooltip.stellenbeschrieb"))}">i</span></span>
       </div>
-      <div class="item-full">
-        <label><span class="item-label">${t("upload.duties")} <span class="info-icon" title="${escHtml(t("tooltip.duties"))}">i</span></span>
-          <textarea name="duties" rows="2" placeholder="${escHtml(t("upload.cv_ph_duties"))}">${escHtml(data?.duties || "")}</textarea>
-        </label>
-      </div>
-      <div class="item-full">
-        <label><span class="item-label">${t("upload.successes")} <span class="info-icon" title="${escHtml(t("tooltip.successes"))}">i</span></span>
-          <textarea name="successes" rows="2" placeholder="${escHtml(t("upload.cv_ph_successes"))}">${escHtml(data?.successes || "")}</textarea>
-        </label>
+      <div class="item-full editor-leistungen">
+        <span class="item-label">${t("upload.leistungen")} <span class="info-icon" title="${escHtml(t("tooltip.leistungen"))}">i</span></span>
       </div>
       <button type="button" class="btn-remove">${t("adv.remove")}</button>
     `;
-    row.querySelectorAll("input, textarea").forEach(el => el.addEventListener("input", scheduleUploadSave));
+    row.querySelectorAll("input").forEach(el => el.addEventListener("input", scheduleUploadSave));
+    createMiniEditor(row.querySelector(".editor-stellenbeschrieb"), data?.description_html || data?.duties || "", t("upload.cv_ph_duties"), scheduleUploadSave);
+    createMiniEditor(row.querySelector(".editor-leistungen"), data?.achievements_html || data?.successes || "", t("upload.cv_ph_successes"), scheduleUploadSave);
     list.appendChild(row);
   }
 
@@ -2614,22 +2702,24 @@
           <input type="text" name="school" value="${escHtml(data?.school || "")}" placeholder="${escHtml(t("adv.ph_school"))}">
         </label>
       </div>
-      <div class="item-row">
-        <label><span class="item-label">${t("adv.period")}</span>
-          <input type="text" name="period" value="${escHtml(data?.period || "")}" placeholder="${escHtml(t("adv.ph_period"))}">
+      <div class="duration-row">
+        <label><span class="item-label">${t("upload.start_month")}</span>
+          <input type="text" name="start_month" value="${escHtml(data?.start_month || "")}" placeholder="${escHtml(t("upload.cv_ph_start_month"))}">
         </label>
-        <label><span class="item-label">${t("upload.grade")} <span class="info-icon" title="${escHtml(t("tooltip.grade"))}">i</span></span>
-          <input type="text" name="grade" value="${escHtml(data?.grade || "")}" placeholder="${escHtml(t("upload.cv_ph_grade"))}">
+        <label><span class="item-label">${t("upload.end_month")}</span>
+          <input type="text" name="end_month" value="${escHtml(data?.end_month || "")}" placeholder="${escHtml(t("upload.cv_ph_end_month"))}">
         </label>
       </div>
-      <div class="item-full">
-        <label><span class="item-label">${t("upload.learned")} <span class="info-icon" title="${escHtml(t("tooltip.learned"))}">i</span></span>
-          <textarea name="learned" rows="2" placeholder="${escHtml(t("upload.cv_ph_learned"))}">${escHtml(data?.learned || "")}</textarea>
-        </label>
+      <label><span class="item-label">${t("upload.grade")} <span class="info-icon" title="${escHtml(t("tooltip.grade"))}">i</span></span>
+        <input type="text" name="grade" value="${escHtml(data?.grade || "")}" placeholder="${escHtml(t("upload.cv_ph_grade"))}">
+      </label>
+      <div class="item-full editor-learned">
+        <span class="item-label">${t("upload.learned")} <span class="info-icon" title="${escHtml(t("tooltip.learned"))}">i</span></span>
       </div>
       <button type="button" class="btn-remove">${t("adv.remove")}</button>
     `;
-    row.querySelectorAll("input, textarea").forEach(el => el.addEventListener("input", scheduleUploadSave));
+    row.querySelectorAll("input").forEach(el => el.addEventListener("input", scheduleUploadSave));
+    createMiniEditor(row.querySelector(".editor-learned"), data?.learned_html || data?.learned || "", t("upload.cv_ph_learned"), scheduleUploadSave);
     list.appendChild(row);
   }
 
@@ -2668,21 +2758,29 @@
         language: row.querySelector("[name='language']")?.value || "",
         proficiency: row.querySelector("[name='proficiency']")?.value || "",
       })).filter(r => r.language),
-      experience: Array.from(document.querySelectorAll("#upload-experience-list .dynamic-item")).map(row => ({
-        role: row.querySelector("[name='role']")?.value || "",
-        company: row.querySelector("[name='company']")?.value || "",
-        period: row.querySelector("[name='period']")?.value || "",
-        achievements: (row.querySelector("[name='achievements']")?.value || "").split("\n").filter(Boolean),
-        duties: row.querySelector("[name='duties']")?.value || "",
-        successes: row.querySelector("[name='successes']")?.value || "",
-      })),
-      education: Array.from(document.querySelectorAll("#upload-education-list .dynamic-item")).map(row => ({
-        degree: row.querySelector("[name='degree']")?.value || "",
-        school: row.querySelector("[name='school']")?.value || "",
-        period: row.querySelector("[name='period']")?.value || "",
-        learned: row.querySelector("[name='learned']")?.value || "",
-        grade: row.querySelector("[name='grade']")?.value || "",
-      })),
+      experience: Array.from(document.querySelectorAll("#upload-experience-list .dynamic-item")).map(row => {
+        const descEditor = row.querySelector(".editor-stellenbeschrieb .mini-editor-content");
+        const achEditor = row.querySelector(".editor-leistungen .mini-editor-content");
+        return {
+          role: row.querySelector("[name='role']")?.value || "",
+          company: row.querySelector("[name='company']")?.value || "",
+          start_month: row.querySelector("[name='start_month']")?.value || "",
+          end_month: row.querySelector("[name='end_month']")?.value || "",
+          description_html: descEditor ? sanitizeEditorHtml(descEditor.innerHTML) : "",
+          achievements_html: achEditor ? sanitizeEditorHtml(achEditor.innerHTML) : "",
+        };
+      }),
+      education: Array.from(document.querySelectorAll("#upload-education-list .dynamic-item")).map(row => {
+        const learnEditor = row.querySelector(".editor-learned .mini-editor-content");
+        return {
+          degree: row.querySelector("[name='degree']")?.value || "",
+          school: row.querySelector("[name='school']")?.value || "",
+          start_month: row.querySelector("[name='start_month']")?.value || "",
+          end_month: row.querySelector("[name='end_month']")?.value || "",
+          learned_html: learnEditor ? sanitizeEditorHtml(learnEditor.innerHTML) : "",
+          grade: row.querySelector("[name='grade']")?.value || "",
+        };
+      }),
       achievements: Array.from(document.querySelectorAll("#upload-achievements-list .dynamic-item")).map(row =>
         row.querySelector("[name='achievement']")?.value || ""
       ).filter(Boolean),
@@ -2713,8 +2811,8 @@
         summary: sp.summary || "",
         skills: (sp.skills || []).map(s => typeof s === "string" ? { name: s, level: "" } : s),
         languages: (sp.languages || []).map(l => typeof l === "string" ? { language: l, proficiency: "" } : l),
-        experience: (sp.experience || []).map(e => ({ role: e.role || "", company: e.company || "", period: e.period || "", achievements: e.achievements || [], duties: e.duties || "", successes: e.successes || "" })),
-        education: (sp.education || []).map(e => ({ degree: e.degree || "", school: e.school || "", period: e.period || "", learned: e.learned || "", grade: e.grade || "" })),
+        experience: (sp.experience || []).map(e => ({ role: e.role || "", company: e.company || "", start_month: e.start_month || "", end_month: e.end_month || "", description_html: e.description_html || e.duties || "", achievements_html: e.achievements_html || e.successes || "" })),
+        education: (sp.education || []).map(e => ({ degree: e.degree || "", school: e.school || "", start_month: e.start_month || "", end_month: e.end_month || "", learned_html: e.learned_html || e.learned || "", grade: e.grade || "" })),
         achievements: sp.achievements || [],
       };
     }
@@ -2761,17 +2859,30 @@
     if (up.summary) preseedProfile.summary = up.summary;
     if (up.skills?.length) preseedProfile.skills = up.skills.map(s => s.name + (s.level ? ` (${s.level})` : ""));
     if (up.languages?.length) preseedProfile.languages = up.languages.map(l => l.language + (l.proficiency ? ` (${l.proficiency})` : ""));
-    if (up.experience?.length) preseedProfile.experience = up.experience.map(e => ({
-      role: e.role, company: e.company, period: e.period,
-      achievements: e.achievements,
-      duties: e.duties || "",
-      successes: e.successes || "",
-    }));
-    if (up.education?.length) preseedProfile.education = up.education.map(e => ({
-      degree: e.degree, school: e.school, period: e.period,
-      learned: e.learned || "",
-      grade: e.grade || "",
-    }));
+    if (up.experience?.length) preseedProfile.experience = up.experience.map(e => {
+      const period = (e.start_month && e.end_month) ? `${e.start_month} \u2013 ${e.end_month}` : (e.start_month || e.end_month || "");
+      return {
+        role: e.role, company: e.company, period,
+        start_month: e.start_month || "",
+        end_month: e.end_month || "",
+        achievements: [],
+        duties: stripHtmlTags(e.description_html || ""),
+        successes: stripHtmlTags(e.achievements_html || ""),
+        description_html: e.description_html || "",
+        achievements_html: e.achievements_html || "",
+      };
+    });
+    if (up.education?.length) preseedProfile.education = up.education.map(e => {
+      const period = (e.start_month && e.end_month) ? `${e.start_month} \u2013 ${e.end_month}` : (e.start_month || e.end_month || "");
+      return {
+        degree: e.degree, school: e.school, period,
+        start_month: e.start_month || "",
+        end_month: e.end_month || "",
+        learned: stripHtmlTags(e.learned_html || ""),
+        learned_html: e.learned_html || "",
+        grade: e.grade || "",
+      };
+    });
     if (up.achievements?.length) preseedProfile.achievements = up.achievements;
     return preseedProfile;
   }

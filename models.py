@@ -58,16 +58,23 @@ class ExperienceItem(BaseModel):
     role: str
     company: str = ""
     period: str = ""
+    start_month: str = ""
+    end_month: str = ""
     achievements: List[str] = Field(default_factory=list)
     duties: str = ""
     successes: str = ""
+    description_html: str = ""  # Stellenbeschrieb, rich text
+    achievements_html: str = ""  # Leistungen/Erfolge, rich text
 
 
 class EducationItem(BaseModel):
     degree: str
     school: str = ""
     period: str = ""
+    start_month: str = ""
+    end_month: str = ""
     learned: str = ""
+    learned_html: str = ""  # Rich text version
     grade: str = ""
 
 

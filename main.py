@@ -1302,10 +1302,6 @@ async def api_session_generate(
         match=match,
     )
 
-    try:
-        cv_pdf = render_pdf(cv_html)
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"PDF generation failed: {exc}") from exc
     comparison_sections = _build_comparison_sections(profile, generated)
     comparison_metadata = {
         "keywords_added": len(match.matched_keywords),
@@ -1323,7 +1319,6 @@ async def api_session_generate(
     artifact = ArtifactRecord(
         token=token,
         filename_cv=artifact_filename_cv,
-        cv_pdf_bytes=cv_pdf,
         cv_html=cv_html,
         match=match,
         warning=warning,
@@ -1395,14 +1390,12 @@ async def api_session_chat(request: Request, session_id: str, payload: dict = Bo
         template_id=state.template_id, language=state.language,
         profile=basic_profile, content=refined, theme=state.theme, match=match,
     )
-    cv_pdf = render_pdf(cv_html)
-
     comparison_sections = _build_comparison_sections(profile, refined)
     new_token = artifact_cache.create_token()
     new_artifact = ArtifactRecord(
         token=new_token, filename_cv=artifact.filename_cv,
-        cv_pdf_bytes=cv_pdf, cv_html=cv_html,
-        cover_pdf_bytes=artifact.cover_pdf_bytes, cover_html=artifact.cover_html,
+        cv_html=cv_html,
+        cover_html=artifact.cover_html,
         filename_cover=artifact.filename_cover,
         match=match, warning=warning,
         expires_at=time.time() + artifact_cache.ttl_seconds,
@@ -1508,11 +1501,6 @@ async def api_session_generate_cover(
         signature_data_url=record.signature_data_url,
     )
 
-    try:
-        cover_pdf = render_pdf(cover_html)
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"PDF generation failed: {exc}") from exc
-
     filenames = build_filenames(basic_profile.full_name or "Candidate", state.company_name or "Company")
     if payload.filename_cover.strip():
         artifact_filename_cover = payload.filename_cover.strip()
@@ -1530,7 +1518,6 @@ async def api_session_generate_cover(
         artifact = artifact_cache.get(existing_tokens[-1])
         if artifact:
             artifact.filename_cover = artifact_filename_cover
-            artifact.cover_pdf_bytes = cover_pdf
             artifact.cover_html = cover_html
             artifact_cache.set(artifact)
             session_cache.set(record)

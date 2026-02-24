@@ -1658,3 +1658,83 @@ body[data-page="builder"] .progress-wrap { display: none; }
   max-width: 160px;
   min-width: 120px;
 }
+
+/* ===== MINI RICH EDITOR ===== */
+.mini-editor-wrap {
+  border: 1px solid rgba(26, 26, 26, 0.25);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.mini-editor-toolbar {
+  display: flex;
+  gap: 2px;
+  padding: 4px 6px;
+  background: #f5f3e8;
+  border-bottom: 1px solid rgba(26, 26, 26, 0.12);
+}
+
+.mini-editor-toolbar button {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(26, 26, 26, 0.7);
+}
+
+.mini-editor-toolbar button:hover {
+  background: rgba(26, 26, 26, 0.08);
+  border-color: rgba(26, 26, 26, 0.15);
+}
+
+.mini-editor-toolbar button.active {
+  background: rgba(26, 26, 26, 0.14);
+  color: var(--brand-black);
+}
+
+.mini-editor-content {
+  min-height: 80px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  outline: none;
+  font-family: var(--font-terminal);
+}
+
+.mini-editor-content:empty::before {
+  content: attr(data-placeholder);
+  color: rgba(26, 26, 26, 0.4);
+  pointer-events: none;
+}
+
+.mini-editor-content ul,
+.mini-editor-content ol {
+  margin: 4px 0;
+  padding-left: 20px;
+}
+
+.mini-editor-content li {
+  margin: 2px 0;
+}
+
+.mini-editor-wrap:focus-within {
+  outline: 3px solid rgba(230, 47, 45, 0.45);
+  outline-offset: 1px;
+}
+
+/* Duration split row */
+.duration-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
