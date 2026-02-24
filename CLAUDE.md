@@ -10,7 +10,7 @@ Document-first ATS-optimized CV + cover letter generation wizard. Five-step flow
 
 - **Backend:** FastAPI, Pydantic v2, Python 3.12
 - **Persistence:** Disk-backed pickle storage (`data/sessions`, `data/artifacts`, `data/documents`).
-- **PDF:** WeasyPrint (needs system libs: pango, harfbuzz, freetype)
+- **PDF:** WeasyPrint (needs system libs: pango, harfbuzz, freetype). Only used for Monster CV; wizard CV/cover letter serve HTML directly.
 - **OCR:** GPT-5 Mini vision, PyMuPDF, pdfplumber
 - **LLM:** Multi-provider: OpenAI (extraction/OCR/semantic matching), Anthropic Claude Sonnet 4.6 (generation with Swiss German calibration), Google Gemini (crosscheck, max mode only). Quality via `HAPPYRAV_QUALITY` env (balanced/max)
 - **Semantic Matching:** LLM-based contextual CV-job alignment (GPT-4.1-mini). Hybrid scoring: 40% baseline regex + 60% semantic understanding. Detects transferable skills, contextual gaps, ranks skills by relevance.
@@ -24,7 +24,7 @@ Document-first ATS-optimized CV + cover letter generation wizard. Five-step flow
 
 ```
 main.py                    # FastAPI app, all routes, OCR Caching, Strategic recommendations
-models.py                  # Pydantic models (SessionState, ThemeConfig, etc.)
+models.py                  # Pydantic models (SessionState, ThemeConfig, ExperienceItem w/ start_month/end_month/description_html/achievements_html, EducationItem w/ learned_html, ExtractedProfile w/ hobbies)
 services/
   cache.py                 # File-based persistent caches (Session/Artifact/Document)
   llm_kimi.py              # Multi-provider LLM: OpenAI extraction, Anthropic generation (Sonnet 4.6 + Swiss German system prompt), Gemini crosscheck, Strategic analysis
@@ -132,6 +132,25 @@ Direct-input CV creation at `/builder`. No upload, no LLM, no sessions.
 - **PDF-ready:** All templates include `@page`, `@media print`, `break-inside: avoid`. Future `POST /api/builder/pdf` can pipe same HTML through WeasyPrint.
 - **Tests:** 40 tests in `test_builder_render.py` (20) + `test_builder_templates.py` (20)
 
+### Mini Rich Editor
+Zero-dependency contentEditable rich text editor for experience/education fields:
+- **Function:** `createMiniEditor(container, initialHtml, placeholder, onInput)` in `app.js`
+- **Toolbar:** Bold, Italic, Underline, Bullet list, Numbered list
+- **Sanitization:** `sanitizeEditorHtml()` strips scripts/iframes, allows only safe tags (b, i, u, strong, em, ul, ol, li, br, p)
+- **Used in:** Experience rows (Stellenbeschrieb + Leistungen editors), Education rows (Learned editor)
+- **Storage:** HTML string in `description_html`, `achievements_html`, `learned_html` model fields
+- **LLM safety:** `stripHtmlTags()` converts to plain text before preseed (populates backward-compat `duties`/`successes`/`learned` fields)
+- **CSS:** `.mini-editor-wrap`, `.mini-editor-toolbar`, `.mini-editor-content` in `style.css`
+
+### Duration Split
+Experience and education rows use separate month fields instead of single period text:
+- **Fields:** `start_month` + `end_month` (format: MM/YYYY)
+- **Period construction:** `buildPreseedFromUploadProfile()` joins as `"start – end"` for backward compat
+- **CSS:** `.duration-row` grid (2 equal columns)
+
+### Skill Level Free Text
+Skill level uses `<input type="text">` with `<datalist>` suggestions (Expert, Advanced, Intermediate, Beginner) instead of `<select>` dropdown. Allows custom entries like "5+ Jahre", "Fortgeschritten".
+
 ### Strategic Recommendations
 LLM-generated application advice when match score < 70:
 - **Backend:** `generate_strategic_analysis()` in `llm_kimi.py` generates strengths, gaps, recommendations
@@ -215,6 +234,14 @@ node --check static/app.js
 **Problem:** Unclear 503 errors when API keys missing.
 **Fix:** Updated error message to mention environment variables + administrator contact.
 **Test:** `test_api_key_errors.py` (3 tests) validates 503 status + helpful error messaging.
+
+### UX Polish (Feb 2026)
+- **Mini rich editor:** contentEditable with toolbar (B/I/U/bullets) for experience Stellenbeschrieb, Leistungen, education Learned fields
+- **Duration split:** Separate start_month/end_month inputs replace single period text field
+- **Skill level free text:** Datalist suggestions instead of rigid select dropdown
+- **Hobbies field:** Replaces standalone achievements list; titled "only if relevant to job or early career"
+- **Photo filename:** Shows uploaded filename with checkmark after successful upload
+- **PDF dead code removal:** Removed `render_pdf()` from generate/chat/generate-cover endpoints (kept for Monster CV only)
 
 ## Gotchas
 
