@@ -16,7 +16,7 @@ def print_profile_summary(state: SessionState) -> None:
     print(f"LinkedIn: {p.linkedin}")
     print(f"Portfolio: {p.portfolio}")
     print(f"\nSummary: {p.summary[:100]}..." if len(p.summary) > 100 else f"\nSummary: {p.summary}")
-    print(f"\nSkills ({len(p.skills)}): {', '.join(p.skills[:10])}")
+    print(f"\nSkills ({len(p.skills)}): {', '.join(p.skills_str[:10])}")
 
     print(f"\nExperience ({len(p.experience)} entries):")
     for i, exp in enumerate(p.experience, 1):
@@ -225,15 +225,17 @@ PostgreSQL, Docker, AWS. 3+ years experience. Zurich location.
         assert profile["portfolio"] == "https://maxmuster.dev"
         assert "scalable systems" in profile["summary"]
 
-        # Verify skills array
+        # Verify skills array (now SkillEntry dicts)
         assert len(profile["skills"]) == 5
-        assert "Python" in profile["skills"]
-        assert "FastAPI" in profile["skills"]
-        assert "AWS" in profile["skills"]
+        skill_names = [s["name"] if isinstance(s, dict) else s for s in profile["skills"]]
+        assert "Python" in skill_names
+        assert "FastAPI" in skill_names
+        assert "AWS" in skill_names
 
-        # Verify languages
+        # Verify languages (now LanguageEntry dicts)
         assert len(profile["languages"]) == 3
-        assert "German" in profile["languages"]
+        lang_names = [l["language"] if isinstance(l, dict) else l for l in profile["languages"]]
+        assert "German" in lang_names
 
         # Verify experience (2 entries)
         assert len(profile["experience"]) == 2

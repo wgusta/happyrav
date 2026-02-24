@@ -184,6 +184,29 @@ def _unique_keep_order(values: Iterable[str]) -> List[str]:
     return out
 
 
+def _unique_keep_order_any(values):
+    """Deduplicate a list of strings or pydantic models (SkillEntry, LanguageEntry)."""
+    out = []
+    seen = set()
+    for value in values:
+        if isinstance(value, str):
+            cleaned = value.strip()
+            key = cleaned.lower()
+        elif hasattr(value, "name"):
+            cleaned = value
+            key = value.name.strip().lower()
+        elif hasattr(value, "language"):
+            cleaned = value
+            key = value.language.strip().lower()
+        else:
+            cleaned = str(value).strip()
+            key = cleaned.lower()
+        if key and key not in seen:
+            seen.add(key)
+            out.append(cleaned)
+    return out
+
+
 def _extract_email(text: str) -> str:
     match = re.search(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}", text)
     return match.group(0).strip() if match else ""
@@ -520,8 +543,8 @@ def merge_profiles(base: ExtractedProfile, fragment: ExtractedProfile) -> Extrac
         if not current and incoming:
             setattr(merged, field, incoming)
 
-    merged.skills = _unique_keep_order([*merged.skills, *fragment.skills])[:30]
-    merged.languages = _unique_keep_order([*merged.languages, *fragment.languages])[:10]
+    merged.skills = _unique_keep_order_any([*merged.skills, *fragment.skills])[:30]
+    merged.languages = _unique_keep_order_any([*merged.languages, *fragment.languages])[:10]
     merged.achievements = _unique_keep_order([*merged.achievements, *fragment.achievements])[:30]
 
     exp_seen = {(item.role.lower(), item.company.lower(), item.period.lower()) for item in merged.experience}

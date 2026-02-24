@@ -1,14 +1,15 @@
 """Data models for happyRAV multi-phase flow."""
 from __future__ import annotations
 
-from typing import Any, Dict, List, Literal, Optional
+import re
+from typing import Any, Dict, List, Literal, Optional, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 DocTag = Literal["cv", "cover_letter", "arbeitszeugnis", "certificate", "other"]
 ParseMethod = Literal["pdf_text", "pdf_text_ocr", "docx_text", "ocr_image", "plain_text"]
-PhaseName = Literal["start", "upload", "questions", "review"]
+PhaseName = Literal["start", "upload", "questions", "review", "cover"]
 
 
 FontFamily = Literal["inter", "roboto", "lato", "georgia", "source_sans"]
@@ -58,12 +59,26 @@ class ExperienceItem(BaseModel):
     company: str = ""
     period: str = ""
     achievements: List[str] = Field(default_factory=list)
+    duties: str = ""
+    successes: str = ""
 
 
 class EducationItem(BaseModel):
     degree: str
     school: str = ""
     period: str = ""
+    learned: str = ""
+    grade: str = ""
+
+
+class SkillEntry(BaseModel):
+    name: str
+    level: str = ""  # Expert, Advanced, Intermediate, Beginner
+
+
+class LanguageEntry(BaseModel):
+    language: str
+    level: str = ""  # e.g. Muttersprache, C2, B1
 
 
 class ExtractedProfile(BaseModel):
@@ -76,12 +91,68 @@ class ExtractedProfile(BaseModel):
     portfolio: str = ""
     photo_data_url: str = ""
     summary: str = ""
-    skills: List[str] = Field(default_factory=list)
-    languages: List[str] = Field(default_factory=list)
+    skills: List[Union[str, SkillEntry]] = Field(default_factory=list)
+    languages: List[Union[str, LanguageEntry]] = Field(default_factory=list)
     achievements: List[str] = Field(default_factory=list)
     experience: List[ExperienceItem] = Field(default_factory=list)
     education: List[EducationItem] = Field(default_factory=list)
     source_map: Dict[str, List[SourceAttribution]] = Field(default_factory=dict)
+
+    @field_validator("skills", mode="before")
+    @classmethod
+    def _normalize_skills(cls, v: list) -> list:
+        out = []
+        for item in v:
+            if isinstance(item, str):
+                m = re.match(r"^(.+?)\s*\(([^)]+)\)\s*$", item)
+                if m:
+                    out.append(SkillEntry(name=m.group(1).strip(), level=m.group(2).strip()))
+                else:
+                    out.append(SkillEntry(name=item))
+            else:
+                out.append(item)
+        return out
+
+    @field_validator("languages", mode="before")
+    @classmethod
+    def _normalize_languages(cls, v: list) -> list:
+        out = []
+        for item in v:
+            if isinstance(item, str):
+                m = re.match(r"^(.+?)\s*\(([^)]+)\)\s*$", item)
+                if m:
+                    out.append(LanguageEntry(language=m.group(1).strip(), level=m.group(2).strip()))
+                else:
+                    out.append(LanguageEntry(language=item))
+            else:
+                out.append(item)
+        return out
+
+    @property
+    def skills_str(self) -> List[str]:
+        """Skills as flat string list for backward compat."""
+        out = []
+        for s in self.skills:
+            if isinstance(s, str):
+                out.append(s)
+            elif hasattr(s, "name"):
+                out.append(f"{s.name} ({s.level})" if s.level else s.name)
+            else:
+                out.append(str(s))
+        return out
+
+    @property
+    def languages_str(self) -> List[str]:
+        """Languages as flat string list for backward compat."""
+        out = []
+        for l in self.languages:
+            if isinstance(l, str):
+                out.append(l)
+            elif hasattr(l, "language"):
+                out.append(f"{l.language} ({l.level})" if l.level else l.language)
+            else:
+                out.append(str(l))
+        return out
 
 
 class BasicProfile(BaseModel):
@@ -171,6 +242,7 @@ class GenerateRequest(BaseModel):
     font_family: str = "inter"
     filename_cv: str = ""
     filename_cover: str = ""
+    tone: int = 3  # 1=pragmatic, 5=buzzwordy
 
 
 class GeneratedContent(BaseModel):
@@ -261,7 +333,7 @@ class ArtifactRecord(BaseModel):
     token: str
     filename_cv: str
     filename_cover: str = ""
-    cv_pdf_bytes: bytes
+    cv_pdf_bytes: bytes = b""
     cover_pdf_bytes: bytes = b""
     cv_html: str
     cover_html: str = ""
@@ -283,6 +355,7 @@ class GenerateResponse(BaseModel):
     filename_cover: str
     match: MatchPayload
     warning: Optional[str] = None
+    cv_html_raw: str = ""
 
 
 class ChronologicalEntry(BaseModel):

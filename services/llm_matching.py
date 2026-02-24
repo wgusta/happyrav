@@ -280,7 +280,7 @@ async def detect_contextual_gaps(
     # Build profile summary
     profile_summary = {
         "name": profile.full_name,
-        "skills": profile.skills[:30],
+        "skills": profile.skills_str[:30],
         "experience_years": len(profile.experience),
         "education": [f"{edu.degree} from {edu.school}" for edu in profile.education[:5]],
         "summary": profile.summary[:300] if profile.summary else ""

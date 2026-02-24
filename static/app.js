@@ -10,13 +10,14 @@
   const TELOS_IDS = ["career_goal", "work_environment", "values", "strengths", "motivators", "success_vision", "work_style", "impact"];
   const REVIEW_RECOMMEND_THRESHOLD = 70;
 
-  const STEP_ORDER = ["start", "upload", "questions", "review", "result"];
+  const STEP_ORDER = ["start", "upload", "questions", "review", "result", "cover"];
   const STEP_PROGRESS = {
     start: 0,
-    upload: 25,
-    questions: 50,
-    review: 75,
-    result: 100,
+    upload: 20,
+    questions: 40,
+    review: 60,
+    result: 80,
+    cover: 100,
   };
 
   const I18N = {
@@ -28,7 +29,7 @@
       "nav.builder": "CV Builder",
 
       "progress.start": "Start",
-      "progress.upload": "Upload",
+      "progress.upload": "Data",
       "progress.questions": "Questions",
       "progress.review": "Review",
       "progress.result": "Result",
@@ -49,16 +50,55 @@
       "review.sub": "Choose template and colors, check match score first, then decide to generate your PDFs.",
       "review.no_score": "No review score yet.",
 
-      "upload.page_title": "Upload your documents",
-      "upload.title": "Upload Documents",
+      "upload.page_title": "Enter your CV details",
+      "upload.page_sub": "Fill in your profile manually, section by section.",
+      "upload.title": "CV Details",
       "upload.supported": "Supported: PDF, DOCX, PNG, JPG, JPEG, WEBP. Max 20 files/session, 12MB/file, 25MB/session.",
-      "upload.photo_heading": "📷 Profile Photo",
+      "upload.photo_heading": "Profile Photo",
       "upload.photo_sub": "Optional: Add a professional headshot for your CV",
-      "upload.documents_heading": "📄 CV & Documents",
-      "upload.documents_sub": "Upload your CV, cover letters, certificates, or work references",
       "upload.photo": "Profile photo (optional)",
-      "upload.documents": "Documents",
-      "upload.quick_tag": "Quick tag default",
+
+      "upload.cv_contact": "Contact Info",
+      "upload.cv_name": "Full name",
+      "upload.cv_headline": "Headline / Title",
+      "upload.cv_email": "Email",
+      "upload.cv_phone": "Phone",
+      "upload.cv_location": "Location",
+      "upload.cv_linkedin": "LinkedIn",
+      "upload.cv_portfolio": "Portfolio",
+      "upload.cv_ph_headline": "Senior Software Engineer",
+      "upload.cv_summary": "Professional Summary",
+      "upload.cv_summary_label": "Summary",
+      "upload.cv_ph_summary": "Brief overview of your professional background and key strengths...",
+      "upload.cv_skills": "Skills",
+      "upload.cv_add_skill": "+ Add Skill",
+      "upload.cv_ph_skill": "e.g. Python, Project Management, SQL",
+      "upload.cv_languages": "Languages",
+      "upload.cv_add_language": "+ Add Language",
+      "upload.cv_ph_language": "e.g. German",
+      "upload.cv_ph_proficiency": "e.g. Native, C1, Fluent",
+      "upload.cv_ph_skill_level": "Level (optional)",
+      "upload.cv_ph_duties": "Tasks from Arbeitszeugnis or job description",
+      "upload.cv_ph_successes": "e.g. Increased revenue by 30%, Reduced costs by CHF 50k",
+      "upload.cv_ph_learned": "Key subjects, skills, or competencies gained",
+      "upload.cv_ph_grade": "Grade / GPA",
+      "upload.skill_level": "Level",
+      "upload.duties": "Tasks / Duties",
+      "upload.successes": "Achievements (quantified)",
+      "upload.learned": "Key Learnings",
+      "upload.grade": "Grade / GPA",
+      "tooltip.skill_level": "Rate your proficiency: Expert, Advanced, Intermediate, Beginner",
+      "tooltip.duties": "List tasks from your Arbeitszeugnis or job description",
+      "tooltip.successes": "Quantify achievements: 'Increased sales by 25%', 'Reduced costs by CHF 50k'",
+      "tooltip.learned": "Key subjects, skills, or competencies gained",
+      "tooltip.grade": "Final grade, GPA, or distinction",
+      "upload.cv_experience": "Experience",
+      "upload.cv_add_experience": "+ Add Experience",
+      "upload.cv_education": "Education",
+      "upload.cv_add_education": "+ Add Education",
+      "upload.cv_achievements": "Achievements",
+      "upload.cv_add_achievement": "+ Add Achievement",
+      "upload.cv_ph_achievement": "e.g. Increased revenue by 30%",
 
       "upload.paste_toggle": "Or paste CV text directly",
       "upload.paste_label": "CV / document text",
@@ -79,14 +119,27 @@
       "action.generate_cover": "Generate Cover Letter",
       "action.generate": "Generate CV + Cover Letter",
       "action.download_cv": "Download CV",
-      "action.continue_upload": "Continue to Upload",
+      "action.continue_upload": "Continue to Data",
       "action.continue_questions": "Continue to Questions",
       "action.continue_review": "Continue to Review",
       "action.back_start": "Back to Start",
-      "action.back_upload": "Back to Upload",
+      "action.back_upload": "Back to Data",
       "action.back_questions": "Back to Questions",
       "action.back_review": "Back to Review",
+      "action.back_result": "Back to CV Result",
+      "action.next_cover": "Next: Cover Letter (optional)",
       "action.new_session": "Start New Session",
+
+      "result.title": "Your Generated CV",
+      "result.sub": "Preview your CV below. Download as HTML or Markdown, then optionally create a cover letter.",
+      "result.download_html": "Download HTML",
+      "result.download_md": "Download Markdown",
+      "result.chat_title": "Refine your CV",
+      "result.chat_placeholder": "e.g. Make the summary more concise",
+      "result.chat_send": "Send",
+      "cover.sub": "Optional: Generate a tailored cover letter to accompany your CV.",
+      "cover.result_title": "Your Cover Letter",
+      "cover.download_html": "Download HTML",
 
       "label.company_optional": "Company (optional)",
       "label.position_optional": "Position (optional)",
@@ -159,6 +212,11 @@
       "template.simple": "Simple",
       "template.sophisticated": "Sophisticated",
       "template.friendly": "Friendly",
+
+      "tone.title": "Writing Tone",
+      "tone.description": "Control how your CV uses industry buzzwords and technical jargon. Pragmatic: plain, factual language that anyone understands. Buzzwordy: keyword-rich language optimized for ATS systems and recruiters familiar with your industry.",
+      "tone.pragmatic": "Pragmatic",
+      "tone.buzzwordy": "Buzzwordy",
 
       "cover.title": "Cover Letter",
       "cover.sender_street": "Sender street",
@@ -408,7 +466,7 @@
       "nav.builder": "CV Builder",
 
       "progress.start": "Start",
-      "progress.upload": "Upload",
+      "progress.upload": "Daten",
       "progress.questions": "Fragen",
       "progress.review": "Prüfung",
       "progress.result": "Resultat",
@@ -429,16 +487,55 @@
       "review.sub": "Vorlage und Farben wählen, zuerst Match-Score prüfen, dann über Generierung entscheiden.",
       "review.no_score": "Noch kein Review-Score.",
 
-      "upload.page_title": "Dokumente hochladen",
-      "upload.title": "Dokumente hochladen",
+      "upload.page_title": "CV Daten eingeben",
+      "upload.page_sub": "Profil manuell ausfüllen, Abschnitt für Abschnitt.",
+      "upload.title": "CV Daten",
       "upload.supported": "Unterstützt: PDF, DOCX, PNG, JPG, JPEG, WEBP. Max 20 Dateien/Sitzung, 12MB/Datei, 25MB/Sitzung.",
-      "upload.photo_heading": "📷 Profilfoto",
+      "upload.photo_heading": "Profilfoto",
       "upload.photo_sub": "Optional: Füge ein professionelles Foto für deinen CV hinzu",
-      "upload.documents_heading": "📄 CV & Dokumente",
-      "upload.documents_sub": "Lade deinen CV, Anschreiben, Zertifikate oder Arbeitszeugnisse hoch",
       "upload.photo": "Profilfoto (optional)",
-      "upload.documents": "Dokumente",
-      "upload.quick_tag": "Standard-Kategorie",
+
+      "upload.cv_contact": "Kontaktdaten",
+      "upload.cv_name": "Vollständiger Name",
+      "upload.cv_headline": "Titel / Position",
+      "upload.cv_email": "E-Mail",
+      "upload.cv_phone": "Telefon",
+      "upload.cv_location": "Ort",
+      "upload.cv_linkedin": "LinkedIn",
+      "upload.cv_portfolio": "Portfolio",
+      "upload.cv_ph_headline": "Senior Software Engineer",
+      "upload.cv_summary": "Profil-Zusammenfassung",
+      "upload.cv_summary_label": "Zusammenfassung",
+      "upload.cv_ph_summary": "Kurzer Überblick über beruflichen Hintergrund und Kernstärken...",
+      "upload.cv_skills": "Skills",
+      "upload.cv_add_skill": "+ Skill hinzufügen",
+      "upload.cv_ph_skill": "z.B. Python, Projektmanagement, SQL",
+      "upload.cv_languages": "Sprachen",
+      "upload.cv_add_language": "+ Sprache hinzufügen",
+      "upload.cv_ph_language": "z.B. Deutsch",
+      "upload.cv_ph_proficiency": "z.B. Muttersprache, C1, Fliessend",
+      "upload.cv_ph_skill_level": "Niveau (optional)",
+      "upload.cv_ph_duties": "Aufgaben gemäss Arbeitszeugnis oder Stellenbeschreibung",
+      "upload.cv_ph_successes": "z.B. Umsatz um 30% gesteigert, Kosten um CHF 50k reduziert",
+      "upload.cv_ph_learned": "Wichtige Fächer, Fähigkeiten oder Kompetenzen",
+      "upload.cv_ph_grade": "Note / Durchschnitt",
+      "upload.skill_level": "Niveau",
+      "upload.duties": "Aufgaben / Tätigkeiten",
+      "upload.successes": "Erfolge (quantifiziert)",
+      "upload.learned": "Wichtige Lerninhalte",
+      "upload.grade": "Note / Durchschnitt",
+      "tooltip.skill_level": "Bewerte deine Kompetenz: Experte, Fortgeschritten, Mittelstufe, Anfänger",
+      "tooltip.duties": "Aufgaben gemäss Arbeitszeugnis oder Stellenbeschreibung auflisten",
+      "tooltip.successes": "Erfolge quantifizieren: 'Umsatz um 25% gesteigert', 'Kosten um CHF 50k reduziert'",
+      "tooltip.learned": "Wichtige Fächer, Fähigkeiten oder Kompetenzen",
+      "tooltip.grade": "Abschlussnote, Durchschnitt oder Auszeichnung",
+      "upload.cv_experience": "Berufserfahrung",
+      "upload.cv_add_experience": "+ Erfahrung hinzufügen",
+      "upload.cv_education": "Ausbildung",
+      "upload.cv_add_education": "+ Ausbildung hinzufügen",
+      "upload.cv_achievements": "Leistungen",
+      "upload.cv_add_achievement": "+ Leistung hinzufügen",
+      "upload.cv_ph_achievement": "z.B. Umsatz um 30% gesteigert",
 
       "upload.paste_toggle": "Oder CV-Text direkt einfügen",
       "upload.paste_label": "CV / Dokumenttext",
@@ -459,14 +556,27 @@
       "action.generate": "CV + Anschreiben generieren",
       "action.preview_match": "Match-Score Vorschau",
       "action.download_cv": "CV herunterladen",
-      "action.continue_upload": "Weiter zum Upload",
+      "action.continue_upload": "Weiter zu Daten",
       "action.continue_questions": "Weiter zu Fragen",
       "action.continue_review": "Weiter zur Prüfung",
       "action.back_start": "Zurück zum Start",
-      "action.back_upload": "Zurück zum Upload",
+      "action.back_upload": "Zurück zu Daten",
       "action.back_questions": "Zurück zu Fragen",
       "action.back_review": "Zurück zur Prüfung",
+      "action.back_result": "Zurück zum CV Ergebnis",
+      "action.next_cover": "Weiter: Anschreiben (optional)",
       "action.new_session": "Neue Sitzung starten",
+
+      "result.title": "Dein generierter CV",
+      "result.sub": "CV Vorschau. Als HTML oder Markdown herunterladen, dann optional ein Anschreiben erstellen.",
+      "result.download_html": "HTML herunterladen",
+      "result.download_md": "Markdown herunterladen",
+      "result.chat_title": "CV verfeinern",
+      "result.chat_placeholder": "z.B. Zusammenfassung kürzer formulieren",
+      "result.chat_send": "Senden",
+      "cover.sub": "Optional: Passgenaues Anschreiben zu deinem CV generieren.",
+      "cover.result_title": "Dein Anschreiben",
+      "cover.download_html": "HTML herunterladen",
 
       "label.company_optional": "Firma (optional)",
       "label.position_optional": "Position (optional)",
@@ -539,6 +649,11 @@
       "template.simple": "Einfach",
       "template.sophisticated": "Souverän",
       "template.friendly": "Freundlich",
+
+      "tone.title": "Schreibstil",
+      "tone.description": "Bestimme, wie dein CV Fachbegriffe und Branchenjargon einsetzt. Pragmatisch: klare, sachliche Sprache, die jeder versteht. Buzzwordy: keyword-reiche Sprache, optimiert für ATS-Systeme und Recruiter deiner Branche.",
+      "tone.pragmatic": "Pragmatisch",
+      "tone.buzzwordy": "Buzzwordy",
 
       "cover.title": "Anschreiben",
       "cover.sender_street": "Absender Strasse",
@@ -787,6 +902,7 @@
     server: null,
     uiLanguage: "de",
     artifactToken: "",
+    cvHtml: "",
     monsterToken: "",
     monsterStats: null,
   };
@@ -794,7 +910,6 @@
   const statusBox = document.getElementById("global-status");
   const sessionMeta = document.getElementById("session-meta");
   const documentsList = document.getElementById("documents-list");
-  const pendingUploadTags = document.getElementById("pending-upload-tags");
   const questionsList = document.getElementById("questions-list");
   const requiredSummary = document.getElementById("required-summary");
   const reviewScore = document.getElementById("review-score");
@@ -811,13 +926,19 @@
   const inputPosition = document.getElementById("input-position");
   const inputConsent = document.getElementById("input-consent");
   const inputJobAd = document.getElementById("input-job-ad");
-  const uploadFiles = document.getElementById("upload-files");
-  const uploadFilesTrigger = document.getElementById("upload-files-trigger");
-  const uploadFilesName = document.getElementById("upload-files-name");
   const photoFile = document.getElementById("photo-file");
   const photoFileTrigger = document.getElementById("photo-file-trigger");
   const photoFileName = document.getElementById("photo-file-name");
-  const uploadTagDefault = document.getElementById("upload-tag-default");
+
+  // Upload page CV input refs
+  const uploadName = document.getElementById("upload-name");
+  const uploadHeadline = document.getElementById("upload-headline");
+  const uploadEmail = document.getElementById("upload-email");
+  const uploadPhone = document.getElementById("upload-phone");
+  const uploadLocation = document.getElementById("upload-location");
+  const uploadLinkedin = document.getElementById("upload-linkedin");
+  const uploadPortfolio = document.getElementById("upload-portfolio");
+  const uploadSummary = document.getElementById("upload-summary");
   const templateSelect = document.getElementById("review-template");
   const primaryInput = document.getElementById("review-primary");
   const accentInput = document.getElementById("review-accent");
@@ -848,15 +969,12 @@
   const btnGenerateCover = document.getElementById("generate-cover-btn");
   const coverLetterSection = document.getElementById("cover-letter-section");
 
-  const pasteText = document.getElementById("paste-text");
-  const btnPasteSubmit = document.getElementById("paste-submit-btn");
 
   const btnStartContinue = document.getElementById("start-continue-btn");
   const btnUploadContinue = document.getElementById("upload-continue-btn");
-  const btnUpload = document.getElementById("upload-btn");
   const btnUploadPhoto = document.getElementById("upload-photo-btn");
-  const btnExtract = document.getElementById("extract-btn");
   const btnAnswers = document.getElementById("save-answers-btn");
+  const toneSlider = document.getElementById("review-tone");
   const btnGenerate = document.getElementById("generate-btn");
   const btnPreviewMatch = document.getElementById("preview-match-btn");
   const btnToReview = document.getElementById("to-review-btn");
@@ -872,6 +990,8 @@
     if (step === "upload") return endpoint("/upload");
     if (step === "questions") return endpoint("/questions");
     if (step === "review") return endpoint("/review");
+    if (step === "result") return endpoint("/result-page");
+    if (step === "cover") return endpoint("/cover");
     return endpoint("/");
   }
 
@@ -909,8 +1029,6 @@
       if (key) node.setAttribute("aria-label", t(key));
     });
 
-    const autoOption = uploadTagDefault?.querySelector('option[value=""]');
-    if (autoOption) autoOption.textContent = t("tag.auto");
   }
 
   function renderProgress() {
@@ -958,12 +1076,11 @@
     const hasQuestions = Boolean((state.server?.questions || []).length);
     const unresolved = (state.server?.unresolved_required_question_ids || []).length;
     const hasDocs = Boolean((state.server?.documents || []).length);
+    const hasProfile = Boolean(state.server?.extracted_profile?.full_name || state.server?.extracted_profile?.experience?.length);
 
-    if (btnUpload && uploadFiles) btnUpload.disabled = !hasSession || !uploadFiles.files.length;
     if (btnUploadPhoto && photoFile) btnUploadPhoto.disabled = !hasSession || !photoFile.files.length;
-    if (btnExtract) btnExtract.disabled = !hasSession;
     if (btnAnswers) btnAnswers.disabled = !hasSession || !hasQuestions;
-    if (btnPreviewMatch) btnPreviewMatch.disabled = !hasSession || !hasDocs || !state.server?.job_ad_text;
+    if (btnPreviewMatch) btnPreviewMatch.disabled = !hasSession || (!hasDocs && !hasProfile) || !state.server?.job_ad_text;
     if (btnGenerate) btnGenerate.disabled = !hasSession || !state.server?.ready_to_generate;
     if (btnToReview) btnToReview.disabled = !hasSession || unresolved > 0 || !state.server?.ready_to_generate;
     if (btnStartContinue) {
@@ -971,8 +1088,7 @@
       const hasConsent = Boolean(inputConsent?.checked);
       btnStartContinue.disabled = !hasJobAd || !hasConsent;
     }
-    if (btnPasteSubmit) btnPasteSubmit.disabled = !(pasteText?.value?.trim());
-    if (btnUploadContinue) btnUploadContinue.disabled = !hasSession || !hasDocs;
+    if (btnUploadContinue) btnUploadContinue.disabled = !hasSession;
   }
 
   function formatBytes(bytes) {
@@ -1004,46 +1120,6 @@
     const tags = ["cv", "cover_letter", "arbeitszeugnis", "certificate", "other"];
     const auto = includeAuto ? `<option value="">${t("tag.auto")}</option>` : "";
     return `${auto}${tags.map((tag) => `<option value="${tag}" ${selected === tag ? "selected" : ""}>${tagLabel(tag)}</option>`).join("")}`;
-  }
-
-  function renderPendingTagRows() {
-    if (!pendingUploadTags || !uploadFiles) return;
-    const files = Array.from(uploadFiles.files || []);
-    if (!files.length) {
-      pendingUploadTags.innerHTML = "";
-      return;
-    }
-    pendingUploadTags.innerHTML = files
-      .map(
-        (file, index) => `
-          <div class="row-card">
-            <div>
-              <strong>${file.name}</strong>
-              <p>${formatBytes(file.size)}</p>
-            </div>
-            <label>${t("label.tag")}
-              <select data-pending-tag="${index}">
-                ${documentTagOptions(uploadTagDefault?.value || "", true)}
-              </select>
-            </label>
-          </div>
-        `,
-      )
-      .join("");
-  }
-
-  function renderUploadFileLabel() {
-    if (!uploadFilesName || !uploadFiles) return;
-    const files = Array.from(uploadFiles.files || []);
-    if (!files.length) {
-      uploadFilesName.textContent = t("text.no_files_selected");
-      return;
-    }
-    if (files.length === 1) {
-      uploadFilesName.textContent = files[0].name;
-      return;
-    }
-    uploadFilesName.textContent = t("text.files_selected").replace("{count}", String(files.length));
   }
 
   function renderPhotoFileLabel() {
@@ -1481,6 +1557,9 @@
       pageBg: pageBgInput?.value || "#ffffff",
       filenameCv: filenameCvInput?.value || "",
       filenameCover: filenameCoverInput?.value || "",
+      tone: toneSlider?.value || "3",
+      artifactToken: state.artifactToken || "",
+      cvHtml: state.cvHtml || "",
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   }
@@ -1510,6 +1589,9 @@
       if (pageBgInput) pageBgInput.value = payload.pageBg || "#ffffff";
       if (filenameCvInput) filenameCvInput.value = payload.filenameCv || "";
       if (filenameCoverInput) filenameCoverInput.value = payload.filenameCover || "";
+      if (toneSlider) toneSlider.value = payload.tone || "3";
+      if (payload.artifactToken) state.artifactToken = payload.artifactToken;
+      if (payload.cvHtml) state.cvHtml = payload.cvHtml;
     } catch (_) {}
   }
 
@@ -1638,42 +1720,6 @@
     notify("success", t("notify.language_updated"));
   }
 
-  async function uploadDocuments() {
-    await ensureSession({ silent: true });
-    if (!state.sessionId) throw new Error(t("error.start_session_first"));
-    if (!uploadFiles) throw new Error(t("error.select_files_first"));
-    const files = Array.from(uploadFiles.files || []);
-    if (!files.length) throw new Error(t("error.select_files_first"));
-
-    showGeneratingOverlay(getUploadSteps());
-    try {
-      const tagInputs = pendingUploadTags?.querySelectorAll("[data-pending-tag]") || [];
-      const formData = new FormData();
-      files.forEach((file, index) => {
-        formData.append("files", file);
-        const manualTag = tagInputs[index]?.value || uploadTagDefault?.value || "";
-        if (manualTag) formData.append("tags", manualTag);
-      });
-      const response = await fetch(endpoint(`/api/session/${state.sessionId}/upload`), {
-        method: "POST",
-        body: formData,
-      });
-      const data = await parseJsonResponse(response);
-      uploadFiles.value = "";
-      if (pendingUploadTags) pendingUploadTags.innerHTML = "";
-      renderUploadFileLabel();
-      if (data.state) {
-        state.server = data.state;
-        applyServerState();
-      } else {
-        await fetchState();
-      }
-      notify("success", t("notify.documents_uploaded"));
-    } finally {
-      hideGeneratingOverlay();
-    }
-  }
-
   async function uploadPhoto() {
     await ensureSession({ silent: true });
     if (!state.sessionId) throw new Error(t("error.start_session_first"));
@@ -1694,32 +1740,6 @@
     notify("success", t("notify.documents_uploaded"));
   }
 
-  async function submitPastedText() {
-    await ensureSession({ silent: true });
-    if (!state.sessionId) throw new Error(t("error.start_session_first"));
-    const text = (pasteText?.value || "").trim();
-    if (!text) throw new Error(t("error.select_files_first"));
-    showGeneratingOverlay(getUploadSteps());
-    try {
-      const tag = "other";
-      const response = await fetch(endpoint(`/api/session/${state.sessionId}/paste`), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, tag }),
-      });
-      const data = await parseJsonResponse(response);
-      if (pasteText) pasteText.value = "";
-      if (data.state) {
-        state.server = data.state;
-        applyServerState();
-      } else {
-        await fetchState();
-      }
-      notify("success", t("notify.paste_submitted"));
-    } finally {
-      hideGeneratingOverlay();
-    }
-  }
 
   async function extract() {
     if (!state.sessionId) throw new Error(t("error.start_session_first"));
@@ -1858,6 +1878,7 @@
         page_bg: pageBgInput?.value || "#ffffff",
         filename_cv: filenameCvInput?.value || "",
         filename_cover: filenameCoverInput?.value || "",
+        tone: parseInt(toneSlider?.value || "3", 10),
       };
       const response = await fetch(endpoint(`/api/session/${state.sessionId}/generate`), {
         method: "POST",
@@ -1871,18 +1892,10 @@
       }
       const data = await parseJsonResponse(response);
       state.artifactToken = data.token || "";
+      state.cvHtml = data.cv_html || "";
+      saveLocal();
       notify("success", t("notify.cv_generated"));
-      state.artifactToken = data.token || "";
-      notify("success", t("notify.cv_generated"));
-
-      // Auto-open PDF in new tab (already works)
-      if (data.download_cv_url) {
-        window.open(data.download_cv_url, '_blank');
-      }
-
-      // Enable cover letter generation
-      if (coverLetterSection) coverLetterSection.style.display = "";
-      if (btnGenerateCover) btnGenerateCover.disabled = false;
+      window.location.assign(routeForStep("result"));
     } finally {
       hideGeneratingOverlay();
     }
@@ -2157,6 +2170,12 @@
       <label><span>${t("adv.achievements")}</span>
         <textarea name="achievements" rows="3" placeholder="${escHtml(t("adv.ph_achievements"))}">${escHtml((data?.achievements || []).join("\n"))}</textarea>
       </label>
+      <label><span>${t("upload.duties")} <span class="info-icon" title="${escHtml(t("tooltip.duties"))}">i</span></span>
+        <textarea name="duties" rows="2" placeholder="${escHtml(t("upload.cv_ph_duties"))}">${escHtml(data?.duties || "")}</textarea>
+      </label>
+      <label><span>${t("upload.successes")} <span class="info-icon" title="${escHtml(t("tooltip.successes"))}">i</span></span>
+        <textarea name="successes" rows="2" placeholder="${escHtml(t("upload.cv_ph_successes"))}">${escHtml(data?.successes || "")}</textarea>
+      </label>
     `;
     row.querySelectorAll("input, textarea").forEach((el) => el.addEventListener("input", scheduleAdvProfileSave));
     list.appendChild(row);
@@ -2179,9 +2198,15 @@
         <label><span>${t("adv.period")}</span>
           <input type="text" name="period" value="${escHtml(data?.period || "")}" placeholder="${escHtml(t("adv.ph_period"))}">
         </label>
+        <label><span>${t("upload.grade")} <span class="info-icon" title="${escHtml(t("tooltip.grade"))}">i</span></span>
+          <input type="text" name="grade" value="${escHtml(data?.grade || "")}" placeholder="${escHtml(t("upload.cv_ph_grade"))}">
+        </label>
       </div>
+      <label><span>${t("upload.learned")} <span class="info-icon" title="${escHtml(t("tooltip.learned"))}">i</span></span>
+        <textarea name="learned" rows="2" placeholder="${escHtml(t("upload.cv_ph_learned"))}">${escHtml(data?.learned || "")}</textarea>
+      </label>
     `;
-    row.querySelectorAll("input").forEach((el) => el.addEventListener("input", scheduleAdvProfileSave));
+    row.querySelectorAll("input, textarea").forEach((el) => el.addEventListener("input", scheduleAdvProfileSave));
     list.appendChild(row);
   }
 
@@ -2210,11 +2235,15 @@
         company: row.querySelector("[name='company']")?.value || "",
         period: row.querySelector("[name='period']")?.value || "",
         achievements: (row.querySelector("[name='achievements']")?.value || "").split("\n").filter(Boolean),
+        duties: row.querySelector("[name='duties']")?.value || "",
+        successes: row.querySelector("[name='successes']")?.value || "",
       })),
       education: Array.from(document.querySelectorAll(".edu-row")).map((row) => ({
         degree: row.querySelector("[name='degree']")?.value || "",
         school: row.querySelector("[name='school']")?.value || "",
         period: row.querySelector("[name='period']")?.value || "",
+        learned: row.querySelector("[name='learned']")?.value || "",
+        grade: row.querySelector("[name='grade']")?.value || "",
       })),
       references: document.getElementById("adv-references")?.value || "",
     };
@@ -2484,6 +2513,323 @@
   // END ADVANCED MODE
   // ============================================================
 
+  // ============================================================
+  // UPLOAD PAGE CV INPUT
+  // ============================================================
+  const STORAGE_UPLOAD_PROFILE_KEY = "happyrav_v4_upload_profile";
+  let uploadProfileDebounce = null;
+
+  function addUploadSkillRow(data) {
+    const list = document.getElementById("upload-skills-list");
+    if (!list) return;
+    const name = typeof data === "string" ? data : (data?.name || data || "");
+    const level = typeof data === "object" ? (data?.level || "") : "";
+    const row = document.createElement("div");
+    row.className = "dynamic-item";
+    row.innerHTML = `
+      <div class="item-row">
+        <input type="text" name="skill" value="${escHtml(name)}" placeholder="${escHtml(t("upload.cv_ph_skill"))}">
+        <select name="skill_level">
+          <option value="">${escHtml(t("upload.cv_ph_skill_level"))}</option>
+          <option value="Expert" ${level === "Expert" ? "selected" : ""}>Expert</option>
+          <option value="Advanced" ${level === "Advanced" ? "selected" : ""}>Advanced</option>
+          <option value="Intermediate" ${level === "Intermediate" ? "selected" : ""}>Intermediate</option>
+          <option value="Beginner" ${level === "Beginner" ? "selected" : ""}>Beginner</option>
+        </select>
+        <button type="button" class="btn-remove">${t("adv.remove")}</button>
+      </div>
+    `;
+    row.querySelectorAll("input, select").forEach(el => el.addEventListener("input", scheduleUploadSave));
+    row.querySelectorAll("input, select").forEach(el => el.addEventListener("change", scheduleUploadSave));
+    list.appendChild(row);
+  }
+
+  function addUploadLanguageRow(data) {
+    const list = document.getElementById("upload-languages-list");
+    if (!list) return;
+    const row = document.createElement("div");
+    row.className = "dynamic-item";
+    row.innerHTML = `
+      <div class="item-row">
+        <input type="text" name="language" value="${escHtml(data?.language || "")}" placeholder="${escHtml(t("upload.cv_ph_language"))}">
+        <input type="text" name="proficiency" value="${escHtml(data?.proficiency || "")}" placeholder="${escHtml(t("upload.cv_ph_proficiency"))}">
+      </div>
+      <button type="button" class="btn-remove">${t("adv.remove")}</button>
+    `;
+    row.querySelectorAll("input").forEach(el => el.addEventListener("input", scheduleUploadSave));
+    list.appendChild(row);
+  }
+
+  function addUploadExperienceRow(data) {
+    const list = document.getElementById("upload-experience-list");
+    if (!list) return;
+    const row = document.createElement("div");
+    row.className = "dynamic-item";
+    row.innerHTML = `
+      <div class="item-row">
+        <label><span class="item-label">${t("adv.role")}</span>
+          <input type="text" name="role" value="${escHtml(data?.role || "")}" placeholder="${escHtml(t("adv.ph_role"))}">
+        </label>
+        <label><span class="item-label">${t("adv.company")}</span>
+          <input type="text" name="company" value="${escHtml(data?.company || "")}" placeholder="${escHtml(t("adv.ph_company"))}">
+        </label>
+      </div>
+      <div class="item-row">
+        <label><span class="item-label">${t("adv.period")}</span>
+          <input type="text" name="period" value="${escHtml(data?.period || "")}" placeholder="${escHtml(t("adv.ph_period"))}">
+        </label>
+      </div>
+      <div class="item-full">
+        <label><span class="item-label">${t("adv.achievements")}</span>
+          <textarea name="achievements" rows="3" placeholder="${escHtml(t("adv.ph_achievements"))}">${escHtml((data?.achievements || []).join("\n"))}</textarea>
+        </label>
+      </div>
+      <div class="item-full">
+        <label><span class="item-label">${t("upload.duties")} <span class="info-icon" title="${escHtml(t("tooltip.duties"))}">i</span></span>
+          <textarea name="duties" rows="2" placeholder="${escHtml(t("upload.cv_ph_duties"))}">${escHtml(data?.duties || "")}</textarea>
+        </label>
+      </div>
+      <div class="item-full">
+        <label><span class="item-label">${t("upload.successes")} <span class="info-icon" title="${escHtml(t("tooltip.successes"))}">i</span></span>
+          <textarea name="successes" rows="2" placeholder="${escHtml(t("upload.cv_ph_successes"))}">${escHtml(data?.successes || "")}</textarea>
+        </label>
+      </div>
+      <button type="button" class="btn-remove">${t("adv.remove")}</button>
+    `;
+    row.querySelectorAll("input, textarea").forEach(el => el.addEventListener("input", scheduleUploadSave));
+    list.appendChild(row);
+  }
+
+  function addUploadEducationRow(data) {
+    const list = document.getElementById("upload-education-list");
+    if (!list) return;
+    const row = document.createElement("div");
+    row.className = "dynamic-item";
+    row.innerHTML = `
+      <div class="item-row">
+        <label><span class="item-label">${t("adv.degree")}</span>
+          <input type="text" name="degree" value="${escHtml(data?.degree || "")}" placeholder="${escHtml(t("adv.ph_degree"))}">
+        </label>
+        <label><span class="item-label">${t("adv.school")}</span>
+          <input type="text" name="school" value="${escHtml(data?.school || "")}" placeholder="${escHtml(t("adv.ph_school"))}">
+        </label>
+      </div>
+      <div class="item-row">
+        <label><span class="item-label">${t("adv.period")}</span>
+          <input type="text" name="period" value="${escHtml(data?.period || "")}" placeholder="${escHtml(t("adv.ph_period"))}">
+        </label>
+        <label><span class="item-label">${t("upload.grade")} <span class="info-icon" title="${escHtml(t("tooltip.grade"))}">i</span></span>
+          <input type="text" name="grade" value="${escHtml(data?.grade || "")}" placeholder="${escHtml(t("upload.cv_ph_grade"))}">
+        </label>
+      </div>
+      <div class="item-full">
+        <label><span class="item-label">${t("upload.learned")} <span class="info-icon" title="${escHtml(t("tooltip.learned"))}">i</span></span>
+          <textarea name="learned" rows="2" placeholder="${escHtml(t("upload.cv_ph_learned"))}">${escHtml(data?.learned || "")}</textarea>
+        </label>
+      </div>
+      <button type="button" class="btn-remove">${t("adv.remove")}</button>
+    `;
+    row.querySelectorAll("input, textarea").forEach(el => el.addEventListener("input", scheduleUploadSave));
+    list.appendChild(row);
+  }
+
+  function addUploadAchievementRow(value) {
+    const list = document.getElementById("upload-achievements-list");
+    if (!list) return;
+    const row = document.createElement("div");
+    row.className = "dynamic-item";
+    row.innerHTML = `
+      <div class="item-row">
+        <input type="text" name="achievement" value="${escHtml(value || "")}" placeholder="${escHtml(t("upload.cv_ph_achievement"))}">
+        <button type="button" class="btn-remove">${t("adv.remove")}</button>
+      </div>
+    `;
+    row.querySelector("input").addEventListener("input", scheduleUploadSave);
+    list.appendChild(row);
+  }
+
+  function collectUploadProfile() {
+    return {
+      contact: {
+        name: uploadName?.value || "",
+        headline: uploadHeadline?.value || "",
+        email: uploadEmail?.value || "",
+        phone: uploadPhone?.value || "",
+        location: uploadLocation?.value || "",
+        linkedin: uploadLinkedin?.value || "",
+        portfolio: uploadPortfolio?.value || "",
+      },
+      summary: uploadSummary?.value || "",
+      skills: Array.from(document.querySelectorAll("#upload-skills-list .dynamic-item")).map(row => ({
+        name: row.querySelector("[name='skill']")?.value || "",
+        level: row.querySelector("[name='skill_level']")?.value || "",
+      })).filter(r => r.name),
+      languages: Array.from(document.querySelectorAll("#upload-languages-list .dynamic-item")).map(row => ({
+        language: row.querySelector("[name='language']")?.value || "",
+        proficiency: row.querySelector("[name='proficiency']")?.value || "",
+      })).filter(r => r.language),
+      experience: Array.from(document.querySelectorAll("#upload-experience-list .dynamic-item")).map(row => ({
+        role: row.querySelector("[name='role']")?.value || "",
+        company: row.querySelector("[name='company']")?.value || "",
+        period: row.querySelector("[name='period']")?.value || "",
+        achievements: (row.querySelector("[name='achievements']")?.value || "").split("\n").filter(Boolean),
+        duties: row.querySelector("[name='duties']")?.value || "",
+        successes: row.querySelector("[name='successes']")?.value || "",
+      })),
+      education: Array.from(document.querySelectorAll("#upload-education-list .dynamic-item")).map(row => ({
+        degree: row.querySelector("[name='degree']")?.value || "",
+        school: row.querySelector("[name='school']")?.value || "",
+        period: row.querySelector("[name='period']")?.value || "",
+        learned: row.querySelector("[name='learned']")?.value || "",
+        grade: row.querySelector("[name='grade']")?.value || "",
+      })),
+      achievements: Array.from(document.querySelectorAll("#upload-achievements-list .dynamic-item")).map(row =>
+        row.querySelector("[name='achievement']")?.value || ""
+      ).filter(Boolean),
+    };
+  }
+
+  function saveUploadProfile() {
+    localStorage.setItem(STORAGE_UPLOAD_PROFILE_KEY, JSON.stringify(collectUploadProfile()));
+  }
+
+  function restoreUploadProfile() {
+    let data = null;
+    try { data = JSON.parse(localStorage.getItem(STORAGE_UPLOAD_PROFILE_KEY) || "null"); } catch (_) {}
+
+    // Merge from server extracted_profile if available (pre-fill from start page advanced)
+    const sp = state.server?.extracted_profile;
+    if (!data && sp) {
+      data = {
+        contact: {
+          name: sp.full_name || "",
+          headline: sp.headline || "",
+          email: sp.email || "",
+          phone: sp.phone || "",
+          location: sp.location || "",
+          linkedin: sp.linkedin || "",
+          portfolio: sp.portfolio || "",
+        },
+        summary: sp.summary || "",
+        skills: (sp.skills || []).map(s => typeof s === "string" ? { name: s, level: "" } : s),
+        languages: (sp.languages || []).map(l => typeof l === "string" ? { language: l, proficiency: "" } : l),
+        experience: (sp.experience || []).map(e => ({ role: e.role || "", company: e.company || "", period: e.period || "", achievements: e.achievements || [], duties: e.duties || "", successes: e.successes || "" })),
+        education: (sp.education || []).map(e => ({ degree: e.degree || "", school: e.school || "", period: e.period || "", learned: e.learned || "", grade: e.grade || "" })),
+        achievements: sp.achievements || [],
+      };
+    }
+    if (!data) return;
+
+    const c = data.contact || {};
+    if (uploadName) uploadName.value = c.name || "";
+    if (uploadHeadline) uploadHeadline.value = c.headline || "";
+    if (uploadEmail) uploadEmail.value = c.email || "";
+    if (uploadPhone) uploadPhone.value = c.phone || "";
+    if (uploadLocation) uploadLocation.value = c.location || "";
+    if (uploadLinkedin) uploadLinkedin.value = c.linkedin || "";
+    if (uploadPortfolio) uploadPortfolio.value = c.portfolio || "";
+    if (uploadSummary) uploadSummary.value = data.summary || "";
+
+    const skillsList = document.getElementById("upload-skills-list");
+    if (skillsList) { skillsList.innerHTML = ""; (data.skills || []).forEach(addUploadSkillRow); }
+    const langList = document.getElementById("upload-languages-list");
+    if (langList) { langList.innerHTML = ""; (data.languages || []).forEach(addUploadLanguageRow); }
+    const expList = document.getElementById("upload-experience-list");
+    if (expList) { expList.innerHTML = ""; (data.experience || []).forEach(addUploadExperienceRow); }
+    const eduList = document.getElementById("upload-education-list");
+    if (eduList) { eduList.innerHTML = ""; (data.education || []).forEach(addUploadEducationRow); }
+    const achList = document.getElementById("upload-achievements-list");
+    if (achList) { achList.innerHTML = ""; (data.achievements || []).forEach(addUploadAchievementRow); }
+  }
+
+  function scheduleUploadSave() {
+    if (uploadProfileDebounce) clearTimeout(uploadProfileDebounce);
+    uploadProfileDebounce = setTimeout(saveUploadProfile, 300);
+  }
+
+  function buildPreseedFromUploadProfile() {
+    const up = collectUploadProfile();
+    const c = up.contact || {};
+    const preseedProfile = {};
+    if (c.name) preseedProfile.full_name = c.name;
+    if (c.headline) preseedProfile.headline = c.headline;
+    if (c.email) preseedProfile.email = c.email;
+    if (c.phone) preseedProfile.phone = c.phone;
+    if (c.location) preseedProfile.location = c.location;
+    if (c.linkedin) preseedProfile.linkedin = c.linkedin;
+    if (c.portfolio) preseedProfile.portfolio = c.portfolio;
+    if (up.summary) preseedProfile.summary = up.summary;
+    if (up.skills?.length) preseedProfile.skills = up.skills.map(s => s.name + (s.level ? ` (${s.level})` : ""));
+    if (up.languages?.length) preseedProfile.languages = up.languages.map(l => l.language + (l.proficiency ? ` (${l.proficiency})` : ""));
+    if (up.experience?.length) preseedProfile.experience = up.experience.map(e => ({
+      role: e.role, company: e.company, period: e.period,
+      achievements: e.achievements,
+      duties: e.duties || "",
+      successes: e.successes || "",
+    }));
+    if (up.education?.length) preseedProfile.education = up.education.map(e => ({
+      degree: e.degree, school: e.school, period: e.period,
+      learned: e.learned || "",
+      grade: e.grade || "",
+    }));
+    if (up.achievements?.length) preseedProfile.achievements = up.achievements;
+    return preseedProfile;
+  }
+
+  async function preseedUploadAndContinue() {
+    await ensureSession({ silent: true });
+    if (!state.sessionId) throw new Error(t("error.start_session_first"));
+    const preseedProfile = buildPreseedFromUploadProfile();
+    // Merge with advanced profile from start page
+    const advProfile = collectAdvancedProfile();
+    const advC = advProfile.contact || {};
+    if (advC.name && !preseedProfile.full_name) preseedProfile.full_name = advC.name;
+    if (advC.email && !preseedProfile.email) preseedProfile.email = advC.email;
+    if (advC.phone && !preseedProfile.phone) preseedProfile.phone = advC.phone;
+    if (advC.location && !preseedProfile.location) preseedProfile.location = advC.location;
+    if (advC.linkedin && !preseedProfile.linkedin) preseedProfile.linkedin = advC.linkedin;
+    if (advC.portfolio && !preseedProfile.portfolio) preseedProfile.portfolio = advC.portfolio;
+    if ((advProfile.experience || []).length && !preseedProfile.experience?.length) preseedProfile.experience = advProfile.experience;
+    if ((advProfile.education || []).length && !preseedProfile.education?.length) preseedProfile.education = advProfile.education;
+
+    const telos = collectTelos();
+    const response = await fetch(endpoint(`/api/session/${state.sessionId}/preseed`), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ profile: preseedProfile, telos }),
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data.state) state.server = data.state;
+    }
+    gotoQuestions();
+  }
+
+  function bindUploadCvEvents() {
+    document.getElementById("upload-add-skill")?.addEventListener("click", () => { addUploadSkillRow(); scheduleUploadSave(); });
+    document.getElementById("upload-add-language")?.addEventListener("click", () => { addUploadLanguageRow(); scheduleUploadSave(); });
+    document.getElementById("upload-add-experience")?.addEventListener("click", () => { addUploadExperienceRow(); scheduleUploadSave(); });
+    document.getElementById("upload-add-education")?.addEventListener("click", () => { addUploadEducationRow(); scheduleUploadSave(); });
+    document.getElementById("upload-add-achievement")?.addEventListener("click", () => { addUploadAchievementRow(); scheduleUploadSave(); });
+
+    // Remove button delegation
+    ["upload-skills-list", "upload-languages-list", "upload-experience-list", "upload-education-list", "upload-achievements-list"].forEach(listId => {
+      document.getElementById(listId)?.addEventListener("click", (e) => {
+        const btn = e.target.closest(".btn-remove");
+        if (btn) { btn.closest(".dynamic-item")?.remove(); scheduleUploadSave(); }
+      });
+    });
+
+    // Input change delegation for upload CV fields
+    [uploadName, uploadHeadline, uploadEmail, uploadPhone, uploadLocation, uploadLinkedin, uploadPortfolio, uploadSummary]
+      .filter(Boolean)
+      .forEach(el => el.addEventListener("input", scheduleUploadSave));
+  }
+
+  // ============================================================
+  // END UPLOAD PAGE CV INPUT
+  // ============================================================
+
   function gotoUpload() {
     window.location.assign(routeForStep("upload"));
   }
@@ -2644,14 +2990,13 @@
     renderReview();
     renderResultKeywordComparison();
     renderMonsterCVSection();
-    renderUploadFileLabel();
     renderPhotoFileLabel();
     setButtonStates();
     saveLocal();
   }
 
   function guardCurrentPage() {
-    if (pageKey === "result") return true;
+    if (pageKey === "result" || pageKey === "cover") return true;
     const hasSession = Boolean(state.sessionId && state.server);
     if (!hasSession) {
       if (pageKey !== "start") {
@@ -2662,7 +3007,7 @@
     }
 
     const recommended = recommendedStepFromServer();
-    if (pageKey === "start" && state.server?.documents?.length) {
+    if (pageKey === "start" && (state.server?.documents?.length || state.server?.extracted_profile?.full_name)) {
       window.location.replace(routeForStep(recommended));
       return false;
     }
@@ -2691,17 +3036,6 @@
     if (langBtnEn) langBtnEn.addEventListener("click", () => run(() => changeLanguage("en")));
     if (langBtnDe) langBtnDe.addEventListener("click", () => run(() => changeLanguage("de")));
 
-    if (uploadTagDefault) uploadTagDefault.addEventListener("change", renderPendingTagRows);
-    if (uploadFiles) {
-      uploadFiles.addEventListener("change", () => {
-        renderPendingTagRows();
-        renderUploadFileLabel();
-        setButtonStates();
-      });
-    }
-    if (uploadFilesTrigger && uploadFiles) {
-      uploadFilesTrigger.addEventListener("click", () => uploadFiles.click());
-    }
     if (photoFile) {
       photoFile.addEventListener("change", () => {
         renderPhotoFileLabel();
@@ -2731,11 +3065,7 @@
         });
       });
 
-    if (btnUpload) btnUpload.addEventListener("click", () => run(uploadDocuments));
     if (btnUploadPhoto) btnUploadPhoto.addEventListener("click", () => run(uploadPhoto));
-    if (btnPasteSubmit) btnPasteSubmit.addEventListener("click", () => run(submitPastedText));
-    if (pasteText) pasteText.addEventListener("input", setButtonStates);
-    if (btnExtract) btnExtract.addEventListener("click", () => run(extract));
 
     if (coverAnredeKnown) {
       coverAnredeKnown.addEventListener("change", () => {
@@ -2770,7 +3100,7 @@
         }),
       );
     }
-    if (btnUploadContinue) btnUploadContinue.addEventListener("click", gotoQuestions);
+    if (btnUploadContinue) btnUploadContinue.addEventListener("click", () => run(preseedUploadAndContinue));
     if (btnAnswers) btnAnswers.addEventListener("click", () => run(saveAnswers));
     if (btnPreviewMatch) btnPreviewMatch.addEventListener("click", () => run(previewMatch));
     if (btnGenerate) btnGenerate.addEventListener("click", () => run(generate));
@@ -2784,6 +3114,132 @@
     if (btnToReview) btnToReview.addEventListener("click", gotoReview);
   }
 
+  function renderResultPage() {
+    const iframe = document.getElementById("result-cv-iframe");
+    if (iframe && state.cvHtml) {
+      iframe.srcdoc = state.cvHtml;
+    }
+    const matchSummary = document.getElementById("result-match-summary");
+    if (matchSummary && state.server?.review_match) {
+      const score = Math.round(state.server.review_match.overall_score || 0);
+      matchSummary.textContent = `Match Score: ${score}%`;
+    }
+  }
+
+  function bindResultPageEvents() {
+    const downloadHtml = document.getElementById("result-download-html");
+    const downloadMd = document.getElementById("result-download-md");
+    const toCoverBtn = document.getElementById("result-to-cover-btn");
+    const chatSend = document.getElementById("result-chat-send");
+    const chatInput = document.getElementById("result-chat-input");
+
+    if (downloadHtml) downloadHtml.addEventListener("click", () => {
+      if (!state.artifactToken) return;
+      window.open(endpoint(`/api/result/${state.artifactToken}/cv-html`), "_blank");
+    });
+    if (downloadMd) downloadMd.addEventListener("click", () => {
+      if (!state.artifactToken) return;
+      window.open(endpoint(`/api/result/${state.artifactToken}/cv-markdown`), "_blank");
+    });
+    if (toCoverBtn) toCoverBtn.addEventListener("click", () => {
+      window.location.assign(routeForStep("cover"));
+    });
+    if (chatSend) chatSend.addEventListener("click", () => run(resultChatSend));
+    if (chatInput) chatInput.addEventListener("keydown", (e) => { if (e.key === "Enter") run(resultChatSend); });
+  }
+
+  async function resultChatSend() {
+    const input = document.getElementById("result-chat-input");
+    const messages = document.getElementById("result-chat-messages");
+    if (!input || !state.artifactToken) return;
+    const msg = input.value.trim();
+    if (!msg) return;
+    input.value = "";
+    if (messages) messages.innerHTML += `<div class="chat-msg user">${escHtml(msg)}</div>`;
+    const response = await fetch(endpoint(`/api/session/${state.sessionId}/chat`), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: msg, token: state.artifactToken }),
+    });
+    const data = await parseJsonResponse(response);
+    if (data.token) {
+      state.artifactToken = data.token;
+      state.cvHtml = data.cv_html || state.cvHtml;
+      saveLocal();
+    }
+    if (messages) messages.innerHTML += `<div class="chat-msg assistant">${escHtml(data.message || "Done")}</div>`;
+    renderResultPage();
+  }
+
+  function bindCoverPageEvents() {
+    const anredeSelect = document.getElementById("cover-anrede-known");
+    const coverAnredeCustomWrap = document.getElementById("cover-anrede-custom-wrap");
+    const coverRecipientContactWrap = document.getElementById("cover-recipient-contact-wrap");
+    const signatureFile = document.getElementById("signature-file");
+    const signatureFileName = document.getElementById("signature-file-name");
+    const signatureFileTrigger = document.getElementById("signature-file-trigger");
+    const btnUploadSignature = document.getElementById("upload-signature-btn");
+    const btnGenerateCover = document.getElementById("generate-cover-btn");
+
+    if (anredeSelect) {
+      anredeSelect.addEventListener("change", () => {
+        const known = anredeSelect.value === "yes";
+        if (coverAnredeCustomWrap) coverAnredeCustomWrap.style.display = known ? "" : "none";
+        if (coverRecipientContactWrap) coverRecipientContactWrap.style.display = known ? "" : "none";
+      });
+    }
+    if (signatureFile) {
+      signatureFile.addEventListener("change", () => {
+        const files = Array.from(signatureFile.files || []);
+        if (signatureFileName) signatureFileName.textContent = files.length ? files[0].name : t("cover.no_signature");
+        if (btnUploadSignature) btnUploadSignature.disabled = !files.length;
+      });
+    }
+    if (signatureFileTrigger && signatureFile) {
+      signatureFileTrigger.addEventListener("click", () => signatureFile.click());
+    }
+    if (btnUploadSignature) btnUploadSignature.addEventListener("click", () => run(uploadSignature));
+    if (btnGenerateCover) btnGenerateCover.addEventListener("click", () => run(generateCoverLetterFromCoverPage));
+
+    const coverDownloadHtml = document.getElementById("cover-download-html");
+    if (coverDownloadHtml) coverDownloadHtml.addEventListener("click", () => {
+      if (!state.artifactToken) return;
+      window.open(endpoint(`/api/result/${state.artifactToken}/cover-html`), "_blank");
+    });
+  }
+
+  async function generateCoverLetterFromCoverPage() {
+    if (!state.sessionId || !state.artifactToken) throw new Error(t("error.start_session_first"));
+    showGeneratingOverlay();
+    try {
+      const payload = {
+        recipient_street: document.getElementById("cover-recipient-street")?.value || "",
+        recipient_plz_ort: document.getElementById("cover-recipient-plz")?.value || "",
+        recipient_contact: document.getElementById("cover-recipient-contact")?.value || "",
+        cover_date_location: document.getElementById("cover-date-location")?.value || "",
+        cover_anrede: document.getElementById("cover-anrede-custom")?.value || "",
+        sender_street: document.getElementById("cover-sender-street")?.value || "",
+        sender_plz_ort: document.getElementById("cover-sender-plz")?.value || "",
+        filename_cover: "",
+      };
+      const response = await fetch(endpoint(`/api/session/${state.sessionId}/generate-cover`), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await parseJsonResponse(response);
+      if (data.token) state.artifactToken = data.token;
+      saveLocal();
+      notify("success", t("notify.cover_generated") || "Cover letter generated!");
+      const coverResult = document.getElementById("cover-result");
+      const coverIframe = document.getElementById("cover-preview-iframe");
+      if (coverResult) coverResult.style.display = "";
+      if (coverIframe && data.cover_html) coverIframe.srcdoc = data.cover_html;
+    } finally {
+      hideGeneratingOverlay();
+    }
+  }
+
   async function init() {
     restoreLocal();
     bindEmailSubmitListener();
@@ -2795,6 +3251,15 @@
       restoreAdvancedProfile();
       restoreTelos();
     }
+    if (pageKey === "upload") {
+      bindUploadCvEvents();
+    }
+    if (pageKey === "result") {
+      bindResultPageEvents();
+    }
+    if (pageKey === "cover") {
+      bindCoverPageEvents();
+    }
 
     if (pageKey === "start" && !state.sessionId && hasAutoStartSignal()) {
       scheduleIntakeSync();
@@ -2804,8 +3269,16 @@
       await fetchStateSafe();
     }
 
+    if (pageKey === "upload") {
+      restoreUploadProfile();
+    }
+
     if (!guardCurrentPage()) return;
     renderAll();
+
+    if (pageKey === "result") {
+      renderResultPage();
+    }
 
     // Auto-load match score on review page
     if (pageKey === "review" && state.sessionId && !state.server?.review_match) {

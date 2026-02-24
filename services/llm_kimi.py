@@ -178,7 +178,7 @@ def _merge_generated_with_profile(content: GeneratedContent, profile: ExtractedP
             else "Profile summary based on provided documents."
         )
     if not merged.skills:
-        merged.skills = profile.skills[:25]
+        merged.skills = profile.skills_str[:25]
     if not merged.experience:
         merged.experience = profile.experience[:12]
     if not merged.education:
@@ -230,7 +230,7 @@ def _fallback_content(
     profile: ExtractedProfile,
 ) -> GeneratedContent:
     hard_kw, _ = split_keywords(job_ad_text)
-    skills = profile.skills[:20]
+    skills = profile.skills_str[:20]
     matched = [kw for kw in hard_kw if any(kw in skill.lower() for skill in skills)]
     headline = profile.headline or profile.summary[:80] or "Role"
 
@@ -426,6 +426,7 @@ def _generate_prompt(
         "- List experience in reverse chronological order (most recent first). Mandatory for Swiss CVs.\n"
         "- Preserve all original period dates exactly as provided.\n"
         "- Rewrite achievements to match job ad keywords, but never remove an experience entry.\n"
+        "- BULLET RULE: Each experience entry must have 1 to 5 achievement bullets. Optimal is 3. Select the most job-relevant achievements from the input.\n"
         "- Include ALL education entries, never skip any.\n"
         "- Skills array: ONLY technical/domain skills. Languages are handled separately, never include them.\n"
         "- Format skills as 'Skill Name: contextual details, tools, certifications, experience'.\n"
@@ -461,6 +462,7 @@ def _generate_prompt(
             "- Berufserfahrung in umgekehrt chronologischer Reihenfolge (neueste zuerst). Pflicht für Schweizer CVs.\n"
             "- Alle originalen Zeitangaben exakt übernehmen.\n"
             "- Erfolge auf Stelleninserat-Keywords anpassen, aber niemals einen Erfahrungseintrag entfernen.\n"
+            "- BULLET REGEL: Jeder Erfahrungseintrag muss 1 bis 5 Erfolgs-Bullets haben. Optimal sind 3. Die jobrelevantesten Erfolge aus dem Input auswählen.\n"
             "- Alle Ausbildungseinträge aufführen, niemals überspringen.\n"
             "- Skills Array: NUR technische/fachliche Kompetenzen. Sprachen separat behandelt, niemals hier einbeziehen.\n"
             "- Skills im Format 'Kompetenz: Kontext, Tools, Zertifikate, Erfahrung'.\n"
@@ -497,7 +499,7 @@ def _build_skill_contexts(
     # Find skill mentions in achievements
     for exp in profile.experience:
         for achievement in exp.achievements:
-            for skill in profile.skills[:20]:
+            for skill in profile.skills_str[:20]:
                 skill_base = skill.lower().split('(')[0].strip()
                 if skill_base in achievement.lower():
                     # Extract 5-word context window
@@ -614,10 +616,32 @@ def _extract_profile_sync(
         }
 
 
-def _build_generation_system_prompt(language: str) -> str:
+_TONE_INSTRUCTIONS = {
+    "de": {
+        1: "Verwende einfache, direkte Sprache. Keine Fachbegriffe oder Buzzwords. Kurze, klare Sätze. Faktenbasiert und nüchtern.",
+        2: "Verwende klare, professionelle Sprache mit wenig Fachjargon. Bevorzuge konkrete Aussagen gegenüber abstrakten Formulierungen.",
+        3: "Verwende professionelle Standardsprache. Branchenübliche Begriffe sind erlaubt, aber vermeide übertriebene Buzzwords.",
+        4: "Verwende dynamische, branchenspezifische Sprache. Integriere relevante Fachbegriffe und Keywords aus dem Stelleninserat aktiv.",
+        5: "Verwende maximale Keyword-Dichte. Integriere alle relevanten Fachbegriffe, Buzzwords und branchenspezifische Schlagwörter aus dem Stelleninserat. Dynamischer, selbstbewusster Ton.",
+    },
+    "en": {
+        1: "Use simple, direct language. No jargon or buzzwords. Short, clear sentences. Fact-based and understated.",
+        2: "Use clear, professional language with minimal jargon. Prefer concrete statements over abstract formulations.",
+        3: "Use standard professional language. Industry terms are fine, but avoid excessive buzzwords.",
+        4: "Use dynamic, industry-specific language. Actively integrate relevant technical terms and keywords from the job ad.",
+        5: "Maximize keyword density. Integrate all relevant technical terms, buzzwords, and industry-specific terminology from the job ad. Dynamic, confident tone.",
+    },
+}
+
+
+def _build_generation_system_prompt(language: str, tone: int = 3) -> str:
     """Build language-specific system prompt for CV/cover letter generation."""
+    tone = max(1, min(5, tone))
+    lang_key = "de" if language == "de" else "en"
+    tone_line = _TONE_INSTRUCTIONS[lang_key][tone]
+
     if language == "de":
-        return """Du bist ein Experte für Lebensläufe und Bewerbungsschreiben für den Schweizer Arbeitsmarkt.
+        return f"""Du bist ein Experte für Lebensläufe und Bewerbungsschreiben für den Schweizer Arbeitsmarkt.
 
 Kultureller Kontext Schweiz:
 - Professioneller, aber herzlicher Ton
@@ -636,12 +660,14 @@ Format-Anforderungen:
 - Klare Abschnittsüberschriften
 - Umgekehrt chronologische Reihenfolge (neueste zuerst)
 - Quantifizierte Erfolge mit Metriken
-- Keine Füllwörter oder Buzzwords
+
+Tonalität:
+- {tone_line}
 
 Rückgabe: Valides JSON, kein Markdown."""
 
     # English (default)
-    return """You are an expert CV and cover letter writer for the Swiss job market.
+    return f"""You are an expert CV and cover letter writer for the Swiss job market.
 
 Cultural context for Switzerland:
 - Professional yet warm tone
@@ -654,7 +680,9 @@ Format requirements:
 - Clear section headers
 - Reverse chronological order (most recent first)
 - Quantified achievements with metrics
-- No buzzwords or filler language
+
+Tone:
+- {tone_line}
 
 Return valid JSON only. No markdown."""
 
@@ -665,6 +693,7 @@ def _generate_sync(
     profile: ExtractedProfile,
     source_documents: Optional[List[str]],
     match_context: Optional[Dict[str, Any]] = None,
+    tone: int = 3,
 ) -> Tuple[GeneratedContent, Optional[str]]:
     prompt, warning = _generate_prompt(
         language=language,
@@ -676,7 +705,7 @@ def _generate_sync(
     try:
         payload = _chat_json_anthropic(
             model=CFG["generation"],
-            system=_build_generation_system_prompt(language),
+            system=_build_generation_system_prompt(language, tone),
             user=prompt,
             max_tokens=2600,
         )
@@ -706,6 +735,7 @@ async def generate_content(
     profile: ExtractedProfile,
     source_documents: Optional[List[str]] = None,
     match_context: Optional[Dict[str, Any]] = None,
+    tone: int = 3,
 ) -> Tuple[GeneratedContent, Optional[str]]:
     # Enhance match_context with skill ranking and achievement scoring
     from happyrav.services.llm_matching import rank_skills_by_relevance, score_achievement_relevance
@@ -716,7 +746,7 @@ async def generate_content(
         # 1. Rank skills by relevance
         if profile.skills:
             ranked_skills = await rank_skills_by_relevance(
-                cv_skills=profile.skills,
+                cv_skills=profile.skills_str,
                 job_ad_text=job_ad_text,
                 language=language
             )
@@ -756,6 +786,7 @@ async def generate_content(
         profile,
         source_documents,
         enhanced_context,
+        tone,
     )
 
 
@@ -960,7 +991,7 @@ def _strategic_analysis_prompt(
     matched_kw = ", ".join(match.matched_keywords) if match.matched_keywords else "None"
     missing_kw = ", ".join(match.missing_keywords) if match.missing_keywords else "None"
 
-    skills_list = ", ".join(profile.skills) if profile.skills else "Not specified"
+    skills_list = ", ".join(profile.skills_str) if profile.skills else "Not specified"
     experience_summary = ""
     if profile.experience:
         exp_items = [f"{e.role} at {e.company} ({e.period or 'duration unknown'})" for e in profile.experience[:3]]

@@ -1,0 +1,33 @@
+<section class="block tone-light" id="page-result">
+  <h2 data-i18n="result.title">Your Generated CV</h2>
+  <p class="block-sub" data-i18n="result.sub">Preview your CV below. Download as HTML or Markdown, then optionally create a cover letter.</p>
+
+  <div id="result-cv-preview" class="cv-preview-container">
+    <iframe id="result-cv-iframe" class="cv-preview-iframe" sandbox="allow-same-origin"></iframe>
+  </div>
+
+  <div class="row-actions result-actions">
+    <button id="result-download-html" type="button" class="btn-secondary" data-i18n="result.download_html">Download HTML</button>
+    <button id="result-download-md" type="button" class="btn-secondary" data-i18n="result.download_md">Download Markdown</button>
+  </div>
+
+  <div id="result-match-summary" class="score-box" style="margin-top:16px;"></div>
+  <div id="result-warning" class="alert" style="display:none;"></div>
+
+  <!-- Chat refinement -->
+  <details class="more-options" id="result-chat-accordion">
+    <summary data-i18n="result.chat_title">Refine your CV</summary>
+    <div id="result-chat-messages" class="chat-messages"></div>
+    <div class="chat-input-row">
+      <input id="result-chat-input" type="text" data-i18n-placeholder="result.chat_placeholder">
+      <button id="result-chat-send" type="button" class="btn-secondary" data-i18n="result.chat_send">Send</button>
+    </div>
+  </details>
+</section>
+
+<section class="block tone-white">
+  <div class="row-actions row-actions-between">
+    <a class="btn-secondary btn-link" href="{{ request.url_for('page_review') }}" data-i18n="action.back_review">Back to Review</a>
+    <button id="result-to-cover-btn" type="button" class="btn-primary" data-i18n="action.next_cover">Next: Cover Letter (optional)</button>
+  </div>
+</section>

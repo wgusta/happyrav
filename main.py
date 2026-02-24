@@ -82,13 +82,14 @@ from happyrav.services.templating import (
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_PATH = (os.getenv("HAPPYRAV_PREFIX") or "").strip()
-WIZARD_TOTAL_STEPS = 5
+WIZARD_TOTAL_STEPS = 6
 WIZARD_PROGRESS = {
     "start": {"percent": 0, "index": 1},
-    "upload": {"percent": 25, "index": 2},
-    "questions": {"percent": 50, "index": 3},
-    "review": {"percent": 75, "index": 4},
-    "result": {"percent": 100, "index": 5},
+    "upload": {"percent": 20, "index": 2},
+    "questions": {"percent": 40, "index": 3},
+    "review": {"percent": 60, "index": 4},
+    "result": {"percent": 80, "index": 5},
+    "cover": {"percent": 100, "index": 6},
 }
 PHOTO_MAX_BYTES = 5 * 1024 * 1024
 PHOTO_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp"}
@@ -174,6 +175,24 @@ def _profile_to_basic(profile: ExtractedProfile) -> BasicProfile:
     )
 
 
+def _skill_str(s) -> str:
+    """Convert a SkillEntry or string to display string."""
+    if isinstance(s, str):
+        return s
+    if hasattr(s, "name"):
+        return f"{s.name} ({s.level})" if s.level else s.name
+    return str(s)
+
+
+def _lang_str(l) -> str:
+    """Convert a LanguageEntry or string to display string."""
+    if isinstance(l, str):
+        return l
+    if hasattr(l, "language"):
+        return f"{l.language} ({l.level})" if l.level else l.language
+    return str(l)
+
+
 def _profile_text_for_score(profile: ExtractedProfile) -> str:
     chunks: List[str] = [
         profile.full_name,
@@ -185,8 +204,8 @@ def _profile_text_for_score(profile: ExtractedProfile) -> str:
         profile.linkedin,
         profile.portfolio,
     ]
-    chunks.extend(profile.skills)
-    chunks.extend(profile.languages)
+    chunks.extend(profile.skills_str)
+    chunks.extend(profile.languages_str)
     chunks.extend(profile.achievements)
     for entry in profile.experience:
         chunks.extend([entry.role, entry.company, entry.period, *entry.achievements])
@@ -624,6 +643,22 @@ async def page_review(request: Request) -> HTMLResponse:
     )
 
 
+@app.get("/cover", response_class=HTMLResponse, name="page_cover")
+async def page_cover(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(
+        "index.html",
+        _wizard_context(request, page_key="cover", content_template="_page_cover.html", page_title="happyRAV · Cover Letter"),
+    )
+
+
+@app.get("/result-page", response_class=HTMLResponse, name="page_result_wizard")
+async def page_result_wizard(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(
+        "index.html",
+        _wizard_context(request, page_key="result", content_template="_page_result.html", page_title="happyRAV · Result"),
+    )
+
+
 @app.post("/api/session/start")
 async def api_session_start(payload: SessionStartRequest) -> Dict:
     session_id = session_cache.create_session_id()
@@ -938,6 +973,11 @@ def _validate_completeness(
 
     generated.experience = sorted(generated.experience, key=lambda e: _period_sort_key(e.period), reverse=True)
 
+    # Enforce bullet cap: max 5 achievements per experience, min 1 if available
+    for exp in generated.experience:
+        if len(exp.achievements) > 5:
+            exp.achievements = exp.achievements[:5]
+
     gen_edu_keys = {(e.degree.lower().strip(), e.school.lower().strip()) for e in generated.education}
     missing_edu = [
         e for e in profile.education
@@ -965,7 +1005,7 @@ def _build_comparison_sections(
     if profile.skills or generated.skills:
         sections.append(ComparisonSection(
             label_en="Skills", label_de="Skills",
-            original=", ".join(profile.skills),
+            original=", ".join(profile.skills_str),
             optimized=", ".join(generated.skills),
         ))
     orig_exp = profile.experience or []
@@ -1025,7 +1065,7 @@ async def api_session_preview_match(session_id: str) -> Dict:
 
     # Build draft CV text from extracted profile (without generation)
     cv_lines = [basic_profile.full_name, basic_profile.headline, profile.summary]
-    cv_lines.extend(profile.skills[:30])
+    cv_lines.extend(profile.skills_str[:30])
     for item in profile.experience[:12]:
         cv_lines.extend([item.role, item.company, item.period])
         cv_lines.extend(item.achievements)
@@ -1053,7 +1093,7 @@ async def api_session_preview_match(session_id: str) -> Dict:
     try:
         semantic_keywords = await extract_semantic_keywords(state.job_ad_text, state.language)
         semantic_match = await match_skills_semantic(
-            cv_skills=profile.skills,
+            cv_skills=profile.skills_str,
             cv_experience=[exp.model_dump() for exp in profile.experience],
             semantic_keywords=semantic_keywords
         )
@@ -1130,7 +1170,7 @@ async def api_session_preview_match(session_id: str) -> Dict:
             {
                 "label_en": "Skills Overview",
                 "label_de": "Kompetenz-Übersicht",
-                "original": ", ".join(profile.skills[:10]) if profile.skills else "No skills listed",
+                "original": ", ".join(profile.skills_str[:10]) if profile.skills else "No skills listed",
                 "optimized": "(Will be tailored to job requirements during generation)"
             },
             {
@@ -1308,6 +1348,7 @@ async def api_session_generate(
         "match": artifact.match.model_dump(),
         "warning": artifact.warning,
         "download_cv_url": str(request.url_for("download_file", token=token, file_id="cv")),
+        "cv_html": cv_html,
     }
 
 
@@ -1377,6 +1418,7 @@ async def api_session_chat(request: Request, session_id: str, payload: dict = Bo
         "download_cv_url": str(request.url_for("download_file", token=new_token, file_id="cv")),
         "match": match.model_dump(),
         "warning": warning,
+        "cv_html": cv_html,
     }
 
 
@@ -1495,6 +1537,7 @@ async def api_session_generate_cover(
             return {
                 "token": artifact.token,
                 "result_url": str(request.url_for("result_page", token=artifact.token)),
+                "cover_html": cover_html,
             }
 
     raise HTTPException(status_code=404, detail="No CV artifact found. Generate CV first.")
@@ -1635,6 +1678,77 @@ async def api_result_comparison(token: str) -> Dict:
     if not record:
         raise HTTPException(status_code=404, detail="Result expired or not found.")
     return {"sections": [s.model_dump() for s in record.comparison_sections]}
+
+
+def _cv_html_to_markdown(record: ArtifactRecord) -> str:
+    """Convert artifact to markdown using stored metadata."""
+    meta = record.meta or {}
+    gen = meta.get("generated_content", {})
+    name = meta.get("full_name", "")
+    lines = []
+    if name:
+        lines.append(f"# {name}")
+    summary = gen.get("summary", "")
+    if summary:
+        lines.append(f"\n{summary}\n")
+    skills = gen.get("skills", [])
+    if skills:
+        lines.append("## Skills")
+        for s in skills:
+            lines.append(f"- {s}")
+        lines.append("")
+    experience = gen.get("experience", [])
+    if experience:
+        lines.append("## Experience")
+        for exp in experience:
+            role = exp.get("role", "")
+            company = exp.get("company", "")
+            period = exp.get("period", "")
+            lines.append(f"### {role} | {company} | {period}")
+            for ach in exp.get("achievements", []):
+                lines.append(f"- {ach}")
+            lines.append("")
+    education = gen.get("education", [])
+    if education:
+        lines.append("## Education")
+        for edu in education:
+            degree = edu.get("degree", "")
+            school = edu.get("school", "")
+            period = edu.get("period", "")
+            lines.append(f"### {degree} | {school} | {period}")
+            lines.append("")
+    return "\n".join(lines)
+
+
+@app.get("/api/result/{token}/cv-html")
+async def api_result_cv_html(token: str) -> Response:
+    record = artifact_cache.get(token)
+    if not record:
+        raise HTTPException(status_code=404, detail="Result expired or not found.")
+    filename = record.filename_cv.replace(".pdf", ".html") if record.filename_cv.endswith(".pdf") else record.filename_cv + ".html"
+    headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
+    return Response(content=record.cv_html, media_type="text/html", headers=headers)
+
+
+@app.get("/api/result/{token}/cv-markdown")
+async def api_result_cv_markdown(token: str) -> Response:
+    record = artifact_cache.get(token)
+    if not record:
+        raise HTTPException(status_code=404, detail="Result expired or not found.")
+    md = _cv_html_to_markdown(record)
+    filename = record.filename_cv.replace(".pdf", ".md") if record.filename_cv.endswith(".pdf") else record.filename_cv + ".md"
+    headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
+    return Response(content=md, media_type="text/markdown", headers=headers)
+
+
+@app.get("/api/result/{token}/cover-html")
+async def api_result_cover_html(token: str) -> Response:
+    record = artifact_cache.get(token)
+    if not record or not record.cover_html:
+        raise HTTPException(status_code=404, detail="Cover letter not found.")
+    filename = record.filename_cover.replace(".pdf", ".html") if record.filename_cover.endswith(".pdf") else (record.filename_cover or "cover") + ".html"
+    headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
+    return Response(content=record.cover_html, media_type="text/html", headers=headers)
 
 
 @app.get("/download/{token}/{file_id}")
