@@ -120,6 +120,62 @@ def render_cover_html(
     )
 
 
+def render_cover_markdown(
+    language: str,
+    profile: BasicProfile,
+    content: GeneratedContent,
+    company_name: str,
+    position_title: str,
+    sender_street: str = "",
+    sender_plz_ort: str = "",
+    recipient_street: str = "",
+    recipient_plz_ort: str = "",
+    recipient_contact: str = "",
+    cover_date: str = "",
+) -> str:
+    lines = []
+    if profile.full_name:
+        lines.append(f"# Cover Letter – {profile.full_name}")
+    lines.append(f"**Company:** {company_name}")
+    lines.append(f"**Position:** {position_title}")
+    if cover_date:
+        lines.append(f"**Date:** {cover_date}")
+    lines.append("")
+    if sender_street or sender_plz_ort:
+        lines.append("**Sender**")
+        if sender_street:
+            lines.append(f"- {sender_street}")
+        if sender_plz_ort:
+            lines.append(f"- {sender_plz_ort}")
+        lines.append("")
+    if recipient_street or recipient_plz_ort or recipient_contact:
+        lines.append("**Recipient**")
+        if recipient_contact:
+            lines.append(f"- {recipient_contact}")
+        if recipient_street:
+            lines.append(f"- {recipient_street}")
+        if recipient_plz_ort:
+            lines.append(f"- {recipient_plz_ort}")
+        lines.append("")
+    if content.cover_greeting:
+        lines.append(content.cover_greeting)
+        lines.append("")
+    if content.cover_opening:
+        lines.append(content.cover_opening)
+        lines.append("")
+    for para in content.cover_body:
+        lines.append(para)
+        lines.append("")
+    if content.cover_closing:
+        lines.append(content.cover_closing)
+        lines.append("")
+    if language == "de":
+        lines.append("_Erstellt mit happyRAV_")
+    else:
+        lines.append("_Generated with happyRAV_")
+    return "\n".join(lines)
+
+
 def sanitize_filename(value: str) -> str:
     safe = "".join(ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in value.strip())
     return safe.strip("_") or "document"

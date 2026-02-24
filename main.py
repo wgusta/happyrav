@@ -59,6 +59,7 @@ from happyrav.services.llm_kimi import (
     has_api_key,
     QUALITY_MODE,
 )
+from happyrav.services.llm_matching import summarize_job_ad
 from happyrav.services.parsing import parse_hex_color, parse_language
 from happyrav.services.pdf_render import render_pdf
 from happyrav.services.question_engine import (
@@ -74,6 +75,7 @@ from happyrav.services.templating import (
     build_filenames,
     render_builder_cv_html,
     render_cover_html,
+    render_cover_markdown,
     render_cv_html,
     render_monster_cv_html,
     sanitize_filename,
@@ -268,7 +270,9 @@ def _review_match_payload(state: SessionState) -> Optional[Dict]:
     if not cv_text.strip():
         return None
     try:
-        return compute_match(cv_text=cv_text, job_ad_text=state.job_ad_text, language=state.language).model_dump()
+        match = compute_match(cv_text=cv_text, job_ad_text=state.job_ad_text, language=state.language)
+        match.job_summary = state.job_summary
+        return match.model_dump()
     except Exception:
         return None
 
@@ -281,6 +285,7 @@ def _generation_match_context(state: SessionState) -> Optional[Dict]:
         "overall_score": payload.get("overall_score", 0.0),
         "matched_keywords": list(payload.get("matched_keywords", []))[:40],
         "missing_keywords": list(payload.get("missing_keywords", []))[:40],
+        "job_summary": payload.get("job_summary", "") or state.job_summary,
     }
 
 
@@ -1056,6 +1061,15 @@ async def api_session_preview_match(session_id: str) -> Dict:
     if not state.job_ad_text.strip():
         raise HTTPException(status_code=422, detail="Job ad text required for match preview.")
 
+    # Guarded job summary (LLM + baseline)
+    job_summary = ""
+    try:
+        job_summary = await summarize_job_ad(state.job_ad_text, state.language)
+    except Exception as exc:
+        print(f"Job summary failed: {exc}")
+        job_summary = (state.job_ad_text or "")[:400]
+    state.job_summary = job_summary
+
     # Use extracted profile to build preview CV text
     profile = state.extracted_profile
     if not profile.full_name and not profile.experience:
@@ -1104,6 +1118,8 @@ async def api_session_preview_match(session_id: str) -> Dict:
         print(f"Semantic matching failed: {e}, falling back to baseline")
         match = baseline_match
         match.matching_strategy = "baseline"
+
+    match.job_summary = job_summary
 
     # Compute quality metrics for preview
     from happyrav.services.cv_quality import validate_cv_quality
@@ -1160,6 +1176,7 @@ async def api_session_preview_match(session_id: str) -> Dict:
             job_ad_text=state.job_ad_text,
         )
 
+    session_cache.set(record)
     return {
         "match": match.model_dump(),
         "recommendation": recommendation,
@@ -1301,6 +1318,11 @@ async def api_session_generate(
         theme=state.theme,
         match=match,
     )
+    try:
+        cv_pdf_bytes = render_pdf(cv_html)
+    except Exception as exc:
+        print(f"CV PDF render failed: {exc}")
+        cv_pdf_bytes = b""
 
     comparison_sections = _build_comparison_sections(profile, generated)
     comparison_metadata = {
@@ -1319,21 +1341,23 @@ async def api_session_generate(
     artifact = ArtifactRecord(
         token=token,
         filename_cv=artifact_filename_cv,
+        cv_pdf_bytes=cv_pdf_bytes,
         cv_html=cv_html,
         match=match,
         warning=warning,
         expires_at=time.time() + artifact_cache.ttl_seconds,
         comparison_sections=comparison_sections,
         meta={
-            "company_name": state.company_name,
-            "position_title": state.position_title,
-            "full_name": basic_profile.full_name,
-            "session_id": session_id,
-            "language": state.language,
-            "pre_generation_match": match_context,
-            "generated_content": generated.model_dump(),
-            "comparison_metadata": comparison_metadata,
-        },
+        "company_name": state.company_name,
+        "position_title": state.position_title,
+        "full_name": basic_profile.full_name,
+        "session_id": session_id,
+        "language": state.language,
+        "pre_generation_match": match_context,
+        "job_summary": state.job_summary,
+        "generated_content": generated.model_dump(),
+        "comparison_metadata": comparison_metadata,
+    },
     )
     artifact_cache.set(artifact)
     session_cache.set(record)
@@ -1500,6 +1524,24 @@ async def api_session_generate_cover(
         cover_date=cover_date,
         signature_data_url=record.signature_data_url,
     )
+    cover_markdown = render_cover_markdown(
+        language=state.language,
+        profile=basic_profile,
+        content=generated,
+        company_name=payload.recipient_company.strip() or state.company_name or "Company",
+        position_title=state.position_title or "Position",
+        sender_street=state.sender_street,
+        sender_plz_ort=state.sender_plz_ort,
+        recipient_street=payload.recipient_street.strip(),
+        recipient_plz_ort=payload.recipient_plz_ort.strip(),
+        recipient_contact=payload.recipient_contact.strip(),
+        cover_date=cover_date,
+    )
+    try:
+        cover_pdf_bytes = render_pdf(cover_html)
+    except Exception as exc:
+        print(f"Cover PDF render failed: {exc}")
+        cover_pdf_bytes = b""
 
     filenames = build_filenames(basic_profile.full_name or "Candidate", state.company_name or "Company")
     if payload.filename_cover.strip():
@@ -1519,12 +1561,22 @@ async def api_session_generate_cover(
         if artifact:
             artifact.filename_cover = artifact_filename_cover
             artifact.cover_html = cover_html
+            artifact.cover_pdf_bytes = cover_pdf_bytes
+            artifact.meta.update({
+                "cover_date": cover_date,
+                "sender_street": state.sender_street,
+                "sender_plz_ort": state.sender_plz_ort,
+                "recipient_street": payload.recipient_street.strip(),
+                "recipient_plz_ort": payload.recipient_plz_ort.strip(),
+                "recipient_contact": payload.recipient_contact.strip(),
+            })
             artifact_cache.set(artifact)
             session_cache.set(record)
             return {
                 "token": artifact.token,
                 "result_url": str(request.url_for("result_page", token=artifact.token)),
                 "cover_html": cover_html,
+                "cover_markdown": cover_markdown,
             }
 
     raise HTTPException(status_code=404, detail="No CV artifact found. Generate CV first.")
@@ -1707,6 +1759,65 @@ def _cv_html_to_markdown(record: ArtifactRecord) -> str:
     return "\n".join(lines)
 
 
+def _cover_markdown(record: ArtifactRecord) -> str:
+    meta = record.meta or {}
+    gen = meta.get("generated_content", {})
+    basic_name = meta.get("full_name", "")
+    company = meta.get("company_name", "")
+    position = meta.get("position_title", "")
+    cover_date = meta.get("cover_date", "")
+    sender_street = meta.get("sender_street", "")
+    sender_plz_ort = meta.get("sender_plz_ort", "")
+    recipient_street = meta.get("recipient_street", "")
+    recipient_plz_ort = meta.get("recipient_plz_ort", "")
+    recipient_contact = meta.get("recipient_contact", "")
+
+    lines: List[str] = []
+    if basic_name:
+        lines.append(f"# Cover Letter – {basic_name}")
+    if company or position:
+        lines.append(f"**Role:** {position} @ {company}".strip())
+    if cover_date:
+        lines.append(f"**Date:** {cover_date}")
+    lines.append("")
+
+    if sender_street or sender_plz_ort:
+        lines.append("**Sender**")
+        if sender_street:
+            lines.append(f"- {sender_street}")
+        if sender_plz_ort:
+            lines.append(f"- {sender_plz_ort}")
+        lines.append("")
+
+    if recipient_contact or recipient_street or recipient_plz_ort:
+        lines.append("**Recipient**")
+        if recipient_contact:
+            lines.append(f"- {recipient_contact}")
+        if recipient_street:
+            lines.append(f"- {recipient_street}")
+        if recipient_plz_ort:
+            lines.append(f"- {recipient_plz_ort}")
+        lines.append("")
+
+    greeting = gen.get("cover_greeting", "")
+    opening = gen.get("cover_opening", "")
+    body = gen.get("cover_body", [])
+    closing = gen.get("cover_closing", "")
+
+    for text in [greeting, opening]:
+        if text:
+            lines.append(text)
+            lines.append("")
+    for para in body or []:
+        lines.append(para)
+        lines.append("")
+    if closing:
+        lines.append(closing)
+        lines.append("")
+    lines.append("_Generated with happyRAV_")
+    return "\n".join(lines)
+
+
 @app.get("/api/result/{token}/cv-html")
 async def api_result_cv_html(token: str) -> Response:
     record = artifact_cache.get(token)
@@ -1738,6 +1849,17 @@ async def api_result_cover_html(token: str) -> Response:
     return Response(content=record.cover_html, media_type="text/html", headers=headers)
 
 
+@app.get("/api/result/{token}/cover-markdown")
+async def api_result_cover_markdown(token: str) -> Response:
+    record = artifact_cache.get(token)
+    if not record or not record.cover_html:
+        raise HTTPException(status_code=404, detail="Cover letter not found.")
+    md = _cover_markdown(record)
+    filename = record.filename_cover.replace(".pdf", ".md") if record.filename_cover.endswith(".pdf") else (record.filename_cover or "cover") + ".md"
+    headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
+    return Response(content=md, media_type="text/markdown", headers=headers)
+
+
 @app.get("/download/{token}/{file_id}")
 async def download_file(token: str, file_id: str) -> Response:
     record = artifact_cache.get(token)
@@ -1747,9 +1869,13 @@ async def download_file(token: str, file_id: str) -> Response:
     if file_id == "cv":
         data = record.cv_pdf_bytes
         filename = record.filename_cv
+        if not data:
+            raise HTTPException(status_code=404, detail="CV PDF not available. Use HTML/Markdown download.")
     elif file_id == "cover":
         data = record.cover_pdf_bytes
         filename = record.filename_cover
+        if not data:
+            raise HTTPException(status_code=404, detail="Cover letter PDF not available.")
     else:
         raise HTTPException(status_code=400, detail="Invalid file id.")
 

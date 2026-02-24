@@ -35,8 +35,12 @@
   {% endif %}
 
   <div class="actions">
-    <a class="btn" href="{{ request.url_for('download_file', token=record.token, file_id='cv') }}">{{ "CV PDF herunterladen" if is_de else "Download CV PDF" }}</a>
-    <a class="btn" href="{{ request.url_for('download_file', token=record.token, file_id='cover') }}">{{ "Anschreiben PDF herunterladen" if is_de else "Download Cover Letter PDF" }}</a>
+    <a class="btn" href="{{ request.url_for('api_result_cv_html', token=record.token) }}">{{ "CV als HTML" if is_de else "Download CV HTML" }}</a>
+    <a class="btn" href="{{ request.url_for('api_result_cv_markdown', token=record.token) }}">{{ "CV als Markdown" if is_de else "Download CV Markdown" }}</a>
+    {% if record.cover_html %}
+      <a class="btn" href="{{ request.url_for('api_result_cover_html', token=record.token) }}">{{ "Anschreiben HTML" if is_de else "Cover Letter HTML" }}</a>
+      <a class="btn" href="{{ request.url_for('api_result_cover_markdown', token=record.token) }}">{{ "Anschreiben Markdown" if is_de else "Cover Letter Markdown" }}</a>
+    {% endif %}
   </div>
 
   <div id="monster-cv-section" style="margin-top: 1.5rem;"></div>

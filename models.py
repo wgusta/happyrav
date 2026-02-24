@@ -201,6 +201,7 @@ class SessionState(BaseModel):
     company_name: str = ""
     position_title: str = ""
     job_ad_text: str = ""
+    job_summary: str = ""
     consent_confirmed: bool = False
     documents: List[DocumentMeta] = Field(default_factory=list)
     extracted_profile: ExtractedProfile = Field(default_factory=ExtractedProfile)
@@ -309,6 +310,7 @@ class MatchPayload(BaseModel):
     category_scores: Dict[str, float] = Field(default_factory=dict)
     matched_keywords: List[str] = Field(default_factory=list)
     missing_keywords: List[str] = Field(default_factory=list)
+    job_summary: str = ""
     quality_metrics: Optional[QualityMetrics] = None
     quality_warnings: List[str] = Field(default_factory=list)
 

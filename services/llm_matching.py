@@ -334,6 +334,45 @@ Return JSON with "gaps" array. Focus on actionable gaps. Language: {lang_label}
     return gaps
 
 
+async def summarize_job_ad(job_ad_text: str, language: str) -> str:
+    """
+    Produce a concise, quote-grounded job summary.
+
+    Rules:
+    - Only use facts present in the job ad. No inventions.
+    - Keep it short (<= 90 words).
+    - Cover role, must-have skills, location/hybrid info if present, and seniority.
+    - Return plain text (no Markdown).
+    """
+    if not job_ad_text.strip():
+        return ""
+
+    # Quick regex-baseline fallback: first 2 sentences / 400 chars
+    baseline = " ".join(job_ad_text.strip().split()[:80])[:400]
+
+    lang_label = "German" if language == "de" else "English"
+    system_prompt = (
+        "You are an expert recruiter. Summarize the job using ONLY statements directly present "
+        "in the posting. If a detail is unclear, omit it. Return 3-5 bullet sentences separated by spaces; "
+        "no Markdown, no quotes, max 90 words."
+    )
+    user_prompt = f"Language: {lang_label}\nJob posting:\n{job_ad_text[:2600]}"
+
+    try:
+        response = await _chat_json_openai_async(
+            system=system_prompt,
+            user=json.dumps({"job_posting": job_ad_text[:2600], "language": lang_label}),
+            max_tokens=300,
+            model="gpt-4.1-mini",
+        )
+        # If model returns dict with summary field
+        if isinstance(response, dict) and response.get("summary"):
+            return str(response.get("summary")).strip()[:600]
+    except Exception:
+        pass
+    return baseline
+
+
 def merge_match_scores(
     baseline_match,
     semantic_match: SemanticMatchResult,

@@ -542,9 +542,10 @@ def _refine_prompt(
         "user_correction": user_message,
     }
     guard = (
-        "You are refining an existing CV and cover letter. Apply only the user's requested change. "
-        "Return the FULL updated content in the same JSON schema. Only modify what the user asks. "
-        "Keep everything else identical. Never invent facts not present in the profile."
+        "You are an expert HR & CV designer. Refine the CV/cover using ONLY facts present in the profile or job ad. "
+        "Apply only the user's requested change. Return the FULL updated content in the same JSON schema. "
+        "Only modify what the user asks. Keep everything else identical. Never invent or embellish; "
+        "if data is missing, leave the field blank."
     )
     return (
         f"{guard}\n"
@@ -641,7 +642,7 @@ def _build_generation_system_prompt(language: str, tone: int = 3) -> str:
     tone_line = _TONE_INSTRUCTIONS[lang_key][tone]
 
     if language == "de":
-        return f"""Du bist ein Experte für Lebensläufe und Bewerbungsschreiben für den Schweizer Arbeitsmarkt.
+        return f"""Du bist ein Experte für HR, Lebensläufe und Anschreiben für den Schweizer Arbeitsmarkt. Arbeite faktenbasiert: nutze nur Informationen, die in Profil, Dokumenten oder Stelleninserat stehen. Keine Halluzinationen, keine Übertreibungen; wenn ein Fakt fehlt, lasse ihn leer.
 
 Kultureller Kontext Schweiz:
 - Professioneller, aber herzlicher Ton
@@ -667,7 +668,7 @@ Tonalität:
 Rückgabe: Valides JSON, kein Markdown."""
 
     # English (default)
-    return f"""You are an expert CV and cover letter writer for the Swiss job market.
+    return f"""You are an expert HR and CV designer for the Swiss job market. Work strictly with facts from the profile/documents/job ad. Never fabricate or stretch the truth; leave fields empty when data is missing.
 
 Cultural context for Switzerland:
 - Professional yet warm tone

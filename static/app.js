@@ -1245,6 +1245,7 @@
     `;
     const missing = payload.missing_keywords || [];
     const qualityWarnings = payload.quality_warnings || [];
+    const jobSummary = payload.job_summary || "";
     const lowScore = payload.overall_score < REVIEW_RECOMMEND_THRESHOLD;
     if (reviewRecommendation) {
       const recommendation = lowScore ? t("text.review_recommend_low") : t("text.review_recommend_high");
@@ -1253,6 +1254,7 @@
       reviewRecommendation.style.display = "";
     }
     reviewMissing.innerHTML = `
+      ${jobSummary ? `<div class="row-card"><strong>${t("optimization.subtitle")}</strong><p>${escHtml(jobSummary)}</p></div>` : ""}
       <div class="row-card">
         <strong>${t("text.missing_keywords")}</strong>
         <p>${missing.length ? missing.slice(0, 20).join(", ") : t("text.none")}</p>
@@ -2917,6 +2919,7 @@
       const data = await response.json();
       if (data.state) state.server = data.state;
     }
+    try { await previewMatch(); } catch (_) {}
     gotoQuestions();
   }
 
@@ -3237,7 +3240,8 @@
     const matchSummary = document.getElementById("result-match-summary");
     if (matchSummary && state.server?.review_match) {
       const score = Math.round(state.server.review_match.overall_score || 0);
-      matchSummary.textContent = `Match Score: ${score}%`;
+      const summary = state.server.review_match.job_summary || "";
+      matchSummary.innerHTML = `Match Score: ${score}%${summary ? `<br><small>${escHtml(summary)}</small>` : ""}`;
     }
   }
 
@@ -3317,9 +3321,14 @@
     if (btnGenerateCover) btnGenerateCover.addEventListener("click", () => run(generateCoverLetterFromCoverPage));
 
     const coverDownloadHtml = document.getElementById("cover-download-html");
+    const coverDownloadMd = document.getElementById("cover-download-md");
     if (coverDownloadHtml) coverDownloadHtml.addEventListener("click", () => {
       if (!state.artifactToken) return;
       window.open(endpoint(`/api/result/${state.artifactToken}/cover-html`), "_blank");
+    });
+    if (coverDownloadMd) coverDownloadMd.addEventListener("click", () => {
+      if (!state.artifactToken) return;
+      window.open(endpoint(`/api/result/${state.artifactToken}/cover-markdown`), "_blank");
     });
   }
 
