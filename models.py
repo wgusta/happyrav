@@ -103,6 +103,7 @@ class ExtractedProfile(BaseModel):
     achievements: List[str] = Field(default_factory=list)
     experience: List[ExperienceItem] = Field(default_factory=list)
     education: List[EducationItem] = Field(default_factory=list)
+    hobbies: str = ""
     source_map: Dict[str, List[SourceAttribution]] = Field(default_factory=dict)
 
     @field_validator("skills", mode="before")

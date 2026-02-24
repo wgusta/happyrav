@@ -104,9 +104,8 @@
       "upload.cv_add_experience": "+ Add Experience",
       "upload.cv_education": "Education",
       "upload.cv_add_education": "+ Add Education",
-      "upload.cv_achievements": "Achievements",
-      "upload.cv_add_achievement": "+ Add Achievement",
-      "upload.cv_ph_achievement": "e.g. Increased revenue by 30%",
+      "upload.cv_hobbies": "Hobbies (only if relevant to job or early career)",
+      "upload.cv_ph_hobbies": "e.g. Marathon running, Open Source contributions, Chess club president",
 
       "upload.paste_toggle": "Or paste CV text directly",
       "upload.paste_label": "CV / document text",
@@ -549,9 +548,8 @@
       "upload.cv_add_experience": "+ Erfahrung hinzufügen",
       "upload.cv_education": "Ausbildung",
       "upload.cv_add_education": "+ Ausbildung hinzufügen",
-      "upload.cv_achievements": "Leistungen",
-      "upload.cv_add_achievement": "+ Leistung hinzufügen",
-      "upload.cv_ph_achievement": "z.B. Umsatz um 30% gesteigert",
+      "upload.cv_hobbies": "Hobbies (nur wenn relevant für die Stelle oder Berufseinsteiger)",
+      "upload.cv_ph_hobbies": "z.B. Marathonlauf, Open Source Beiträge, Schachclub Präsident",
 
       "upload.paste_toggle": "Oder CV-Text direkt einfügen",
       "upload.paste_label": "CV / Dokumenttext",
@@ -1138,14 +1136,21 @@
     return `${auto}${tags.map((tag) => `<option value="${tag}" ${selected === tag ? "selected" : ""}>${tagLabel(tag)}</option>`).join("")}`;
   }
 
+  let uploadedPhotoName = "";
   function renderPhotoFileLabel() {
     if (!photoFileName || !photoFile) return;
     const files = Array.from(photoFile.files || []);
-    if (!files.length) {
-      photoFileName.textContent = t("text.no_photo_selected");
+    if (files.length) {
+      photoFileName.textContent = files[0].name;
+      photoFileName.removeAttribute("data-i18n");
       return;
     }
-    photoFileName.textContent = files[0].name;
+    if (uploadedPhotoName) {
+      photoFileName.textContent = "\u2705 " + uploadedPhotoName;
+      photoFileName.removeAttribute("data-i18n");
+      return;
+    }
+    photoFileName.textContent = t("text.no_photo_selected");
   }
 
   function renderDocuments() {
@@ -1750,6 +1755,7 @@
     });
     const data = await parseJsonResponse(response);
     state.server = data.state;
+    uploadedPhotoName = files[0].name;
     photoFile.value = "";
     renderPhotoFileLabel();
     applyServerState();
@@ -2781,9 +2787,7 @@
           grade: row.querySelector("[name='grade']")?.value || "",
         };
       }),
-      achievements: Array.from(document.querySelectorAll("#upload-achievements-list .dynamic-item")).map(row =>
-        row.querySelector("[name='achievement']")?.value || ""
-      ).filter(Boolean),
+      hobbies: document.getElementById("upload-hobbies")?.value || "",
     };
   }
 
@@ -2813,7 +2817,7 @@
         languages: (sp.languages || []).map(l => typeof l === "string" ? { language: l, proficiency: "" } : l),
         experience: (sp.experience || []).map(e => ({ role: e.role || "", company: e.company || "", start_month: e.start_month || "", end_month: e.end_month || "", description_html: e.description_html || e.duties || "", achievements_html: e.achievements_html || e.successes || "" })),
         education: (sp.education || []).map(e => ({ degree: e.degree || "", school: e.school || "", start_month: e.start_month || "", end_month: e.end_month || "", learned_html: e.learned_html || e.learned || "", grade: e.grade || "" })),
-        achievements: sp.achievements || [],
+        hobbies: "",
       };
     }
     if (!data) return;
@@ -2836,8 +2840,8 @@
     if (expList) { expList.innerHTML = ""; (data.experience || []).forEach(addUploadExperienceRow); }
     const eduList = document.getElementById("upload-education-list");
     if (eduList) { eduList.innerHTML = ""; (data.education || []).forEach(addUploadEducationRow); }
-    const achList = document.getElementById("upload-achievements-list");
-    if (achList) { achList.innerHTML = ""; (data.achievements || []).forEach(addUploadAchievementRow); }
+    const hobbiesEl = document.getElementById("upload-hobbies");
+    if (hobbiesEl) hobbiesEl.value = data.hobbies || "";
   }
 
   function scheduleUploadSave() {
@@ -2883,7 +2887,7 @@
         grade: e.grade || "",
       };
     });
-    if (up.achievements?.length) preseedProfile.achievements = up.achievements;
+    if (up.hobbies) preseedProfile.hobbies = up.hobbies;
     return preseedProfile;
   }
 
@@ -2921,10 +2925,10 @@
     document.getElementById("upload-add-language")?.addEventListener("click", () => { addUploadLanguageRow(); scheduleUploadSave(); });
     document.getElementById("upload-add-experience")?.addEventListener("click", () => { addUploadExperienceRow(); scheduleUploadSave(); });
     document.getElementById("upload-add-education")?.addEventListener("click", () => { addUploadEducationRow(); scheduleUploadSave(); });
-    document.getElementById("upload-add-achievement")?.addEventListener("click", () => { addUploadAchievementRow(); scheduleUploadSave(); });
+    document.getElementById("upload-hobbies")?.addEventListener("input", scheduleUploadSave);
 
     // Remove button delegation
-    ["upload-skills-list", "upload-languages-list", "upload-experience-list", "upload-education-list", "upload-achievements-list"].forEach(listId => {
+    ["upload-skills-list", "upload-languages-list", "upload-experience-list", "upload-education-list"].forEach(listId => {
       document.getElementById(listId)?.addEventListener("click", (e) => {
         const btn = e.target.closest(".btn-remove");
         if (btn) { btn.closest(".dynamic-item")?.remove(); scheduleUploadSave(); }
