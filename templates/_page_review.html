@@ -1,6 +1,6 @@
 <section class="block tone-light" id="page-review">
-  <h2 data-i18n="review.title">Review + Generate</h2>
-  <p class="block-sub" data-i18n="review.sub">Choose template and colors, review match score, then generate your CV.</p>
+  <h2 data-i18n="review.title">Check and generate</h2>
+  <p class="block-sub" data-i18n="review.sub">Pick a template, check the match score, then decide if you want to generate.</p>
   <div class="grid two">
     <label><span data-i18n="label.template">Template</span>
       <select id="review-template">
@@ -56,20 +56,21 @@
   <div id="review-recommendation" class="alert" style="display:none;"></div>
   <div id="review-missing" class="list-rows"></div>
   <details id="review-keyword-accordion" class="more-options" open>
-    <summary data-i18n="comparison.keywords_title">Job ad vs CV keyword comparison</summary>
+    <summary data-i18n="comparison.keywords_title">Keyword comparison: job ad vs your CV</summary>
+    <p class="subtitle" data-i18n="comparison.keywords_help">Keywords are extracted from the job ad. Missing terms are listed below.</p>
     <div id="review-keyword-comparison"></div>
   </details>
 
   <!-- Content Optimization Comparison -->
   <details id="optimization-accordion" class="more-options" open>
-    <summary data-i18n="optimization.title">Content Optimization</summary>
-    <p class="subtitle" data-i18n="optimization.subtitle">How your input was tailored to match this job</p>
+    <summary data-i18n="optimization.title">What changed in your CV</summary>
+    <p class="subtitle" data-i18n="optimization.subtitle">Original wording vs optimized wording, based on job-ad keywords.</p>
     <div id="optimization-content"></div>
   </details>
 
   <!-- Quality Analysis -->
   <details id="quality-accordion" class="more-options">
-    <summary data-i18n="quality.title">Quality Analysis</summary>
+    <summary data-i18n="quality.title">Text quality check</summary>
     <div id="quality-content"></div>
   </details>
 

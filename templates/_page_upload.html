@@ -1,6 +1,6 @@
 <section class="block tone-light">
   <h2 data-i18n="upload.page_title">Enter your CV details</h2>
-  <p class="block-sub" data-i18n="upload.page_sub">Fill in your profile manually, section by section.</p>
+  <p class="block-sub" data-i18n="upload.page_sub">Add your details section by section. Keep facts clear and short.</p>
 
   <!-- Profile Photo Section -->
   <div class="upload-section photo-section">
@@ -20,7 +20,8 @@
 
   <!-- CV Input: Contact Info -->
   <div class="cv-input-section">
-    <h3 class="section-heading" data-i18n="upload.cv_contact">Contact Info</h3>
+    <h3 class="section-heading" data-i18n="upload.cv_contact">Contact info</h3>
+    <p class="section-sub" data-i18n="upload.cv_contact_help">Example: full name, email, phone, city, LinkedIn.</p>
     <div class="grid two">
       <label><span data-i18n="upload.cv_name">Full name</span>
         <input id="upload-name" type="text" data-i18n-placeholder="adv.ph_name">
@@ -57,6 +58,7 @@
   <!-- CV Input: Skills -->
   <div class="cv-input-section">
     <h3 class="section-heading" data-i18n="upload.cv_skills">Skills</h3>
+    <p class="section-sub" data-i18n="upload.cv_skills_help">Add exact tools and skills you have used (for example: Python, SQL, Jira).</p>
     <div id="upload-skills-list" class="dynamic-list"></div>
     <button type="button" class="btn-add" id="upload-add-skill" data-i18n="upload.cv_add_skill">+ Add Skill</button>
   </div>
@@ -70,7 +72,8 @@
 
   <!-- CV Input: Experience -->
   <div class="cv-input-section">
-    <h3 class="section-heading" data-i18n="upload.cv_experience">Experience</h3>
+    <h3 class="section-heading" data-i18n="upload.cv_experience">Work history</h3>
+    <p class="section-sub" data-i18n="upload.cv_experience_help">One role per entry. Include tasks and measurable results.</p>
     <div id="upload-experience-list" class="dynamic-list"></div>
     <button type="button" class="btn-add" id="upload-add-experience" data-i18n="upload.cv_add_experience">+ Add Experience</button>
   </div>
@@ -78,6 +81,7 @@
   <!-- CV Input: Education -->
   <div class="cv-input-section">
     <h3 class="section-heading" data-i18n="upload.cv_education">Education</h3>
+    <p class="section-sub" data-i18n="upload.cv_education_help">Add degree, school, and dates. Include key learnings if useful.</p>
     <div id="upload-education-list" class="dynamic-list"></div>
     <button type="button" class="btn-add" id="upload-add-education" data-i18n="upload.cv_add_education">+ Add Education</button>
   </div>
@@ -92,6 +96,6 @@
 <section class="block tone-white">
   <div class="row-actions row-actions-between">
     <a class="btn-secondary btn-link" href="{{ request.url_for('page_start') }}" data-i18n="action.back_start">Back to Start</a>
-    <button id="upload-continue-btn" type="button" class="btn-primary" disabled data-i18n="action.continue_questions">Continue to Questions</button>
+    <button id="upload-continue-btn" type="button" class="btn-primary" disabled data-i18n="action.continue_questions">Continue to confirm details</button>
   </div>
 </section>

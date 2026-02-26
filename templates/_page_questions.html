@@ -1,9 +1,9 @@
 <section class="block tone-white" id="page-questions">
   <h2 data-i18n="questions.title">Questions</h2>
-  <p class="block-sub" data-i18n="questions.sub">Answer required gaps to complete your profile.</p>
+  <p class="block-sub" data-i18n="questions.sub">Please confirm missing details.</p>
   <div id="questions-list" class="list-rows"></div>
   <div class="row-actions">
-    <button id="save-answers-btn" type="button" class="btn-primary" disabled data-i18n="action.save_answers">Save answers + refresh</button>
+    <button id="save-answers-btn" type="button" class="btn-primary" disabled data-i18n="action.save_answers">Save and continue</button>
   </div>
   <div id="required-summary" class="meta"></div>
 </section>
@@ -11,6 +11,6 @@
 <section class="block tone-light">
   <div class="row-actions row-actions-between">
     <a class="btn-secondary btn-link" href="{{ request.url_for('page_upload') }}" data-i18n="action.back_upload">Back to Upload</a>
-    <button id="to-review-btn" type="button" class="btn-primary" disabled data-i18n="action.continue_review">Continue to Review</button>
+    <button id="to-review-btn" type="button" class="btn-primary" disabled data-i18n="action.continue_review">Continue to check</button>
   </div>
 </section>
