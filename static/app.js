@@ -141,9 +141,6 @@
       "result.sub": "Preview your CV below. Download as HTML or Markdown, then optionally create a cover letter.",
       "result.download_html": "Download HTML",
       "result.download_md": "Download Markdown",
-      "result.chat_title": "Refine your CV",
-      "result.chat_placeholder": "e.g. Make the summary more concise",
-      "result.chat_send": "Send",
       "cover.sub": "Optional: Generate a tailored cover letter to accompany your CV.",
       "cover.result_title": "Your Cover Letter",
       "cover.download_html": "Download HTML",
@@ -326,7 +323,7 @@
       "gap.critical": "Critical gaps",
       "gap.important": "Important gaps",
       "gap.nice_to_have": "Nice to have",
-      "gap.no_specific_gaps": "Overall good match. Consider emphasizing relevant keywords in your CV.",
+      "gap.no_specific_gaps": "No specific gaps were extracted. Verify job-ad keywords and add missing evidence where factual.",
 
       "quality.title": "Quality Analysis",
       "quality.readability": "Readability (Flesch)",
@@ -585,9 +582,6 @@
       "result.sub": "CV Vorschau. Als HTML oder Markdown herunterladen, dann optional ein Anschreiben erstellen.",
       "result.download_html": "HTML herunterladen",
       "result.download_md": "Markdown herunterladen",
-      "result.chat_title": "CV verfeinern",
-      "result.chat_placeholder": "z.B. Zusammenfassung kürzer formulieren",
-      "result.chat_send": "Senden",
       "cover.sub": "Optional: Passgenaues Anschreiben zu deinem CV generieren.",
       "cover.result_title": "Dein Anschreiben",
       "cover.download_html": "HTML herunterladen",
@@ -770,7 +764,7 @@
       "gap.critical": "Kritische Lücken",
       "gap.important": "Wichtige Lücken",
       "gap.nice_to_have": "Wünschenswert",
-      "gap.no_specific_gaps": "Insgesamt gute Übereinstimmung. Relevante Keywords im CV betonen.",
+      "gap.no_specific_gaps": "Keine spezifischen Lücken extrahiert. Inserat-Keywords prüfen und fehlende Fakten evidenzbasiert ergänzen.",
 
       "quality.title": "Qualitätsanalyse",
       "quality.readability": "Lesbarkeit (Flesch)",
@@ -1256,7 +1250,7 @@
     reviewMissing.innerHTML = `
       ${jobSummary ? `<div class="row-card"><strong>${t("optimization.subtitle")}</strong><p>${escHtml(jobSummary)}</p></div>` : ""}
       <div class="row-card">
-        <strong>${t("text.missing_keywords")}</strong>
+        <strong>${t("text.missing_keywords")} ${state.uiLanguage === "de" ? "(aus Inserat)" : "(from job ad)"}</strong>
         <p>${missing.length ? missing.slice(0, 20).join(", ") : t("text.none")}</p>
       </div>
       ${qualityWarnings.length ? `<div class="row-card">
@@ -3249,8 +3243,6 @@
     const downloadHtml = document.getElementById("result-download-html");
     const downloadMd = document.getElementById("result-download-md");
     const toCoverBtn = document.getElementById("result-to-cover-btn");
-    const chatSend = document.getElementById("result-chat-send");
-    const chatInput = document.getElementById("result-chat-input");
 
     if (downloadHtml) downloadHtml.addEventListener("click", () => {
       if (!state.artifactToken) return;
@@ -3263,31 +3255,6 @@
     if (toCoverBtn) toCoverBtn.addEventListener("click", () => {
       window.location.assign(routeForStep("cover"));
     });
-    if (chatSend) chatSend.addEventListener("click", () => run(resultChatSend));
-    if (chatInput) chatInput.addEventListener("keydown", (e) => { if (e.key === "Enter") run(resultChatSend); });
-  }
-
-  async function resultChatSend() {
-    const input = document.getElementById("result-chat-input");
-    const messages = document.getElementById("result-chat-messages");
-    if (!input || !state.artifactToken) return;
-    const msg = input.value.trim();
-    if (!msg) return;
-    input.value = "";
-    if (messages) messages.innerHTML += `<div class="chat-msg user">${escHtml(msg)}</div>`;
-    const response = await fetch(endpoint(`/api/session/${state.sessionId}/chat`), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: msg, token: state.artifactToken }),
-    });
-    const data = await parseJsonResponse(response);
-    if (data.token) {
-      state.artifactToken = data.token;
-      state.cvHtml = data.cv_html || state.cvHtml;
-      saveLocal();
-    }
-    if (messages) messages.innerHTML += `<div class="chat-msg assistant">${escHtml(data.message || "Done")}</div>`;
-    renderResultPage();
   }
 
   function bindCoverPageEvents() {

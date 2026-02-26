@@ -68,7 +68,7 @@ from happyrav.services.question_engine import (
     build_missing_questions,
     unresolved_required_ids,
 )
-from happyrav.services.scoring import compute_match
+from happyrav.services.scoring import compute_match, extract_job_keywords
 from happyrav.services.cv_quality import validate_cv_quality
 from happyrav.services.templating import (
     build_cv_text,
@@ -1091,6 +1091,7 @@ async def api_session_preview_match(session_id: str) -> Dict:
     if state.telos_context:
         telos_lines = [f"{k}: {v}" for k, v in state.telos_context.items() if v]
         cv_text += "\n\n# Career Goals & Values\n" + "\n".join(telos_lines)
+    job_keywords = extract_job_keywords(state.job_ad_text)
 
     # Compute match with hybrid approach
     from happyrav.services.llm_matching import (
@@ -1182,6 +1183,11 @@ async def api_session_preview_match(session_id: str) -> Dict:
         "recommendation": recommendation,
         "suggestion": suggestion,
         "score": match.overall_score,
+        "matching_inputs": {
+            "job_ad_chars": len(state.job_ad_text or ""),
+            "cv_chars": len(cv_text or ""),
+            "job_keywords_count": len(job_keywords),
+        },
         "strategic_analysis": strategic_analysis,
         "preview_comparison_sections": [
             {

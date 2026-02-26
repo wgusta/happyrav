@@ -55,6 +55,11 @@ happyRAV is a high-performance CV/Cover Letter wizard. Your goal is to maintain 
     - **Fixtures:** `test_client` with cache reinitialization (fixes temp directory issues between tests).
     - **Run:** `pytest tests/test_smoke_start_page.py -v -s` for visual output.
     - **Action:** Run smoke tests before deploy to verify intake flows work correctly.
+9.  **Job Summary + Guardrails (Feb 2026):**
+    - Preview-match now adds `job_summary` (LLM + baseline). Store in `SessionState.job_summary`, propagate to match payload and artifact meta.
+    - Generation/refinement prompts: explicit HR/CV expert, no fabrication; leave blanks if data missing.
+    - Outputs: Result page offers HTML/Markdown (no CV PDF buttons). Cover letters expose HTML/Markdown (+ PDF fallback only for email/download endpoints).
+    - New endpoint: `GET /api/result/{token}/cover-markdown`. CV markdown unchanged.
 
 ## Key Files
 - `main.py`: The API orchestration layer. Handles MD5 hashing, persistent cache interaction, hybrid matching integration, strategic endpoints.

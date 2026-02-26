@@ -15,6 +15,7 @@ Document-first ATS-optimized CV + cover letter generation wizard. Five-step flow
 - **LLM:** Multi-provider: OpenAI (extraction/OCR/semantic matching), Anthropic Claude Sonnet 4.6 (generation with Swiss German calibration), Google Gemini (crosscheck, max mode only). Quality via `HAPPYRAV_QUALITY` env (balanced/max)
 - **Semantic Matching:** LLM-based contextual CV-job alignment (GPT-4.1-mini). Hybrid scoring: 40% baseline regex + 60% semantic understanding. Detects transferable skills, contextual gaps, ranks skills by relevance.
 - **Token Optimization:** Source documents injected via raw XML `<DOCUMENTS>` tags (no JSON escaping).
+- **Outputs:** Wizard result: CV HTML/Markdown (no CV PDF buttons). Cover letter: HTML/Markdown + PDF fallback for email/download. Endpoint: `/api/result/{token}/cover-markdown`.
 - **Frontend:** Vanilla JS, single `app.js` with inline i18n (EN/DE), no framework
 - **Templates:** Jinja2 for pages (`templates/`) and PDF docs (`doc_templates/`)
 - **Reverse proxy:** Caddy (auto HTTPS)
@@ -78,6 +79,7 @@ All UI text lives in `I18N` object inside `app.js` with `en` and `de` keys. HTML
 - **Source Injection:** Documents are concatenated with `\n\n` and wrapped in `<DOCUMENTS>...</DOCUMENTS>`. No `json.dumps()` of source text.
 - **Context Limits:** 64k chars (Extraction), 48k chars (Generation). Explicit `llm_warning` returned if truncated.
 - **OCR Cache:** `main.py` checks `document_cache` (MD5 of bytes) before calling `extract_text_from_bytes`.
+- **Guardrails + Job Summary:** `preview-match` produces `job_summary` (LLM + baseline) saved on SessionState and passed into generation; generation/refinement prompts state “expert HR & CV designer, no fabrication, leave blanks if missing.”
 
 ### Semantic Matching
 LLM-based contextual CV-job alignment replaces rigid regex matching:

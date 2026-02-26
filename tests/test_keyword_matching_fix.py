@@ -92,3 +92,8 @@ class TestKeywordMatchingFix:
         assert "john doe" in captured_cv.lower(), "CV should contain profile name"
         assert "javascript" in captured_cv.lower() or "react" in captured_cv.lower(), \
             "CV should contain profile skills"
+        payload = response.json()
+        assert "matching_inputs" in payload
+        assert payload["matching_inputs"]["job_ad_chars"] == len(job_ad)
+        assert payload["matching_inputs"]["cv_chars"] > 0
+        assert payload["matching_inputs"]["job_keywords_count"] >= 1

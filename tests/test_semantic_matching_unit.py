@@ -2,6 +2,7 @@
 import pytest
 from unittest.mock import AsyncMock, patch
 from happyrav.services.llm_matching import (
+    MATCHING_MODEL,
     extract_semantic_keywords,
     match_skills_semantic,
     rank_skills_by_relevance,
@@ -65,7 +66,7 @@ async def test_semantic_keywords_extraction_returns_alternatives(mock_llm):
     mock_llm.assert_called_once()
     call_args = mock_llm.call_args
     assert "We need a React developer" in call_args.kwargs["user"]
-    assert call_args.kwargs["model"] == "gpt-4.1-mini"
+    assert call_args.kwargs["model"] == MATCHING_MODEL
 
 
 @pytest.mark.asyncio

@@ -66,6 +66,10 @@ Result: **Hardened Chassis**.
     *   **Root Cause:** Frontend didn't sync job_ad_text to server before calling preview API.
     *   **Fix:** Added `await syncIntake()` in `app.js` previewMatch() function.
     *   **Test Coverage:** `test_keyword_matching_fix.py` validates correct job_ad_text parameter passing.
+10. **Job Summary + Output Shift (Feb 2026):**
+    * **Job Summary:** `preview-match` now produces `job_summary` (LLM + baseline) stored in `SessionState.job_summary`, shown in review/result, fed into generation match_context.
+    * **Guardrails:** Generation/refinement prompts explicitly “expert HR & CV designer”, “no fabrication; leave blanks if absent”.
+    * **Outputs:** Result UI now offers CV HTML/Markdown only; cover letters provide HTML/Markdown with PDF fallback (email/download). New endpoint: `GET /api/result/{token}/cover-markdown`.
 
 ### Test Suite (Feb 2026)
 **Comprehensive TDD coverage** for production fixes:

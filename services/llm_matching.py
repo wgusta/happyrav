@@ -14,6 +14,13 @@ from happyrav.models import (
     SemanticMatchResult,
 )
 
+MATCHING_MODEL = (os.getenv("HAPPYRAV_MATCHING_MODEL") or "gpt-5.2").strip()
+MATCHING_MODEL_FALLBACKS = [
+    m.strip()
+    for m in (os.getenv("HAPPYRAV_MATCHING_MODEL_FALLBACKS") or "gpt-4.1,gpt-4.1-mini").split(",")
+    if m.strip()
+]
+
 
 def _build_async_openai_client():
     """Build async OpenAI client."""
@@ -45,21 +52,31 @@ def _extract_json_payload(text: str) -> Dict[str, Any]:
 
 
 async def _chat_json_openai_async(
-    system: str, user: str, max_tokens: int, model: str = "gpt-4.1-mini"
+    system: str, user: str, max_tokens: int, model: str | None = None
 ) -> Dict[str, Any]:
-    """Async wrapper for OpenAI JSON chat."""
+    """Async wrapper for OpenAI JSON chat with model fallback chain."""
     client = _build_async_openai_client()
-    resp = await client.chat.completions.create(
-        model=model,
-        temperature=0.1,
-        max_tokens=max_tokens,
-        messages=[
-            {"role": "system", "content": system},
-            {"role": "user", "content": user},
-        ],
-    )
-    text = resp.choices[0].message.content or ""
-    return _extract_json_payload(text)
+    candidates = [model or MATCHING_MODEL, *MATCHING_MODEL_FALLBACKS]
+    last_exc: Exception | None = None
+    for candidate in candidates:
+        try:
+            resp = await client.chat.completions.create(
+                model=candidate,
+                temperature=0.1,
+                max_tokens=max_tokens,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+            )
+            text = resp.choices[0].message.content or ""
+            return _extract_json_payload(text)
+        except Exception as exc:
+            last_exc = exc
+            continue
+    if last_exc:
+        raise last_exc
+    raise RuntimeError("No matching model candidates configured.")
 
 
 async def extract_semantic_keywords(
@@ -106,7 +123,7 @@ Language: {lang_label}
         system=system_prompt,
         user=user_prompt,
         max_tokens=2500,
-        model="gpt-4.1-mini"
+        model=MATCHING_MODEL
     )
     return response
 
@@ -159,7 +176,7 @@ Return JSON:
         system=system_prompt,
         user=user_prompt,
         max_tokens=3000,
-        model="gpt-4.1-mini"
+        model=MATCHING_MODEL
     )
 
     # Convert to SemanticMatchResult model
@@ -207,7 +224,7 @@ Return JSON with "ranked_skills" array. Sort by relevance descending. Language: 
         system=system_prompt,
         user=user_prompt,
         max_tokens=2000,
-        model="gpt-4.1-mini"
+        model=MATCHING_MODEL
     )
     return response.get("ranked_skills", [])
 
@@ -260,7 +277,7 @@ Sort by relevance descending. Language: {lang_label}
         system=system_prompt,
         user=user_prompt,
         max_tokens=4000,
-        model="gpt-4.1-mini"
+        model=MATCHING_MODEL
     )
     return response.get("achievements", [])
 
@@ -317,7 +334,7 @@ Return JSON with "gaps" array. Focus on actionable gaps. Language: {lang_label}
         system=system_prompt,
         user=user_prompt,
         max_tokens=3000,
-        model="gpt-4.1-mini"
+        model=MATCHING_MODEL
     )
 
     # Convert to ContextualGap objects
@@ -363,7 +380,7 @@ async def summarize_job_ad(job_ad_text: str, language: str) -> str:
             system=system_prompt,
             user=json.dumps({"job_posting": job_ad_text[:2600], "language": lang_label}),
             max_tokens=300,
-            model="gpt-4.1-mini",
+            model=MATCHING_MODEL,
         )
         # If model returns dict with summary field
         if isinstance(response, dict) and response.get("summary"):
